@@ -4,9 +4,9 @@
  * Contains methods for generating more complex error messages.
  */
 
-import {Assembler} from "./assembler";
+import Assembler from "./assembler";
 
-export class ErrorBuilder
+export default class ErrorBuilder
 {
     /**
      * 

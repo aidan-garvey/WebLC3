@@ -6,11 +6,11 @@
  * parsing tokens as any type of operand.
  */
 
-import { Assembler } from "./assembler";
-import { ErrorBuilder } from "./errorBuilder";
-import { FakeUI } from "./fakeUI";
+import Assembler from "./assembler";
+import ErrorBuilder from "./errorBuilder";
+import FakeUI from "./fakeUI";
 
-export class Parser
+export default class Parser
 {
     // instruction mnemonics mapped to opcodes
     static opcodeVals = new Map([

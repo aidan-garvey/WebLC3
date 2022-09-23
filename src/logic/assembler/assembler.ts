@@ -9,11 +9,11 @@
  * memory in the simulator user interface.
  */
 
-import {Parser} from "./parser";
-import {FakeUI} from "./fakeUI";
-import {ErrorBuilder} from "./errorBuilder";
+import Parser from "./parser";
+import FakeUI from "./fakeUI";
+import ErrorBuilder from "./errorBuilder";
 
-export class Assembler
+export default class Assembler
 {
     // all valid opcodes, including trap aliases
     static opCodes = new Set([

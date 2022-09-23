@@ -5,9 +5,9 @@
  * calls made between the assembler and user interface.
  */
 
-import {Assembler} from "./assembler";
+import Assembler from "./assembler";
 
-export class FakeUI
+export default class FakeUI
 {
     /**
      * @param {string} message 
