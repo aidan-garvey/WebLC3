@@ -1,18 +1,18 @@
 /**
- * FakeUI.js
+ * fakeUI.ts
  * 
  * Temporary class for testing the assembler which mimics the function
  * calls made between the assembler and user interface.
  */
 
-import {Assembler} from "./Assembler.js";
+import {Assembler} from "./assembler";
 
 export class FakeUI
 {
     /**
      * @param {string} message 
      */
-    static print(message)
+    static print(message: string)
     {
         console.log(message + ".");
     }

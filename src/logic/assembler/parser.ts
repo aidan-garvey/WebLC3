@@ -1,14 +1,14 @@
 /**
- * Parser.js
+ * parser.ts
  * 
  * Splits lines of source code into individual tokens, converts
  * tokenized source code into machine code. Also contains methods for
  * parsing tokens as any type of operand.
  */
 
-import { Assembler } from "./Assembler.js";
-import { ErrorBuilder } from "./ErrorBuilder.js";
-import { FakeUI } from "./FakeUI.js";
+import { Assembler } from "./assembler";
+import { ErrorBuilder } from "./errorBuilder";
+import { FakeUI } from "./fakeUI";
 
 export class Parser
 {
@@ -39,7 +39,7 @@ export class Parser
      * @param {string} line 
      * @returns {string}
      */
-    static trimLine(line)
+    static trimLine(line: string) : string
     {
         let res = line;
         const cmt = line.indexOf(';');
@@ -57,7 +57,7 @@ export class Parser
      * @param {number} bits 
      * @returns {number}
      */
-    static parseImmediate(token, bits = 16)
+    static parseImmediate(token: string, bits = 16) : number
     {
         let mask = 0;
         for (let i = 0; i < bits; i++)
@@ -110,7 +110,7 @@ export class Parser
      * @param {string} literal 
      * @returns {number[]}
      */
-    static parseString(literal)
+    static stringToCodes(literal: string) : number[]
     {
         const result = [];
         let quote = literal[0];
@@ -139,7 +139,7 @@ export class Parser
      * @param {string} regStr 
      * @returns {number}
      */
-    static parseReg(regStr)
+    static parseReg(regStr: string) : number
     {
         if (regStr[0] != 'r' && regStr[0] != 'R')
         {
@@ -176,9 +176,9 @@ export class Parser
      * @param {number} pc 
      * @param {Map<string, number>} labels 
      * @param {number} bits 
-     * @returns 
+     * @returns {number}
      */
-    static calcLabelOffset(label, pc, labels, bits)
+    static calcLabelOffset(label: string, pc: number, labels: Map<string, number>, bits: number) : number
     {
         let mask = 0;
         for (let i = 0; i < bits; i++)
@@ -217,7 +217,7 @@ export class Parser
      * @param {string} line 
      * @returns {string[]}
      */
-    static tokenizeLine(line)
+    static tokenizeLine(line: string) : string[]
     {
         /**
          * split on colons and commas
@@ -257,7 +257,7 @@ export class Parser
     // instruction (given by pc); the known labels in the program; and
     // the map containing labels which have yet to be defined, return
     // the resulting machine code for that instruction. 
-    static parseCode(tokens, pc, labels, toFix)
+    static parseCode(tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
     {
         if (tokens[0].startsWith("br"))
             return this.asmBrJsr(tokens, pc, labels, toFix);
@@ -304,7 +304,7 @@ export class Parser
      * @param {string[]} tokens
      * @returns {number}
      */
-    static asmAluOp(tokens)
+    static asmAluOp(tokens: string[]) : number
     {
         let res = this.opcodeVals.get(tokens[0]);
         // destination register
@@ -352,7 +352,7 @@ export class Parser
      * @param {Map<string[], number>} toFix 
      * @returns {number}
      */
-    static asmBrJsr(tokens, pc, labels, toFix)
+    static asmBrJsr(tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
     {
         let res = this.opcodeVals.get(tokens[0]);
         let bits = this.immBitCounts.get(tokens[0]);
@@ -374,7 +374,7 @@ export class Parser
      * @param {string[]} tokens 
      * @returns {number}
      */
-    static asmRegJump(tokens)
+    static asmRegJump(tokens: string[]) : number
     {
         let res = this.opcodeVals.get(tokens[0]);
         // @ts-ignore
@@ -389,7 +389,7 @@ export class Parser
      * @param {Map<string[], number>} toFix 
      * @returns {number}
      */
-    static asmPcLoadStore(tokens, pc, labels, toFix)
+    static asmPcLoadStore(tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
     {
         let res = this.opcodeVals.get(tokens[0]);
         // @ts-ignore
@@ -412,7 +412,7 @@ export class Parser
      * @param {string[]} tokens 
      * @returns {number}
      */
-    static asmRegLoadStore(tokens)
+    static asmRegLoadStore(tokens: string[]) : number
     {
         let res = this.opcodeVals.get(tokens[0]);
         // @ts-ignore
@@ -432,7 +432,7 @@ export class Parser
      * @param {string} code 
      * @returns {number}
      */
-    static asmTrap(code)
+    static asmTrap(code: string) : number
     {
         let immCode = this.parseImmediate(code);
         if (isNaN(immCode) || immCode > 0xFF || immCode < 0)
@@ -446,7 +446,7 @@ export class Parser
      * @param {string} alias 
      * @returns {number}
      */
-    static asmTrapAlias(alias)
+    static asmTrapAlias(alias: string) : number
     {
         // @ts-ignore
         return this.opcodeVals.get(alias);
@@ -463,7 +463,7 @@ export class Parser
      * @param {number[]} memory 
      * @returns {number}
      */
-    static parseDirective(tokens, pc, memory)
+    static parseDirective(tokens: string[], pc: number, memory: number[]) : number
     {
         let inc = 0;
         let val;
@@ -505,7 +505,7 @@ export class Parser
                 break;
 
             case ".stringz":
-                const codes = this.parseString(tokens[1]);
+                const codes = this.stringToCodes(tokens[1]);
                 if (codes != null && codes.length > 0)
                 {
                     for (let i = 0; i < codes.length; i++)

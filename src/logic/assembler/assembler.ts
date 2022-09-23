@@ -1,5 +1,5 @@
 /**
- * Assembler.js
+ * assembler.ts
  * 
  * Converts program source code into a binary object file, which
  * consists of the starting address of the program followed by the
@@ -9,9 +9,9 @@
  * memory in the simulator user interface.
  */
 
-import {Parser} from "./Parser.js";
-import {FakeUI} from "./FakeUI.js";
-import {ErrorBuilder} from "./ErrorBuilder.js";
+import {Parser} from "./parser";
+import {FakeUI} from "./fakeUI";
+import {ErrorBuilder} from "./errorBuilder";
 
 export class Assembler
 {
@@ -74,7 +74,7 @@ export class Assembler
      * @param {string} sourceCode 
      * @returns {[Uint16Array, Map<number, string>] | null}
      */
-    static assemble(sourceCode)
+    static assemble(sourceCode: string) : [Uint16Array, Map<number, string>] | null
     {
         this.hasError = false;
 
@@ -90,14 +90,14 @@ export class Assembler
         // directive plus the index into the array.
         // (ex: if program starts with .ORIG x3000, memory[2] corresponds to
         // the address x3002)
-        const memory = [];
+        const memory: number[] = [];
         // map label names to the address of the label
-        const labels = new Map();
+        const labels: Map<string, number> = new Map();
         // Map line tokens with label operands to the memory location they are in.
         // After the first pass, we'll revisit these to fix the offset values.
-        const toFix = new Map();
+        const toFix: Map<string[], number> = new Map();
         // maps memory locations where code is stored to the source code
-        const addrToCode = new Map();
+        const addrToCode: Map<number, string> = new Map();
         let startOffset;
         let lineNum = 0;
         // keeps track of our spot in the memory array (not the final address)
@@ -241,7 +241,7 @@ export class Assembler
      * @param {string[]} tokens 
      * @returns {boolean}
      */
-    static validOperandCount(tokens)
+    static validOperandCount(tokens: string[]) : boolean
     {
         if (tokens[0] == ".blkw")
         {
