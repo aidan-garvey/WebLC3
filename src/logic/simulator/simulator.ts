@@ -3,6 +3,8 @@
  */
 
 import Opcodes from "./opcodes";
+import decodeRegister from "./decodeReg";
+import decodeImmediate from "./decodeImm";
 
 export default class Simulator
 {
@@ -462,52 +464,52 @@ export default class Simulator
         switch ((instruction & 0xF000) >> 12)
         {
             case 0b0000:
-                this.execBr();
+                this.execBr(instruction);
                 break;
             case 0b0001:
-                this.execAdd();
+                this.execAdd(instruction);
                 break;
             case 0b0010:
-                this.execLd();
+                this.execLd(instruction);
                 break;
             case 0b0011:
-                this.execSt();
+                this.execSt(instruction);
                 break;
             case 0b0100:
-                this.execJsr();
+                this.execJsr(instruction);
                 break;
             case 0b0101:
-                this.execAnd();
+                this.execAnd(instruction);
                 break;
             case 0b0110:
-                this.execLdr();
+                this.execLdr(instruction);
                 break;
             case 0b0111:
-                this.execStr();
+                this.execStr(instruction);
                 break;
             case 0b1000:
-                this.execRti();
+                this.execRti(instruction);
                 break;
             case 0b1001:
-                this.execNot();
+                this.execNot(instruction);
                 break;
             case 0b1010:
-                this.execLdi();
+                this.execLdi(instruction);
                 break;
             case 0b1011:
-                this.execSti();
+                this.execSti(instruction);
                 break;
             case 0b1100:
-                this.execJmp();
+                this.execJmp(instruction);
                 break;
             case 0b1101:
                 // illegal (reserved)
                 break;
             case 0b1110:
-                this.execLea();
+                this.execLea(instruction);
                 break;
             case 0b1111:
-                this.execTrap();
+                this.execTrap(instruction);
                 break;
             default:
                 break;
@@ -519,78 +521,155 @@ export default class Simulator
         return false;
     }
 
-    private execAdd()
+    /**
+     * Set the condition codes according to the given number
+     * @param result the 16-bit result of an instruction
+     */
+    private setConditions(result: number)
     {
-
+        this.flagNegative = (result & 0x8000) != 0;
+        this.flagZero = result == 0;
+        this.flagPositive = (result & 0x8000) == 0 && result > 0;
     }
 
-    private execAnd()
-    {
+    /**
+     * Instruction methods - each executes one instruction.
+     */
 
+    private execAdd(instruction: number)
+    {
+        const destReg = decodeRegister(instruction, 0);
+        const source1 = this.registers[decodeRegister(instruction, 1)];
+        let source2: number;
+        if ((instruction & 0b10_0000) != 0)
+        {
+            source2 = decodeImmediate(instruction, 5);
+        }
+        else
+        {
+            source2 = this.registers[decodeRegister(instruction, 2)];
+        }
+
+        this.registers[destReg] = source1 + source2;
+        this.setConditions(this.registers[destReg]);
     }
 
-    private execBr()
+    private execAnd(instruction: number)
     {
+        const destReg = decodeRegister(instruction, 0);
+        const source1 = this.registers[decodeRegister(instruction, 1)];
+        let source2: number;
+        if ((instruction & 0b10_0000) != 0)
+        {
+            source2 = decodeImmediate(instruction, 5);
+        }
+        else
+        {
+            source2 = this.registers[decodeRegister(instruction, 2)];
+        }
 
+        this.registers[destReg] = source1 & source2;
+        this.setConditions(this.registers[destReg]);
     }
 
-    private execJmp()
+    private execBr(instruction: number)
     {
-        
+        if (
+            (this.flagNegative && (instruction & 0x0800))
+            || (this.flagZero && (instruction & 0x0400))
+            || (this.flagPositive && (instruction & 0x0200))
+        )
+        {
+            this.pc[0] += decodeImmediate(instruction, 9);
+        }
     }
 
-    private execJsr()
+    private execJmp(instruction: number)
     {
-        
+        this.pc[0] = this.registers[decodeRegister(instruction, 1)];
     }
 
-    private execLd()
+    private execJsr(instruction: number)
     {
-        
+        const savedPC = this.pc[0];
+        if (instruction & 0x800)
+        {
+            this.pc[0] += decodeImmediate(instruction, 11);
+        }
+        else
+        {
+            this.pc[0] = this.registers[decodeRegister(instruction, 1)];
+        }
+        this.registers[7] = savedPC;
     }
 
-    private execLdi()
+    private execLd(instruction: number)
     {
-        
+        const destReg = decodeRegister(instruction, 0);
+        const src = (this.pc[0] + decodeImmediate(instruction, 9)) & 0xFFFF;
+        this.registers[destReg] = this.memory[src];
+        this.setConditions(this.registers[destReg]);
     }
 
-    private execLdr()
+    private execLdi(instruction: number)
     {
-        
+        const destReg = decodeRegister(instruction, 0);
+        const src = (this.pc[0] + decodeImmediate(instruction, 9)) & 0xFFFF;
+        this.registers[destReg] = this.memory[this.memory[src]];
+        this.setConditions(this.registers[destReg]);
     }
 
-    private execLea()
+    private execLdr(instruction: number)
     {
-        
+        const destReg = decodeRegister(instruction, 0);
+        const src = (this.registers[decodeRegister(instruction, 0)]
+                + decodeImmediate(instruction, 6)) & 0xFFFF;
+        this.registers[destReg] = this.memory[src];
+        this.setConditions(this.registers[destReg]);
     }
 
-    private execNot()
+    private execLea(instruction: number)
     {
-        
+        const destReg = decodeRegister(instruction, 0);
+        this.registers[destReg] = this.pc[0] + decodeImmediate(instruction, 9);
+        this.setConditions(this.registers[destReg]);
     }
 
-    private execRti()
+    private execNot(instruction: number)
     {
-        
+        const destReg = decodeRegister(instruction, 0);
+        this.registers[destReg] = (~this.registers[decodeRegister(instruction, 1)]) & 0xFFFF;
+        this.setConditions(this.registers[destReg]);
     }
 
-    private execSt()
+    private execRti(instruction: number)
     {
-        
+        // for now, does not trigger privilege mode exception
+
+        // need to swap stack pointers if we go supervisor -> user
     }
 
-    private execSti()
+    private execSt(instruction: number)
     {
-        
+        const dest = (this.pc[0] + decodeImmediate(instruction, 9)) & 0xFFFF;
+        this.memory[dest] = this.registers[decodeRegister(instruction, 0)];
     }
 
-    private execStr()
+    private execSti(instruction: number)
     {
-        
+        const dest = (this.pc[0] + decodeImmediate(instruction, 9)) & 0xFFFF;
+        this.memory[this.memory[dest]] = this.registers[decodeRegister(instruction, 0)];
     }
 
-    private execTrap()
+    private execStr(instruction: number)
     {
-        
+        const dest = (this.registers[decodeRegister(instruction, 0)]
+                + decodeImmediate(instruction, 6)) & 0xFFFF;
+        this.memory[dest] = this.registers[decodeRegister(instruction, 0)];
+    }
+
+    private execTrap(instruction: number)
+    {
+        // will be implemented later
     }
 }
