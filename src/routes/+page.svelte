@@ -1,6 +1,8 @@
 <script>
+    import Header from "../presentation/Header.svelte";
+    import Workspace from "../presentation/Workspace.svelte";
     import "../app.css";
 </script>
 
-<h1>Web<span id="lc3">LC3</span></h1>
-<p>Source code on <a href="https://github.com/aidan-garvey/WebLC3">Github</a></p>
+<Header />
+<Workspace />

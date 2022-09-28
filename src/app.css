@@ -7,7 +7,7 @@
 html, body {
 	margin: 0;
   	padding: 0;
-  	height: 120vh;
+  	height: 100vh;
   	width: 100vw;
 	overflow-x: hidden;
 	scroll-behavior: smooth;
@@ -15,14 +15,23 @@ html, body {
 	font-family: 'Work Sans', sans-serif;
 }
 
-a {
+a, button {
 	text-decoration: none;
-	font-family: 'Source Code Pro', monospace;
+	cursor: pointer;
+	font-family: 'Work Sans', sans-serif;
+	border-radius: 15px;
 }
 
 a:hover {
-	cursor: pointer;
 	text-decoration: underline;
+}
+
+.workSans{
+	font-family: 'Work Sans', sans-serif;
+}
+
+.sourceCodePro{
+	font-family: 'Source Code Pro', monospace;
 }
 
 ::-webkit-scrollbar {
@@ -86,16 +95,48 @@ body.dark{
 	scrollbar-color: var(--l-comment) var(--l-textarea);
 }
 
-.dark::selection{
+body.dark::selection{
 	background-color: var(--d-select);
+}
+
+.dark a {
+	color: var(--d-dir);
+}
+
+.dark #header{
+	background-color: var(--d-textarea);
 }
 
 .dark #lc3{
 	color: var(--d-instr);
 }
 
-.dark a {
-	color: var(--d-dir);
+.dark #switch{
+	background-color: var(--d-body);
+}
+
+.dark #switch section{
+	border: 1px solid var(--d-border);
+}
+
+.dark button{
+	color: var(--d-fadetext);
+	border: 1px solid var(--d-border);
+	padding: 0.6em 2em 0.6em 2em;
+}
+
+.dark button:hover{
+	filter: brightness(0.9);
+}
+
+.dark .functionBtn{
+	background-color: var(--d-tint);
+	font-size: 22px;
+}
+
+.dark .switchBtn{
+	background-color: var(--d-alt);
+	font-size: 18px;
 }
 
 /*==============
@@ -125,17 +166,49 @@ body.dark{
 body.light{
 	color: var(--l-text);
 	background-color: var(--l-body);
-	scrollbar-color: var(--l-alt-shade) var(--l-body);
+	scrollbar-color: var(--l-loc) var(--l-alt-shade);
 }
 
-.light::selection{
+body.light::selection{
 	background-color: var(--l-select);
+}
+
+.light a {
+	color: var(--l-instr);
+}
+
+.light #header{
+	background-color: var(--l-alt);
 }
 
 .light #lc3{
 	color: var(--l-loc);
 }
 
-.light a {
-	color: var(--l-instr);
+.light #switch{
+	background-color: var(--l-alt-tint);
+}
+
+.light #switch section{
+	border: 1px solid var(--l-border);
+}
+
+.light button{
+	border: 1px solid var(--l-border);
+	padding: 0.6em 2em 0.6em 2em;
+}
+
+.light button:hover{
+	filter: brightness(0.95);
+}
+
+.light .functionBtn{
+	background-color: var(--l-tint);
+	color: var(--l-loc);
+	font-size: 22px;
+}
+
+.light .switchBtn{
+	background-color: var(--l-alt-shade);
+	font-size: 18px;
 }
