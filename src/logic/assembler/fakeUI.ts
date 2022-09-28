@@ -72,5 +72,3 @@ LABEL3 .stringz 'hello'\n\
         }
     }
 }
-
-FakeUI.run();

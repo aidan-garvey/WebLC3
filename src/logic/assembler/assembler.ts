@@ -122,7 +122,7 @@ export default class Assembler
                 FakeUI.print(ErrorBuilder.operandError(tokens));
                 return null;
             }
-            const addr = Parser.parseImmediate(tokens[1]);
+            const addr = Parser.parseImmediate(tokens[1], false);
             if (!isNaN(addr))
             {
                 startOffset = addr;

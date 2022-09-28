@@ -53,11 +53,12 @@ export default class Parser
     /**
      * Parse an immediate value, which can be decimal, binary or hexadecimal.
      * If it is not a valid value, return NaN.
-     * @param {string} token 
-     * @param {number} bits 
+     * @param {string} token: the value to parse
+     * @param {boolean} signed: is this immedate a signed value?
+     * @param {number} bits: length, in bits, that the value is allowed to be
      * @returns {number}
      */
-    static parseImmediate(token: string, bits = 16) : number
+    static parseImmediate(token: string, signed: boolean, bits: number = 16) : number
     {
         let mask = 0;
         for (let i = 0; i < bits; i++)
@@ -85,14 +86,33 @@ export default class Parser
             ++start;
         }
         const result = parseInt(token.substring(start), radix);
-        const max = (1<<(bits-1))-1;
-        const min = -(1<<(bits-1));
+        let max: number;
+        let min: number;
+
+        // if no sign extension will occur, allow signed or unsigned values
+        if (bits === 16)
+        {
+            max = (1 << bits) - 1;
+            min = -(1 << (bits - 1));
+        }
+        else if (signed)
+        {
+            max = (1 << (bits - 1)) - 1;
+            min = -(1 << (bits - 1));
+        }
+        else
+        {
+            max = (1 << bits) - 1;
+            min = 0;
+        }
+        // parseInt failed
         if (isNaN(result))
         {
             FakeUI.print(Assembler.errors.IMMEDIATE + ": " + token);
             Assembler.hasError = true;
             return NaN;
         }
+        // value does not fit in allowed bits
         else if (result < min || result > max)
         {
             FakeUI.print(Assembler.errors.IMMBOUNDS + ": " + token);
@@ -326,7 +346,7 @@ export default class Parser
                 // set immediate flag
                 // @ts-ignore
                 res |= 0b10_0000;
-                source2 = this.parseImmediate(tokens[3], this.immBitCounts.get(tokens[0]));
+                source2 = this.parseImmediate(tokens[3], true, this.immBitCounts.get(tokens[0]));
             }
             
             if (!isNaN(source2))
@@ -419,7 +439,7 @@ export default class Parser
         res |= this.parseReg(tokens[1]) << 9;
         // @ts-ignore
         res |= this.parseReg(tokens[2]) << 6;
-        let imm = this.parseImmediate(tokens[3], this.immBitCounts.get(tokens[0]));
+        let imm = this.parseImmediate(tokens[3], true, this.immBitCounts.get(tokens[0]));
         if (isNaN(imm))
             return NaN;
         else
@@ -434,8 +454,8 @@ export default class Parser
      */
     static asmTrap(code: string) : number
     {
-        let immCode = this.parseImmediate(code);
-        if (isNaN(immCode) || immCode > 0xFF || immCode < 0)
+        let immCode = this.parseImmediate(code, false, 8);
+        if (isNaN(immCode))
             return NaN;
         else
             return 0xF000 | (immCode & 0xFF);
@@ -479,7 +499,7 @@ export default class Parser
                 break;
 
             case ".fill":
-                val = this.parseImmediate(tokens[1]);
+                val = this.parseImmediate(tokens[1], false);
                 if (!isNaN(val))
                 {
                     memory[pc] = val;
@@ -488,11 +508,11 @@ export default class Parser
                 break;
 
             case ".blkw":
-                const amt = this.parseImmediate(tokens[1]);
+                const amt = this.parseImmediate(tokens[1], false);
                 val = 0;
                 if (tokens.length == 3)
                 {
-                    val = this.parseImmediate(tokens[2]);
+                    val = this.parseImmediate(tokens[2], false);
                 }
                 if (!isNaN(val) && !isNaN(amt))
                 {
