@@ -1,4 +1,6 @@
 <script>
+    import { toggleHelp } from './stores.js';
+
     let githubRef = `Source code on <a href="https://github.com/aidan-garvey/WebLC3">Github</a>`
 
     function addJiggle(){
@@ -10,10 +12,15 @@
         this.classList.remove("jiggle")
         this.parentElement.querySelector("p").innerHTML=githubRef
     }
+
+    function openHelp(){
+        toggleHelp.set(true)
+        console.log("Opening help")
+    }
 </script>
 
 <div id="title">
-    <h1 on:mouseenter={addJiggle} on:mouseleave={removeJiggle}>
+    <h1 on:mouseenter={addJiggle} on:mouseleave={removeJiggle} on:click={openHelp}>
         Web<span id="lc3">LC3</span>
     </h1>
     <p>{@html githubRef}</p>

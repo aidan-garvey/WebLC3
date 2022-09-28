@@ -53,7 +53,7 @@
     function lerp(id, step, el, currColor, destColor){
         step = 0
         clearInterval(id)
-        id = setInterval(lerpStep, 1)
+        id = setInterval(lerpStep, 3)
         function lerpStep(){
             step++
             if(destColor > currColor){

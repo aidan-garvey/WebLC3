@@ -103,11 +103,16 @@ body.dark::selection{
 	color: var(--d-dir);
 }
 
+.dark #help{
+	background-color: rgba(42,42,42,0.9);
+    border: 5px double var(--d-tint);
+}
+
 .dark #header{
 	background-color: var(--d-textarea);
 }
 
-.dark #lc3{
+.dark #lc3, .dark #help-inner h1{
 	color: var(--d-instr);
 }
 
@@ -174,14 +179,19 @@ body.light::selection{
 }
 
 .light a {
-	color: var(--l-instr);
+	color: var(--l-reg);
+}
+
+.light #help{
+	background-color: rgba(244,244,244,0.9);
+    border: 5px double var(--l-alt-tint);
 }
 
 .light #header{
 	background-color: var(--l-alt);
 }
 
-.light #lc3{
+.light #lc3, .light #help-inner h1{
 	color: var(--l-loc);
 }
 
