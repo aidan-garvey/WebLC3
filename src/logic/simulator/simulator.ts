@@ -93,6 +93,10 @@ export default class Simulator
         {
             this.memory[i] = 0;
         }
+        for (let i = 0; i < 8; i++)
+        {
+            this.registers[i] = 0;
+        }
         this.loadBuiltInCode();
     }
 
@@ -104,6 +108,10 @@ export default class Simulator
         for (let i = 0; i < this.memory.length; i++)
         {
             this.memory[i] = this.randWord();
+        }
+        for (let i = 0; i < 8; i++)
+        {
+            this.registers[i] = this.randWord();
         }
         this.loadBuiltInCode();
     }
