@@ -28,7 +28,8 @@
 
 <style>
 	#editor-view{
-		height: 100%;
+		height: inherit;
+		min-height: 100%;
 		width: 100%;
 		display: grid;
 		grid-template-columns: 70% 25%;
@@ -47,7 +48,8 @@
 	}
 
 	#ev-left, #ev-right{
-		height: 100%;
+		height: inherit;
+		min-height: 100%;
 		width: 100%;
 		display: grid;
 		grid-row-gap: 2vh;

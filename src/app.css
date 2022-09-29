@@ -9,7 +9,7 @@ html, body {
   	padding: 0;
   	height: 100vh;
   	width: 100vw;
-	overflow-x: hidden;
+	overflow: hidden;
 	scroll-behavior: smooth;
 	scrollbar-width: 0.5em;
 	font-family: 'Work Sans', sans-serif;
@@ -196,6 +196,10 @@ body.dark{
 	cursor: text;
 }
 
+.dark #editorCtr{
+	color: var(--d-fadetext);
+}
+
 .dark .highlighted{
 	background-color: var(--d-highlight);
 }
@@ -332,6 +336,10 @@ body.light{
 	cursor: text;
 }
 
+.light #editorCtr{
+	color: var(--l-fadetext);
+}
+
 .light .highlighted{
 	background-color: var(--l-highlight);
 }
@@ -339,3 +347,32 @@ body.light{
 .light #console-inner{
 	color: var(--l-fadetext);
 }
+
+/*==================
+    MONACO EDITOR
+  ==================*/
+
+.dark .monaco-editor .margin{
+	background-color: var(--d-alt) !important;
+}
+
+.dark .monaco-editor .mtk1{
+	color: var(--d-text) !important;
+}
+
+.dark .monaco-editor, .dark .monaco-editor-background, .dark .minimap-decorations-layer{
+	background-color: var(--d-textarea) !important;
+}
+
+.light .monaco-editor .margin{
+	background-color: var(--l-alt) !important;
+}
+
+.light .monaco-editor .mtk1{
+	color: var(--l-text) !important;
+}
+
+.light .monaco-editor, .light .monaco-editor-background{
+	background-color: var(--l-textarea) !important;
+}
+
