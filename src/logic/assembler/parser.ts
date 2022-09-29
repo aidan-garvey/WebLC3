@@ -140,11 +140,6 @@ export default class Parser
             {
                 result.push(literal.charCodeAt(i));
             }
-            if (result.length == 0)
-            {
-                FakeUI.print(Assembler.errors.EMPTYSTRING);
-                Assembler.hasError = true;
-            }
         }
         else
         {
@@ -532,7 +527,9 @@ export default class Parser
                     {
                         memory[pc++] = codes[i];
                     }
-                    inc = codes.length;
+                    // null-terminate the string
+                    memory[pc++] = 0;
+                    inc = codes.length + 1;
                 }
                 break;
         }
