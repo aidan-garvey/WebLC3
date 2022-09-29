@@ -18,20 +18,92 @@
 
 			require(['vs/editor/editor.main'], function () {
 				monaco.languages.register({
-					id: 'myCustomLanguage'
+					id: 'lc3Asm'
 				});
-				monaco.languages.setMonarchTokensProvider('myCustomLanguage', {
+				monaco.languages.setMonarchTokensProvider('lc3Asm', {
+					defaultToken: "invalid",
+					ignoreCase: true,
+
+					instructions: [
+						"add", "and", "br", "brn", "brz", "brp",
+						"brnz", "brnp", "brzp", "brnzp", "jmp", "jsr",
+						"jsrr", "ld", "ldi", "ldr", "lea", "not",
+						"ret", "rti", "st", "sti", "str", "trap"
+					],
+
+					trapAliases: [
+						"getc", "halt", "in", "out", "puts", "putsp"
+					],
+
+					origDirective: [
+						".orig"
+					],
+
+					directives: [
+						".end", ".fill", ".blkw", ".stringz"
+					],
+
+					symbols: /:/,
+					escapes: /\\?:[nrt\\"']/,
+					digits: /\d+/,
+					binDigits: /[0-1]+/,
+					hexDigits: /[0-9a-fA-F]+/,
+
 					tokenizer: {
 						root: [
-							[/\[error.*/, 'custom-error'],
-							[/\[notice.*/, 'custom-notice'],
-							[/\[info.*/, 'custom-info'],
-							[/\[[a-zA-Z 0-9:]+\]/, 'custom-date']
+							// registers
+							[/[rR][0-7]/, "register"],
+
+							// instructions, directives and labels
+							[/[a-zA-Z_][\w]*/, {
+								cases: {
+									"@instructions": "instruction",
+									"@trapAliases": "trapAlias",
+									"@origDirective": "orig",
+									"@directives": "directive",
+									"@default": "label"
+								}
+							}],
+
+							{include: "@whitespace"},
+
+							// numbers
+							[/0?[xX](@hexDigits)/, "hexNumber"],
+							[/0?[bB](@binDigits)/, "binNumber"],
+							[/(@digits)/, "number"],
+
+							// delimiter
+							[/,/, "delimiter"],
+
+							// strings
+							[/"([^"])*$/, "invalidString"],
+							[/'([^'])*$/, "invalidString"],
+							[/"/, "@doubleString"],
+							[/'/, "@singleString"]
+						],
+
+						whitespace: [
+							[/\s/, ''],
+							[/;.*$/, "comment"]
+						],
+
+						doubleString: [
+							[/[^"]+/, "string"],
+							[/@escapes/, "stringEscape"],
+							[/\\./, "invalidEscape"],
+							[/"/, "string", "@pop"]
+						],
+
+						singleString: [
+							[/[^']+/, "string"],
+							[/@escapes/, "stringEscape"],
+							[/\\./, "invalidEscape"],
+							[/'/, "string", "@pop"]
 						]
 					}
 				});
 
-				// Define a new theme that constains only rules that match this language
+				// Define a new theme that contains only rules that match this language
 				monaco.editor.defineTheme('myCoolTheme', {
 					colors: {},
 					base: 'vs',
@@ -47,18 +119,23 @@
 				var editor = monaco.editor.create(document.getElementById('container'), {
 					theme: 'myCoolTheme',
 					value: getCode(),
-					language: 'myCustomLanguage'
+					language: 'lc3Asm'
 				});
 			});
 
 			function getCode() {
 				return [
-					'[Sun Mar 7 16:02:00 2004] [notice] Apache/1.3.29 (Unix) configured -- resuming normal operations',
-					'[Sun Mar 7 16:02:00 2004] [info] Server built: Feb 27 2004 13:56:37',
-					'[Sun Mar 7 16:02:00 2004] [notice] Accept mutex: sysvsem (Default: sysvsem)',
-					'[Sun Mar 7 16:05:49 2004] [info] [client xx.xx.xx.xx] (104)Connection reset by peer: client stopped connection before send body completed',
-					'<11>httpd[31628]: [error] [client xx.xx.xx.xx] File does not exist: /usr/local/installed/apache/htdocs/squirrelmail/_vti_inf.html in 29-Mar 15:18:20.50 from xx.xx.xx.xx',
-					'<11>httpd[25859]: [error] [client xx.xx.xx.xx] File does not exist: /usr/local/installed/apache/htdocs/squirrelmail/_vti_bin/shtml.exe/_vti_rpc in 29-Mar 15:18:20.54 from xx.xx.xx.xx'
+					'; comment',
+					'.ORIG x3000',
+					'LD      R1  NUM1',
+					'ST		 r0, num1',
+					'ADD     R0  R1  #0  ; comment',
+					'add	 r0, r1, xF',
+					'',
+					'num1: .fill x20',
+					'NUM2: .FILL #30',
+					'NUM3:',
+					'.fill b100010'
 				].join('\n');
 			}
 		</script>
