@@ -95,9 +95,9 @@ body.dark{
 	scrollbar-color: var(--l-comment) var(--l-textarea);
 }
 
-body.dark::selection{
+/* ::selection{
 	background-color: var(--d-select);
-}
+} */
 
 .dark a {
 	color: var(--d-dir);
@@ -112,8 +112,40 @@ body.dark::selection{
 	background-color: var(--d-textarea);
 }
 
-.dark #lc3, .dark #help-inner h1{
+.dark #lc3, .dark #help-inner h2{
 	color: var(--d-instr);
+}
+
+.dark .menu-item{
+	border: 1px solid var(--d-border);
+	background-color: var(--d-body);
+	color: var(--d-fadetext);
+}
+
+.dark .menu-item:hover{
+	transition: 0.25s ease-in-out;
+	background-color: var(--d-shade);
+	box-shadow: inset 4px 4px 6px rgba(0,0,0,0.8);
+}
+
+.dark .menu-item:active{
+	background-color: var(--d-fadetext);
+}
+
+.dark .menu-item section{
+	background-color: var(--d-fadetext);
+}
+
+.dark .menu-item p{
+	color: var(--d-fadetext);
+}
+
+.dark .menu-item:active section{
+	background-color: var(--d-textarea);
+}
+
+.dark .menu-item:active p{
+	color: var(--d-textarea);
 }
 
 .dark #switch{
@@ -127,10 +159,11 @@ body.dark::selection{
 .dark button{
 	color: var(--d-fadetext);
 	border: 1px solid var(--d-border);
-	padding: 0.6em 2em 0.6em 2em;
+	/* padding: 0.6em 2em 0.6em 2em; */
 }
 
 .dark button:hover{
+	transition: 0.3s;
 	filter: brightness(0.9);
 }
 
@@ -141,7 +174,34 @@ body.dark::selection{
 
 .dark .switchBtn{
 	background-color: var(--d-alt);
-	font-size: 18px;
+	font-size: 16px;
+}
+
+.dark .functionBtn:active, .dark .switchBtn:active{
+	background-color: var(--d-fadetext);
+	color: var(--d-textarea);
+}
+
+.dark #filename, .dark #jump-input{
+	color: var(--d-fadetext);
+}
+
+.dark .componame{
+	color: var(--d-dir);
+}
+
+.dark #editorCtr, .dark #consoleCtr, .dark #regCtr, .dark #memCtr{
+	background-color: var(--d-textarea);
+	border: 1px solid var(--d-border);
+	cursor: text;
+}
+
+.dark .highlighted{
+	background-color: var(--d-highlight);
+}
+
+.dark #console-inner{
+	color: var(--d-select);
 }
 
 /*==============
@@ -174,12 +234,13 @@ body.light{
 	scrollbar-color: var(--l-loc) var(--l-alt-shade);
 }
 
-body.light::selection{
+::selection{
 	background-color: var(--l-select);
 }
 
 .light a {
-	color: var(--l-reg);
+	color: var(--l-val);
+	font-weight: 500;
 }
 
 .light #help{
@@ -191,8 +252,40 @@ body.light::selection{
 	background-color: var(--l-alt);
 }
 
-.light #lc3, .light #help-inner h1{
+.light #lc3, .light #help-inner h2{
 	color: var(--l-loc);
+}
+
+.light .menu-item{
+	border: 1px solid var(--l-border);
+	background-color: var(--l-tint);
+	color: var(--l-text);
+}
+
+.light .menu-item:hover{
+	transition: 0.25s ease-in-out;
+	background-color: var(--l-alt-shade);
+	box-shadow: inset 4px 4px 6px rgba(0,0,0,0.4);
+}
+
+.light .menu-item:active{
+	background-color: var(--l-text);
+}
+
+.light .menu-item section{
+	background-color: var(--l-text);
+}
+
+.light .menu-item p{
+	color: var(--l-text);
+}
+
+.light .menu-item:active section{
+	background-color: var(--l-textarea);
+}
+
+.light .menu-item:active p{
+	color: var(--l-textarea);
 }
 
 .light #switch{
@@ -205,10 +298,11 @@ body.light::selection{
 
 .light button{
 	border: 1px solid var(--l-border);
-	padding: 0.6em 2em 0.6em 2em;
+	/* padding: 0.6em 2em 0.6em 2em; */
 }
 
 .light button:hover{
+	transition: 0.3s;
 	filter: brightness(0.95);
 }
 
@@ -220,5 +314,28 @@ body.light::selection{
 
 .light .switchBtn{
 	background-color: var(--l-alt-shade);
-	font-size: 18px;
+	font-size: 16px;
+}
+
+.light .functionBtn:active, .light .switchBtn:active{
+	background-color: var(--l-text);
+	color: var(--l-textarea);
+}
+
+.light #filename, .light .componame, .light #jump-input{
+	color: var(--l-fadetext);
+}
+
+.light #editorCtr, .light #consoleCtr, .light #regCtr, .light #memCtr{
+	background-color: var(--l-textarea);
+	border: 1px solid var(--l-border);
+	cursor: text;
+}
+
+.light .highlighted{
+	background-color: var(--l-highlight);
+}
+
+.light #console-inner{
+	color: var(--l-fadetext);
 }

@@ -14,11 +14,56 @@
 	}
 </script>
 
-<Register />
-<StepControls />
-<Console />
-<Memory />
-<JumpControls />
-<br>
-<br>
-<button class="switchBtn" on:click={toEditor}>Back to Editor</button>
+<div id="sim-view">
+	<section id="sv-left">
+		<div class="workSans componame">Registers</div>
+		<Register />
+        <StepControls />
+        <Console />
+	</section>
+	<section id="sv-right">
+        <div class="workSans componame">Memory</div>
+		<Memory />
+        <JumpControls />
+        <button class="switchBtn" on:click={toEditor}>Back to Editor</button>
+	</section>
+</div>
+
+<style>
+	#sim-view{
+		height: 100%;
+		width: 100%;
+		display: grid;
+		grid-template-columns: 30% 65%;
+		grid-column-gap: 5%;
+	}
+
+	.componame{
+		font-size: 15px;
+		width: 100%;
+		text-align: center;
+	}
+
+	#sv-left, #sv-right{
+		height: 100%;
+		width: 100%;
+		display: grid;
+		grid-row-gap: 1vh;
+	}
+
+	#sv-left{
+		grid-template-rows: auto auto auto 1fr;
+	}
+
+	#sv-right{
+		grid-template-rows: auto auto 1fr 3em;
+	}
+
+	.switchBtn{
+		padding: 0.8em 3em 0.8em 3em;
+		margin-top: 1vh;
+		text-align: center;
+        align-self: flex-end;
+        justify-self: flex-end;
+	}
+</style>

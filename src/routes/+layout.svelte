@@ -17,7 +17,7 @@
         <div id="help">
             <div id="help-inner" class="sourceCodePro">
                 <div class="help-content">
-                    <h1 class="workSans">User Guide</h1>
+                    <h2 class="workSans">User Guide</h2>
                     <p>Help documentation will be supplied in the future.</p>
                 </div>
                 <div class="note">( Press anywhere outside box to close )</div>
@@ -65,7 +65,7 @@
         justify-content: space-between;
     }
 
-    #help-inner h1{
+    #help-inner h2{
         font-size: 2.4em;
         font-weight: 600;
         margin-bottom: 6vh
@@ -79,7 +79,7 @@
         height: max-content;
         width: 100%;
         text-align: right;
-        font-size: 10px;
+        font-size: 11px;
         margin-bottom: 3vh;
     }
 </style>

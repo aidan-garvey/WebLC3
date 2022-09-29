@@ -1,10 +1,19 @@
 <script>
     import EditorView from "./EditorView.svelte";
     import SimulatorView from "./SimulatorView.svelte";
-    export let view="editor"
+    import { createEventDispatcher } from 'svelte';
 
+    const dispatch = createEventDispatcher();
+	function swapView(view) {
+		dispatch("changeView", {
+			text: view
+		})
+	}
+
+    export let view="editor"
     function loadView(event) {
-        view = event.detail.text;
+        view = event.detail.text
+        swapView(view)
 	}
 </script>
 
@@ -20,6 +29,7 @@
 
 <style>
     #workspace{
+        margin-top: -1vh;
         width: 100vw;
         height: 85vh;
         display: flex;
@@ -28,7 +38,7 @@
     }
 
     #workspace-inner{
-        height: 90%;
-        width: 95%;
+        height: 85%;
+        width: 90%;
     }
 </style>

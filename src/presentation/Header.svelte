@@ -2,12 +2,14 @@
     import Menu from "./Menu.svelte";
     import ModeSwitch from "./ModeSwitch.svelte";
     import Title from "./Title.svelte";
+
+    export let view = "editor"
 </script>
 
 <div id="header">
     <div id="header-inner">
         <Title />
-        <Menu />
+        <Menu currView={view} />
         <ModeSwitch />
     </div>
 </div>
@@ -16,7 +18,7 @@
     #header{
         overflow: auto;
         width: 100vw;
-        height: 15vh;
+        height: 14vh;
         display: flex;
         justify-content: center;
         align-items: center;

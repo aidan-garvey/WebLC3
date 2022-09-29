@@ -114,6 +114,10 @@
         align-items: center;
     }
 
+    #switch-ctr p{
+        font-size: 11px;
+    }
+
     #switch{
         height: 40px;
         width: 70px;
