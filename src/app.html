@@ -43,7 +43,7 @@
 						".end", ".fill", ".blkw", ".stringz"
 					],
 
-					symbols: /:/,
+					// symbols: /:/,
 					escapes: /\\?:[nrt\\"']/,
 					digits: /\d+/,
 					binDigits: /[0-1]+/,
@@ -51,35 +51,41 @@
 
 					tokenizer: {
 						root: [
+							// numbers
+							[/[xX](@hexDigits)/, "hexNumber"],
+							[/[bB](@binDigits)/, "binNumber"],
+							[/#(@digits)/, "number"],
+
+							// strings
+							[/"([^"])*$/, "invalidString"],
+							[/'([^'])*$/, "invalidString"],
+							[/"/, "@doubleString"],
+							[/'/, "@singleString"],
+
 							// registers
 							[/[rR][0-7]/, "register"],
 
-							// instructions, directives and labels
+							[/\.[\w]+/, {
+								cases: {
+									"@origDirective": "orig",
+									"@directives": "directive",
+									"@default": "invalid"
+								}
+							}],
+
+							// instructions and labels
 							[/[a-zA-Z_][\w]*/, {
 								cases: {
 									"@instructions": "instruction",
 									"@trapAliases": "trapAlias",
-									"@origDirective": "orig",
-									"@directives": "directive",
 									"@default": "label"
 								}
 							}],
 
 							{include: "@whitespace"},
 
-							// numbers
-							[/0?[xX](@hexDigits)/, "hexNumber"],
-							[/0?[bB](@binDigits)/, "binNumber"],
-							[/(@digits)/, "number"],
-
 							// delimiter
-							[/,/, "delimiter"],
-
-							// strings
-							[/"([^"])*$/, "invalidString"],
-							[/'([^'])*$/, "invalidString"],
-							[/"/, "@doubleString"],
-							[/'/, "@singleString"]
+							[/[,:]/, "delimiter"]
 						],
 
 						whitespace: [
@@ -104,20 +110,32 @@
 				});
 
 				// Define a new theme that contains only rules that match this language
-				monaco.editor.defineTheme('myCoolTheme', {
+				monaco.editor.defineTheme('lc3Theme', {
 					colors: {},
 					base: 'vs',
 					inherit: false,
 					rules: [
-						{ token: 'custom-info', foreground: '808080' },
-						{ token: 'custom-error', foreground: 'ff0000', fontStyle: 'bold' },
-						{ token: 'custom-notice', foreground: 'FFA500' },
-						{ token: 'custom-date', foreground: '008800' }
+						{ token: 'register', foreground: '8446BA' },
+						{ token: 'instruction', foreground: 'FF8000' },
+						{ token: 'trapAlias', foreground: 'FFA500' },
+						{ token: 'orig', foreground: 'FFEE88' },
+						{ token: 'directive', foreground: '90E060'},
+						{ token: 'label', foreground: '60B6FF'},
+						{ token: 'number', foreground: 'FF0080'},
+						{ token: 'hexNumber', foreground: 'FF0080'},
+						{ token: 'binNumber', foreground: 'FF0080'},
+						{ token: 'delimiter', foreground: 'FFFFFF'},
+						{ token: 'invalidString', foreground: 'FF0000', fontStyle: 'bold'},
+						{ token: 'comment', foreground: 'C0C0C0'},
+						{ token: 'string', foreground: '70A965'},
+						{ token: 'stringEscape', foreground: '70A965', fontStyle: 'bold'},
+						{ token: 'invalidEscape', foreground: 'FF0000', fontStyle: 'bold'},
+						{ token: 'invalid', foreground: 'A00000', fontStyle: 'bold'}
 					]
 				});
 
 				var editor = monaco.editor.create(document.getElementById('container'), {
-					theme: 'myCoolTheme',
+					theme: 'lc3Theme',
 					value: getCode(),
 					language: 'lc3Asm'
 				});
