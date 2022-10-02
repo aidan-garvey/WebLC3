@@ -43,8 +43,6 @@
 						".end", ".fill", ".blkw", ".stringz"
 					],
 
-					// symbols: /:/,
-					escapes: /\\?:[nrt\\"']/,
 					digits: /\d+/,
 					binDigits: /[0-1]+/,
 					hexDigits: /[0-9a-fA-F]+/,
@@ -52,15 +50,15 @@
 					tokenizer: {
 						root: [
 							// numbers
-							[/[xX](@hexDigits)/, "hexNumber"],
-							[/[bB](@binDigits)/, "binNumber"],
+							[/#?[xX](@hexDigits)/, "hexNumber"],
+							[/#?[bB](@binDigits)/, "binNumber"],
 							[/#(@digits)/, "number"],
 
 							// strings
 							[/"([^"])*$/, "invalidString"],
 							[/'([^'])*$/, "invalidString"],
-							[/"/, "@doubleString"],
-							[/'/, "@singleString"],
+							[/"/, "string", "@doubleString"],
+							[/'/, "string", "@singleString"],
 
 							// registers
 							[/[rR][0-7]/, "register"],
@@ -95,15 +93,11 @@
 
 						doubleString: [
 							[/[^"]+/, "string"],
-							[/@escapes/, "stringEscape"],
-							[/\\./, "invalidEscape"],
 							[/"/, "string", "@pop"]
 						],
 
 						singleString: [
 							[/[^']+/, "string"],
-							[/@escapes/, "stringEscape"],
-							[/\\./, "invalidEscape"],
 							[/'/, "string", "@pop"]
 						]
 					}
@@ -128,8 +122,6 @@
 						{ token: 'invalidString', foreground: 'FF0000', fontStyle: 'bold'},
 						{ token: 'comment', foreground: 'C0C0C0'},
 						{ token: 'string', foreground: '70A965'},
-						{ token: 'stringEscape', foreground: '70A965', fontStyle: 'bold'},
-						{ token: 'invalidEscape', foreground: 'FF0000', fontStyle: 'bold'},
 						{ token: 'invalid', foreground: 'A00000', fontStyle: 'bold'}
 					]
 				});
@@ -145,15 +137,18 @@
 				return [
 					'; comment',
 					'.ORIG x3000',
-					'LD      R1  NUM1',
-					'ST		 r0, num1',
+					'LD      R1  NUM2',
+					'ST      r0, num1',
 					'ADD     R0  R1  #0  ; comment',
-					'add	 r0, r1, xF',
+					'add     r0, r1, xF',
 					'',
 					'num1: .fill x20',
 					'NUM2: .FILL #30',
 					'NUM3:',
-					'.fill b100010'
+					'.fill b100010',
+					'num4: .fill #x40',
+					'.stringz "hello\\n"',
+					'.stringz \'hello\\n\''
 				].join('\n');
 			}
 		</script>
