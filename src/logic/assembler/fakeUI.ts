@@ -22,6 +22,8 @@ export default class FakeUI
         const result = Assembler.assemble (
     ".orig x3000\n\
     add r0, r1, r2\n\
+    .fill LABEL2\n\
+    .blkw #2, LABEL1\n\
     add r3 r4 #-1\n\
 LABEL1:\n\
     brnzp LABEL2\n\
@@ -33,6 +35,8 @@ LABEL3 .stringz 'hello'\n\
     .stringz \"world\"\n\
     lea r0, LABEL3\n\
     puts\n\
+    .fill LABEL1\n\
+    .blkw #2, LABEL3\n\
     halt\n\
     \n\
     .end\n"

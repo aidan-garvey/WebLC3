@@ -162,7 +162,7 @@ export default class Assembler
                         this.hasError = true;
                         continue;
                     }
-                    const pcInc = Parser.parseDirective(tokens, pc, memory);
+                    const pcInc = Parser.parseDirective(tokens, pc, memory, toFix);
                     if (pcInc < 0)
                     {
                         atEnd = true;
@@ -172,6 +172,7 @@ export default class Assembler
                         pc += pcInc;
                     }
                 }
+                // instruction:
                 else if (this.opCodes.has(tokens[0]))
                 {
                     const word = Parser.parseCode(tokens, pc, labels, toFix);
@@ -199,16 +200,62 @@ export default class Assembler
         {
             const tokens = entry[0];
             const loc = entry[1];
-            const offset = Parser.calcLabelOffset(
-                tokens[tokens.length - 1],
-                loc,
-                labels,
-                // @ts-ignore
-                Parser.immBitCounts.get(tokens[0]) 
-            );
-            if (!isNaN(offset))
+            if (tokens[0] == ".fill")
             {
-                memory[loc] |= offset;
+                if (labels.has(tokens[1]))
+                {
+                    // @ts-ignore
+                    memory[loc] = labels.get(tokens[1]) + startOffset;
+                }
+                else
+                {
+                    this.hasError = true;
+                    FakeUI.print(this.errors.BADLABEL + ": " + tokens[1]);
+                }
+            }
+            else if (tokens[0] == ".blkw")
+            {
+                if (labels.has(tokens[2]))
+                {
+                    const amt = Parser.parseImmediate(tokens[1], false);
+                    if (!isNaN(amt))
+                    {
+                        for (let i = 0; i < amt; i++)
+                        {
+                            // @ts-ignore
+                            memory[loc + i] = labels.get(tokens[2]) + startOffset;
+                        }
+                    }
+                    else
+                    {
+                        this.hasError = true;
+                        FakeUI.print(this.errors.BADLABEL + ": " + tokens[2]);
+                    }
+                }
+                else
+                {
+                    this.hasError = true;
+                    FakeUI.print(this.errors.BADLABEL + ": " + tokens[2]);
+                }
+            }
+            else
+            {
+                const offset = Parser.calcLabelOffset(
+                    tokens[tokens.length - 1],
+                    loc,
+                    labels,
+                    // @ts-ignore
+                    Parser.immBitCounts.get(tokens[0]) 
+                );
+                if (!isNaN(offset))
+                {
+                    memory[loc] |= offset;
+                }
+                else
+                {
+                    this.hasError = true;
+                    FakeUI.print(this.errors.BADLABEL);
+                }
             }
         }
 
