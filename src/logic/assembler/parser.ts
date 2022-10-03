@@ -478,7 +478,7 @@ export default class Parser
      * @param {number[]} memory 
      * @returns {number}
      */
-    static parseDirective(tokens: string[], pc: number, memory: number[]) : number
+    static parseDirective(tokens: string[], pc: number, memory: number[], toFix: Map<string[], number>) : number
     {
         let inc = 0;
         let val;
@@ -494,11 +494,21 @@ export default class Parser
                 break;
 
             case ".fill":
-                val = this.parseImmediate(tokens[1], false);
-                if (!isNaN(val))
+                // if the first 1 or 2 characters indicate a numerical value
+                if (tokens[1].match(/^#?[bBxX].+$/) != null)
                 {
-                    memory[pc] = val;
+                    val = this.parseImmediate(tokens[1], false);
+                    if (!isNaN(val))
+                    {
+                        memory[pc] = val;
+                        inc = 1;
+                    }
+                }
+                // label being used as address, does not start with digit
+                else if (tokens[1].match(/^\D.*$/) != null)
+                {
                     inc = 1;
+                    toFix.set(tokens, pc);
                 }
                 break;
 
@@ -507,7 +517,15 @@ export default class Parser
                 val = 0;
                 if (tokens.length == 3)
                 {
-                    val = this.parseImmediate(tokens[2], false);
+                    if (tokens[2].match(/^#?[bBxX].+$/) != null)
+                    {
+                        val = this.parseImmediate(tokens[2], false);
+                    }
+                    else if (tokens[2].match(/^\D.*$/) != null)
+                    {
+                        inc = 1;
+                        toFix.set(tokens, pc);
+                    }
                 }
                 if (!isNaN(val) && !isNaN(amt))
                 {
