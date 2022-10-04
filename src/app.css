@@ -98,8 +98,8 @@ a:hover {
 	--d-comment: #80B49A;
 	--d-instr: #FFAB40;
 	--d-loc: #4BCFFF;
-	--d-reg: #8A89E9;
-	--d-val: #EE6CC8;
+	--d-reg: #8786CC;
+	--d-val: #CE608C;
 	--d-fadetext: #D4D0CE;
 	--d-text: #FCFCFC;
 }
@@ -242,11 +242,12 @@ body.dark{
 	--l-alt: #F5F4F2;
 	--l-alt-shade: #D4D2CE;
 	--l-alt-tint: #C8C7E0;
+	--l-orig: #209325;
 	--l-dir: #0097A7;
-	--l-comment: #8F878C;
+	--l-comment: #908c8f;
 	--l-instr: #FF3724;
 	--l-loc: #4241A9;
-	--l-reg: #7B7AD3;
+	--l-reg: #8785e0;
 	--l-val: #BB178A;
 	--l-fadetext: #8F878C;
 	--l-text: #29314E;
@@ -407,5 +408,41 @@ body.light{
 
 .light .monaco-editor, .light .monaco-editor-background{
 	background-color: var(--l-textarea) !important;
+}
+
+/* LIGHT MODE syntax highlighting */
+
+.light .mtk2{
+	color: var(--l-text);
+}
+.light .mtk3{
+	color: var(--l-val);
+}
+.light .mtk4{
+	color: var(--l-comment);
+}
+.light .mtk5{
+	color: var(--l-dir);
+}
+.light .mtk6{
+	color: var(--l-loc);
+}
+.light .mtk7{
+	color: var(--l-instr);
+}
+.light .mtk9{
+	color: var(--l-text);
+}
+.light .mtk10{
+	color: var(--l-orig);
+}
+.light .mtk11{
+	color: var(--l-orig);
+}
+.light .mtk12{
+	color: var(--l-reg);
+}
+.light .mtk13{
+	color: var(--d-comment);
 }
 
