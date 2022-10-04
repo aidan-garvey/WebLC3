@@ -1,13 +1,11 @@
 <script>
     import { onMount } from 'svelte';
-    let storedEditor
 
     onMount(() => {
         let editor = document.getElementById("editorCtr")
         editor.innerText = ""
 		let monaco = document.getElementById("container")
         editor.appendChild(monaco)
-        storedEditor = monaco
 
         // On Destroy
         return () => {
@@ -19,7 +17,7 @@
 </script>
 
 <div id="editorCtr">
-    Loading editor..
+    Loading application..
 </div>
 
 <style>

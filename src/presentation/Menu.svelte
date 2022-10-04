@@ -5,28 +5,28 @@
 <div id="menu" class="workSans">
     {#if currView == "editor"}
         <div id="new" class="menu-item">
-            <section></section>
+            <span class="material-symbols-outlined">note_add</span>
             <p>New</p>
         </div>
         <div id="open" class="menu-item">
-            <section></section>
+            <span class="material-symbols-outlined">folder</span>
             <p>Open</p>
         </div>
         <div id="save" class="menu-item">
-            <section></section>
+            <span class="material-symbols-outlined">save</span>
             <p>Save</p>
         </div>
     {:else}
         <div id="reload" class="menu-item">
-            <section></section>
+            <span class="material-symbols-outlined">refresh</span>
             <p>Reload</p>
         </div>
         <div id="reinitialize" class="menu-item">
-            <section></section>
+            <span class="material-symbols-outlined">power_settings_new</span>
             <p>Reinitialize</p>
         </div>
         <div id="randomize" class="menu-item">
-            <section></section>
+            <span class="material-symbols-outlined">shuffle</span>
             <p>Randomize</p>
         </div>
     {/if}
@@ -49,10 +49,9 @@
         border-radius: 15px;
     }
 
-    .menu-item section{
-        height: 35%;
-        width: 45%;
-        margin-bottom: 5%;
+    .menu-item span{
+        font-size: 25px;
+        margin-bottom: 8%;
     }
 
     .menu-item p{

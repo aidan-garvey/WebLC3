@@ -41,4 +41,5 @@
         margin: 0 0.6em 0 0.6em;
         cursor: pointer;
     }
+
 </style>

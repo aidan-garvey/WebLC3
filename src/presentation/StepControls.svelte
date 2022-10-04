@@ -1,8 +1,19 @@
 <div id="step-controls">
-    <button id="run" class="functionBtn">▶ RUN</button>
-    <button id="step-in" class="functionBtn">↘ Step in</button>
-    <button id="step-out" class="functionBtn">↑ Step out</button>
-    <button id="step-over" class="functionBtn">↱ Step over</button>
+    <button id="run" class="functionBtn">
+        ▶ RUN
+    </button>
+    <button id="step-in" class="functionBtn">
+        <span class="material-symbols-outlined">subdirectory_arrow_right</span>
+         Step in
+    </button>
+    <button id="step-out" class="functionBtn">
+        <span class="material-symbols-outlined">subdirectory_arrow_left</span>
+         Step out
+    </button>
+    <button id="step-over" class="functionBtn">
+        <span class="material-symbols-outlined">u_turn_right</span>
+         Step over
+    </button>
 </div>
 
 <style>
@@ -26,9 +37,14 @@
         text-align: left;
         border-radius: 10px;
         padding-left: 1.2em;
+        justify-content: flex-start !important;
     }
 
     .functionBtn{
 		text-align: center;
+	} 
+
+    .functionBtn span{
+		margin-right: 4%;
 	} 
 </style>

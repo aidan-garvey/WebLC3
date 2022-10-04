@@ -2,6 +2,7 @@
     import Editor from "./Editor.svelte";
     import Console from "./Console.svelte";
     import { createEventDispatcher } from 'svelte';
+	import { onMount } from 'svelte';
 
     const dispatch = createEventDispatcher();
 	function toSimulator() {
@@ -9,18 +10,26 @@
 			text: "simulator"
 		})
 	}
+
+	export let filename = "No file provided"
+	onMount(() => { 
+		document.getElementById("filename").style.visibility = "visible" 
+	});
 </script>
 
 <div id="editor-view">
 	<section id="ev-left">
-		<div id="filename" class="workSans">No file opened</div>
+		<div id="filename" class="workSans">{filename}</div>
 		<Editor />
 	</section>
 	<section id="ev-right">
 		<div class="filler">filler</div>
 		<Console />
 		<div id="ev-buttons">
-			<button id="assemble" class="functionBtn">⁂ ASSEMBLE</button>
+			<button id="assemble" class="functionBtn">
+				<span class="material-symbols-outlined">memory</span>
+				 ASSEMBLE
+			</button>
 			<button class="switchBtn" on:click={toSimulator}>Switch to Simulator</button>
 		</div>
 	</section>
@@ -40,6 +49,7 @@
 		font-size: 15px;
 		width: 100%;
 		text-align: center;
+		visibility: hidden;
 	}
 
 	.filler{

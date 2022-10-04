@@ -2,7 +2,10 @@
     <div id="console-inner">
         console empty
     </div>
-    <div id="clear-console">CLEAR</div>
+    <div id="clear-console">
+        <span class="material-symbols-outlined">delete_forever</span>
+         CLEAR
+    </div>
 </div>
 
 <style>
@@ -29,5 +32,9 @@
         color: var(--d-comment);
         cursor: pointer;
         font-size: 13px;
+    }
+
+    #clear-console:hover{
+        opacity: 0.4;
     }
 </style>

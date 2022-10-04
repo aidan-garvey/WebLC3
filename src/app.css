@@ -65,6 +65,21 @@ a:hover {
 	}
 }
 
+.material-symbols-outlined {
+	font-size: inherit;
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 48
+}
+
+.functionBtn{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
 /*==============
     DARK MODE
   ==============*/
@@ -132,19 +147,11 @@ body.dark{
 	background-color: var(--d-fadetext);
 }
 
-.dark .menu-item section{
-	background-color: var(--d-fadetext);
-}
-
-.dark .menu-item p{
+.dark .menu-item{
 	color: var(--d-fadetext);
 }
 
-.dark .menu-item:active section{
-	background-color: var(--d-textarea);
-}
-
-.dark .menu-item:active p{
+.dark .menu-item:active{
 	color: var(--d-textarea);
 }
 
@@ -196,6 +203,10 @@ body.dark{
 	cursor: text;
 }
 
+.dark .regRow, .dark memRow{
+	background-color: var(--d-textarea);
+}
+
 .dark #editorCtr{
 	color: var(--d-fadetext);
 }
@@ -206,6 +217,15 @@ body.dark{
 
 .dark #console-inner{
 	color: var(--d-select);
+}
+
+.dark .regRow:hover, .dark .memRow:hover{
+	cursor: pointer;
+	background-color: var(--d-select);
+}
+
+.dark #jump-buttons div:hover{
+	color: var(--d-loc);
 }
 
 /*==============
@@ -276,19 +296,11 @@ body.light{
 	background-color: var(--l-text);
 }
 
-.light .menu-item section{
-	background-color: var(--l-text);
-}
-
-.light .menu-item p{
+.light .menu-item{
 	color: var(--l-text);
 }
 
-.light .menu-item:active section{
-	background-color: var(--l-textarea);
-}
-
-.light .menu-item:active p{
+.light .menu-item:active{
 	color: var(--l-textarea);
 }
 
@@ -336,6 +348,10 @@ body.light{
 	cursor: text;
 }
 
+.light .regRow, .light memRow{
+	background-color: var(--l-textarea);
+}
+
 .light #editorCtr{
 	color: var(--l-fadetext);
 }
@@ -348,9 +364,22 @@ body.light{
 	color: var(--l-fadetext);
 }
 
+.light .regRow:hover, .light .memRow:hover{
+	cursor: pointer;
+	background-color: var(--l-select);
+}
+
+.light #jump-buttons div:hover{
+	color: var(--l-reg);
+}
+
 /*==================
     MONACO EDITOR
   ==================*/
+
+.monaco-editor .line-numbers.active-line-number{
+	color: var(--d-loc);
+}
 
 .dark .monaco-editor .margin{
 	background-color: var(--d-alt) !important;
@@ -360,8 +389,12 @@ body.light{
 	color: var(--d-text) !important;
 }
 
-.dark .monaco-editor, .dark .monaco-editor-background, .dark .minimap-decorations-layer{
+.dark .monaco-editor, .dark .monaco-editor-background{
 	background-color: var(--d-textarea) !important;
+}
+
+.dark .minimap-decorations-layer{
+	background-color: rgba(42,42,42,0.85) !important;
 }
 
 .light .monaco-editor .margin{

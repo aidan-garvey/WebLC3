@@ -33,7 +33,7 @@
     {#each data as row, i}
         {#if i%2==1}
             <div id="memRow-{i}" class="memRow highlighted">
-                <div id="bp-{i}" class="bp">▩</div>
+                <div id="bp-{i}" class="bp"><span class="material-symbols-outlined">report</span></div>
                 <div id="ptr-{i}" class="ptr">▶</div>
                 {#each cols as col, n}
                     {#if row[n]}
@@ -43,7 +43,7 @@
             </div>
         {:else}
             <div id="memRow-{i}" class="memRow">
-                <div id="bp-{i}" class="bp">▩</div>
+                <div id="bp-{i}" class="bp"><span class="material-symbols-outlined">report</span></div>
                 <div id="ptr-{i}" class="ptr">▶</div>
                 {#each cols as col, n}
                     {#if row[n]}
@@ -75,18 +75,19 @@
 
     .bp, .ptr{
         margin: 0 10px 0 10px;
+        opacity: 0.6;
     }
 
     .bp:hover, .ptr:hover{
         cursor: pointer;
-        filter: brightness(140%);
+        opacity: 1;
     }
 
-    .bp{
+    .bp:hover{
         color: var(--l-instr);
     }
 
-    .ptr{
+    .ptr:hover{
         color: var(--l-reg);
     }
 </style>
