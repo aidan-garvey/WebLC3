@@ -45,12 +45,24 @@ MCR:        .FILL xFFFE
 ; Constants:
 BYTE_MASK:  .FILL x00FF
 CLOCK_MASK: .FILL x7FFF ; ANDing with MCR will disable the clock
-IN_PROMPT:  .STRINGZ 'Input a character > '
-HALT_MSG:   .STRINGZ 'Halting computer\n'
+IN_PROMPT:  .STRINGZ "Input a character > "
+HALT_MSG:   .STRINGZ "Halting computer\n"
+NOTRAP_MSG: .STRINGZ "Invalid TRAP excecuted\n"
+BAD_EX_MSG: .STRINGZ "An invalid interrupt or exception has occured\n"
+PRIV_MSG:   .STRINGZ "Privilege mode violation\n"
+ILL_MSG:    .STRINGZ "Illegal opcode exception\n"
 
-; Unimplemented traps and exceptions: do nothing
+; -------------------------------
+; Unimplemented Traps
+; Print notification then return.
+; -------------------------------
 TRAP_UNIMP:
-EXPT_UNIMP:
+    ADD     r6, r6, #-1
+    STR     r0, r6, #0
+    LEA     r0, NOTRAP_MSG
+    PUTS
+    LDR     r0, r6, #0
+    ADD     r6, r6, #1
     RTI
 
 ; The descriptions of the following trap implementations are quoted directly
@@ -266,6 +278,51 @@ TRAP_HALT:
     LDR     r0, r6, #0
     LDR     r1, r6, #1
     ADD     r6, r6, #2
+    RTI
+
+; ------------------------------------------------------
+; Unimplemented Interrupts / Exceptions
+; Print a notification of the error and halt the machine
+; ------------------------------------------------------
+EXPT_UNIMP:
+    ADD     r6, r6, #-1
+    STR     r0, r6, #0
+    LEA     r0, BAD_EX_MSG
+    PUTS
+    HALT
+    ; in case clock is manually restarted, continue as normal
+    LDR     r0, r6, #0
+    ADD     r6, r6, #1
+    RTI
+
+; ------------------------------------------------------
+; Privilege Mode Violation
+; Print a notification of the error and halt the machine
+; ------------------------------------------------------
+EXPT_PRIV:
+    ADD     r6, r6, #-1
+    STR     r0, r6, #0
+    LEA     r0, PRIV_MSG
+    PUTS
+    HALT
+    ; in case clock is manually restarted, continue as normal
+    LDR     r0, r6, #0
+    ADD     r6, r6, #1
+    RTI
+
+; ------------------------------------------------------
+; Illegal Opcode Exception
+; Print a notification of the error and halt the machine
+; ------------------------------------------------------
+EXPT_ILLEGAL:
+    ADD     r6, r6, #-1
+    STR     r0, r6, #0
+    LEA     r0, ILL_MSG
+    PUTS
+    HALT
+    ; in case clock is manually restarted, continue as normal
+    LDR     r0, r6, #0
+    ADD     r6, r6, #1
     RTI
 
 .END
