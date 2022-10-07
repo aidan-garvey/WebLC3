@@ -18,7 +18,8 @@
 
 <style>
     #step-controls{
-        height: 15vh;
+        height: max-content;
+        min-height: 15vh;
         display: grid;
         grid-template-columns: 55% 30%;
         grid-template-rows: 30% 30% 30%;
@@ -36,7 +37,7 @@
         font-size: 15px;
         text-align: left;
         border-radius: 10px;
-        padding-left: 1.2em;
+        padding: 0.6em 0 0.6em 1.2em;
         justify-content: flex-start !important;
     }
 
@@ -46,5 +47,35 @@
 
     .functionBtn span{
 		margin-right: 4%;
-	} 
+	}
+
+    @media (max-width: 900px) {
+        #step-controls{
+            grid-template-rows: 4em 4em;
+            grid-template-columns: 30% 30% 30%;
+            grid-column-gap: 3%;
+            grid-row-gap: 5%;
+            margin-top: 1vh;
+            margin-bottom: 3vh;
+        }
+
+        #run{
+            grid-row: 1/2;
+            grid-column: 1/4;
+        }
+
+        #step-in, #step-out, #step-over{
+            text-align: center;
+            font-size: 12px;
+            padding: 0.2em 0 0.2em 0.2em;
+            display: flex;
+            flex-direction: column;
+            justify-content: center !important;
+        }
+
+        .functionBtn span{
+            margin-bottom: 4%;
+
+        }
+    }
 </style>

@@ -15,7 +15,6 @@
 
     function openHelp(){
         toggleHelp.set(true)
-        console.log("Opening help")
     }
 </script>
 
@@ -67,6 +66,12 @@
         }
         60%{
             transform: translateY(0em) rotate(0deg);
+        }
+    }
+
+    @media (max-width: 600px) {
+        #title p{
+            font-size: 14px;
         }
     }
 </style>

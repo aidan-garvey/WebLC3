@@ -41,4 +41,11 @@
         height: 85%;
         width: 90%;
     }
+
+    @media (max-width: 900px) {
+		#workspace{
+			margin-bottom: 48vh;
+		}
+	}
+    
 </style>

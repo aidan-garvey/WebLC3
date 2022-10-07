@@ -1,11 +1,20 @@
 <script>
     import { onMount } from 'svelte';
+    import { ResizeObserver } from 'resize-observer';
+
+    let editor
+    let monaco
 
     onMount(() => {
-        let editor = document.getElementById("editorCtr")
+        editor = document.getElementById("editorCtr")
         editor.innerText = ""
-		let monaco = document.getElementById("container")
+		monaco = document.getElementById("container")
         editor.appendChild(monaco)
+
+        // Editor resize
+        let ro = new ResizeObserver(() => { resize() })
+        ro.observe(editor);
+        resize()
 
         // On Destroy
         return () => {
@@ -13,6 +22,16 @@
             invisCtr.appendChild(monaco)
         }
 	});
+  
+    function resize(){
+        if(editor){
+            let targetWidth = editor.clientWidth
+            let currWidth = monaco.clientWidth
+            let scale = targetWidth/currWidth
+            monaco.style.transform = "scale(" + scale + ")"
+            monaco.style.transformOrigin = "0 0"
+        }
+    }
 
 </script>
 

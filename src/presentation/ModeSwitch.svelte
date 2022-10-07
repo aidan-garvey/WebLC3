@@ -86,7 +86,7 @@
     }
 </script>
 
-<div id="switch-ctr">
+<div id="switchCtr">
     <div id="switch" on:click={swap}>
         <section>
             {#if isDark}
@@ -106,7 +106,7 @@
 </div>
 
 <style>
-    #switch-ctr{
+    #switchCtr{
         height: max-content;
         width: 6em;
         display: flex;
@@ -114,7 +114,7 @@
         align-items: center;
     }
 
-    #switch-ctr p{
+    #switchCtr p{
         font-size: 11px;
     }
 
@@ -136,5 +136,15 @@
         display: grid;
         justify-items: center;
         align-items: center;
+    }
+
+    @media (max-width: 600px) {
+        #switchCtr{
+            width: 4em;
+        }
+
+        #switchCtr p{
+            font-size: 11px;
+        }
     }
 </style>

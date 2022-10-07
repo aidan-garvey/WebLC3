@@ -2,7 +2,7 @@
     export let type = "moon"
 </script>
 
-<div id="icon-ctr">
+<div id="iconCtr">
     {#if type == "moon"}
         <div class="moon"><div></div></div>
     {:else if type == "sun"}
@@ -11,7 +11,7 @@
 </div>
 
 <style>
-    #icon-ctr{
+    #iconCtr{
         height: 70%;
         width: 70%;
         overflow: hidden;

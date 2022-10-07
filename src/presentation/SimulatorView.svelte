@@ -66,4 +66,16 @@
         align-self: flex-end;
         justify-self: flex-end;
 	}
+
+	@media (max-width: 900px) {
+		.switchBtn{
+			font-size: 14px !important;
+		}
+	}
+
+	@media (max-width: 600px) {
+		.switchBtn{
+			font-size: 12px !important;
+		}
+	}
 </style>

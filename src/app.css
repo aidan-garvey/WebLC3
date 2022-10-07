@@ -15,6 +15,12 @@ html, body {
 	font-family: 'Work Sans', sans-serif;
 }
 
+@media (max-width: 1000px) {
+	body{
+		overflow-y: scroll;
+	}
+}
+
 a, button {
 	text-decoration: none;
 	cursor: pointer;
@@ -109,10 +115,6 @@ body.dark{
 	background-color: var(--d-body);
 	scrollbar-color: var(--l-comment) var(--l-textarea);
 }
-
-/* ::selection{
-	background-color: var(--d-select);
-} */
 
 .dark a {
 	color: var(--d-dir);
@@ -260,6 +262,10 @@ body.light{
 }
 
 ::selection{
+	background-color: rgba(0,0,0,0);
+}
+
+#console-inner::selection, #jump-input::selection{
 	background-color: var(--l-select);
 }
 
@@ -377,6 +383,10 @@ body.light{
 /*==================
     MONACO EDITOR
   ==================*/
+
+.monaco-editor::selection{
+	background-color: var(--l-select);
+}
 
 .monaco-editor .line-numbers.active-line-number{
 	color: var(--d-loc);

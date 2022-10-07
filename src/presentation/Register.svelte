@@ -52,4 +52,10 @@
         padding: 2px 0 2px 10px;
     }
 
+    @media (max-width: 800px) {
+        .regRow{
+            grid-template-columns: 20% 30% 25% 25%;
+        }
+    }
+
 </style>

@@ -79,4 +79,31 @@
 		margin-top: 1vh;
 		text-align: center;
 	}
+
+	@media (max-width: 900px) {
+		.functionBtn{
+			font-size: 18px !important;
+		}
+
+		.switchBtn{
+			font-size: 14px !important;
+		}
+
+		#editor-view{
+			grid-template-columns: 100%;
+			grid-template-rows: 60vh 60vh;
+			grid-row-gap: 4vh;
+		}
+	}
+
+	@media (max-width: 600px) {
+		.functionBtn{
+			font-size: 14px !important;
+		}
+
+		.switchBtn{
+			font-size: 12px !important;
+		}
+	}
+
 </style>

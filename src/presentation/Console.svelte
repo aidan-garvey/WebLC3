@@ -37,4 +37,10 @@
     #clear-console:hover{
         opacity: 0.4;
     }
+
+    @media (max-width: 600px) {
+		#clear-console{
+            font-size: 11px;
+        }
+	}
 </style>
