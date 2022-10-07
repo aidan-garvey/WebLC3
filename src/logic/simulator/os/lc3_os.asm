@@ -325,4 +325,17 @@ EXPT_ILLEGAL:
     ADD     r6, r6, #1
     RTI
 
+; ---------------------------
+; Keyboard Interrupt
+; Echo the key to the console
+; ---------------------------
+INT_KEYBD:
+    ADD     r6, r6, #-1
+    STR     r0, r6, #0
+    LDI     r0, KBD_DATA
+    OUT
+    LDR     r0, r6, #0
+    ADD     r6, r6, #1
+    RTI
+
 .END
