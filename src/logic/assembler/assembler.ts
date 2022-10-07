@@ -200,6 +200,8 @@ export default class Assembler
         {
             const tokens = entry[0];
             const loc = entry[1];
+
+            // .fill and .blkw use absolute addresses, not offsets
             if (tokens[0] == ".fill")
             {
                 if (labels.has(tokens[1]))
