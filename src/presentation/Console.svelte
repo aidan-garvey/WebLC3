@@ -1,8 +1,16 @@
+<script>
+    function clearConsole(){
+        let consoleInner = document.getElementById("console-inner")
+        consoleInner.innerText = "console empty"
+        consoleInner.classList.add("empty")
+    }
+</script>
+
 <div id="consoleCtr">
-    <div id="console-inner">
+    <div id="console-inner" class="empty">
         console empty
     </div>
-    <div id="clear-console">
+    <div id="clear-console" on:click={clearConsole}>
         <span class="material-symbols-outlined">delete_forever</span>
          CLEAR
     </div>

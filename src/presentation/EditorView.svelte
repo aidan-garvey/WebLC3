@@ -15,6 +15,18 @@
 	onMount(() => { 
 		document.getElementById("filename").style.visibility = "visible" 
 	});
+
+	function assembleClick(){
+		let consoleInner = document.getElementById("console-inner")
+		consoleInner.innerText = "Assembly successful."
+		consoleInner.classList.remove("empty")
+		let input = globalThis.editor
+
+		/*-----------------------------------------
+			TODO: Dispatch input to assembler  
+		-------------------------------------------*/
+	}
+
 </script>
 
 <div id="editor-view">
@@ -26,7 +38,7 @@
 		<div class="filler">filler</div>
 		<Console />
 		<div id="ev-buttons">
-			<button id="assemble" class="functionBtn">
+			<button id="assemble" class="functionBtn" on:click={assembleClick}>
 				<span class="material-symbols-outlined">memory</span>
 				 ASSEMBLE
 			</button>

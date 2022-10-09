@@ -127,11 +127,12 @@
 					]
 				});
 
-				var editor = monaco.editor.create(document.getElementById('container'), {
+				globalThis.editor = monaco.editor.create(document.getElementById('container'), {
 					theme: 'lc3Theme',
 					value: getCode(),
 					language: 'lc3Asm'
 				});
+				
 			});
 
 			function getCode() {
