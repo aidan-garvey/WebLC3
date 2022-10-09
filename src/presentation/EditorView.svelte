@@ -20,10 +20,18 @@
 		let consoleInner = document.getElementById("console-inner")
 		consoleInner.innerText = "Assembly successful."
 		consoleInner.classList.remove("empty")
-		let input = globalThis.editor
+		let editor = globalThis.editor
 
 		/*-----------------------------------------
-			TODO: Dispatch input to assembler  
+			Temporary: Print input to console  
+		-------------------------------------------*/
+		if(editor)
+			console.log("Retrieved value from editor:\n\n" + editor.getValue())
+		else
+			console.log("Retrieving text from editor failed. Editor not found in globalThis.")
+
+		/*-----------------------------------------
+			TODO: Dispatch input to assembler 
 		-------------------------------------------*/
 	}
 

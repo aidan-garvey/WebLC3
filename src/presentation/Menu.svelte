@@ -1,31 +1,111 @@
 <script>
+    import * as fs from 'fs';
     export let currView = "editor"
+
+    function newClick(){
+        let consoleInner = document.getElementById("console-inner")
+        consoleInner.innerText = "Started new file."
+        consoleInner.classList.remove("empty")
+        let editor = globalThis.editor
+        if(editor)
+            editor.setValue("")
+    }
+
+    function openClick(){
+        let opener = document.getElementById("opener")
+        opener.click()
+    }
+
+    function openFile(){
+        let files = document.getElementById("opener").files
+        if (files.length > 0) {
+            let filename = files[0].name
+            let extension = filename.split('.').pop();
+            extension = extension.split('.').pop();
+            if(extension == "asm"){
+                let consoleInner = document.getElementById("console-inner")
+                consoleInner.innerText = "Opened file " + filename + "."
+                consoleInner.classList.remove("empty")  
+            } else {
+                alert("Invalid file. WebLC3 only accepts .asm files.")
+            }
+        }
+
+        /*----------------------------------------------------------------
+			TODO: Dispatch asm or binary file content to assembler
+		-------------------------------------------------------------------*/
+    }
+
+    function saveClick(){
+        let consoleInner = document.getElementById("console-inner")
+        consoleInner.innerText = "Saving file."
+        consoleInner.classList.remove("empty")
+        
+        /*----------------------------------------------------------------
+			TODO: 
+              - Open file dialog and allow user to enter filename
+              - Saved file must appear in computer
+		-------------------------------------------------------------------*/
+    }
+
+    function reloadClick(){
+        let consoleInner = document.getElementById("console-inner")
+        consoleInner.innerText = "Reloaded .obj file."
+        consoleInner.classList.remove("empty")
+
+        /*----------------------------------------------------------------
+			TODO: Clear console, reflect new register and memory state
+		-------------------------------------------------------------------*/
+    }
+
+    function reinitializeClick(){
+        let consoleInner = document.getElementById("console-inner")
+        consoleInner.innerText = "Reinitialized machine."
+        consoleInner.classList.remove("empty")
+
+        /*----------------------------------------------------------------
+			TODO: Clear all register and memory values
+		-------------------------------------------------------------------*/
+    }
+
+    function randomizeClick(){
+        let consoleInner = document.getElementById("console-inner")
+        consoleInner.innerText = "Randomized register and memory values."
+        consoleInner.classList.remove("empty")
+
+        /*----------------------------------------------------------------
+			TODO: Fill register and memory rows with random values
+		-------------------------------------------------------------------*/
+    }
+
+
 </script>
 
 <div id="menu" class="workSans">
     {#if currView == "editor"}
-        <div id="new" class="menu-item">
+        <div id="new" class="menu-item" on:click={newClick}>
             <span class="material-symbols-outlined">note_add</span>
             <p>New</p>
         </div>
-        <div id="open" class="menu-item">
+        <input id="opener" type="file" style="display:none;" on:change={openFile}>
+        <div id="open" class="menu-item" on:click={openClick}>
             <span class="material-symbols-outlined">folder</span>
             <p>Open</p>
         </div>
-        <div id="save" class="menu-item">
+        <div id="save" class="menu-item" on:click={saveClick}>
             <span class="material-symbols-outlined">save</span>
             <p>Save</p>
         </div>
     {:else}
-        <div id="reload" class="menu-item">
+        <div id="reload" class="menu-item" on:click={reloadClick}>
             <span class="material-symbols-outlined">refresh</span>
             <p>Reload</p>
         </div>
-        <div id="reinitialize" class="menu-item">
+        <div id="reinitialize" class="menu-item" on:click={reinitializeClick}>
             <span class="material-symbols-outlined">power_settings_new</span>
             <p>Reinitialize</p>
         </div>
-        <div id="randomize" class="menu-item">
+        <div id="randomize" class="menu-item" on:click={randomizeClick}>
             <span class="material-symbols-outlined">shuffle</span>
             <p>Randomize</p>
         </div>

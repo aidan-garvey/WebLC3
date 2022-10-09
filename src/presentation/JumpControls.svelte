@@ -1,14 +1,70 @@
+<script>
+    function pcClick(){
+        let consoleInner = document.getElementById("console-inner")
+        consoleInner.innerText = "Selected PC."
+        consoleInner.classList.remove("empty")
+        newMap()
+    }
+
+    function longJumpBackwardClick(){
+        let consoleInner = document.getElementById("console-inner")
+        consoleInner.innerText = "Long jumped backward."
+        consoleInner.classList.remove("empty")
+        newMap()
+    }
+
+    function jumpBackwardClick(){
+        let consoleInner = document.getElementById("console-inner")
+        consoleInner.innerText = "Jumped backward."
+        consoleInner.classList.remove("empty")
+        newMap()
+    }
+
+    function jumpForwardClick(){
+        let consoleInner = document.getElementById("console-inner")
+        consoleInner.innerText = "Jumped forward."
+        consoleInner.classList.remove("empty")
+        /*------------------------------------------------------
+			TODO: Validate memory location before calling newMap
+		----------------------------------------------------------*/
+        newMap()
+    }
+
+    function longJumpForwardClick(){
+        let consoleInner = document.getElementById("console-inner")
+        consoleInner.innerText = "Long jumped forward."
+        consoleInner.classList.remove("empty")
+        newMap()
+    }
+
+    function enterMemory(event){
+        if(event.keyCode == 13){
+            let input = document.getElementById("jump-input").innerText
+            let consoleInner = document.getElementById("console-inner")
+            consoleInner.innerText = "Jumped to memory location at " + input + "."
+            consoleInner.classList.remove("empty")
+            newMap()
+        }
+    }
+
+    function newMap(){
+        /*-----------------------------------
+			TODO: Get new memory map
+		------------------------------------*/
+    }
+</script>
+
 <div id="jump-controls">
     <div>
         <span>JUMP</span><span class="mute"> :</span>
-        <input id="jump-input" type="text" class="sourceCodePro">
+        <input id="jump-input" type="text" class="sourceCodePro" on:keydown={enterMemory}>
     </div>
     <div id="jump-buttons">
-        <div>PC</div>
-        <div>◀</div>
-        <div>◅</div>
-        <div>▻</div>
-        <div>▶</div>
+        <div on:click={pcClick}>PC</div>
+        <div on:click={longJumpBackwardClick}>◀</div>
+        <div on:click={jumpBackwardClick}>◅</div>
+        <div on:click={jumpForwardClick}>▻</div>
+        <div on:click={longJumpForwardClick}>▶</div>
     </div>
 </div>
 

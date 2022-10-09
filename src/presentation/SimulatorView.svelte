@@ -5,7 +5,6 @@
     import StepControls from "./StepControls.svelte";
     import JumpControls from "./JumpControls.svelte";
     import { createEventDispatcher } from 'svelte';
-	import { onMount } from 'svelte';
 
     const dispatch = createEventDispatcher();
 	function toEditor() {
@@ -13,18 +12,7 @@
 			text: "editor"
 		})
 	}
-
-	onMount(() => { 
-		/*------------------------------------------------------
-			TODO: Replace globalThis.editor to simulator logs  
-		--------------------------------------------------------*/
-		let consoleInner = document.getElementById("console-inner")
-		let monaco = globalThis.editor
-		if(monaco)
-			consoleInner.innerText = "Retrieved value from editor:\n\n" + monaco.getValue()
-		else
-			consoleInner = "Retrieving text from editor failed. Editor not found in globalThis."
-	});
+	
 </script>
 
 <div id="sim-view">
