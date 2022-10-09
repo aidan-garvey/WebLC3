@@ -6,6 +6,7 @@ import Opcodes from "./opcodes";
 import decodeRegister from "./decodeReg";
 import decodeImmediate from "./decodeImm";
 import Assembler from "../assembler/assembler";
+import * as fs from "node:fs";
 
 export default class Simulator
 {
@@ -60,31 +61,30 @@ export default class Simulator
         this.disassembly = sourceCode;
 
         // load operating system code
-        this.osObjFile = new Uint16Array([0]); // default value in case of failure
-        const codeReq = new XMLHttpRequest();
-        const sim = this;
-        // get source code, assemble it, load into simulator
-        codeReq.onload = function()
+        let osSource: string;
+        try
         {
-            const asmResult = Assembler.assemble(codeReq.response);
+            osSource = fs.readFileSync("src/logic/simulator/os/lc3_os.asm", "utf8");
+            const asmResult = Assembler.assemble(osSource);
             if (asmResult === null)
             {
-                console.log("Error occurred while assembling operating system code.");
+                console.log("Error assembling operating system code");
+                this.osObjFile = new Uint16Array([0]);
             }
             else
             {
-                // set simulator's OS object file
-                const [osObj, osSymbols] = asmResult;
-                sim.osObjFile = osObj;
-                // copy memory-mapped disassembly to simulator's map
-                for (let mapping of osSymbols)
+                this.osObjFile = asmResult[0];
+                for (let mapping of asmResult[1])
                 {
-                    sim.disassembly.set(mapping[0], mapping[1]);
+                    this.disassembly.set(mapping[0], mapping[1]);
                 }
             }
         }
-        // synchronous so it's initialized before we call loadBuiltInCode
-        codeReq.open("GET", "./os/lc3_os.asm", false);
+        catch (error)
+        {
+            console.log("Error retrieving operating system source code: " + error);
+            this.osObjFile = new Uint16Array([0]);
+        }
 
         this.loadBuiltInCode();
         this.reloadProgram();
