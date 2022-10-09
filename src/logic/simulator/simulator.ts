@@ -5,6 +5,7 @@
 import Opcodes from "./opcodes";
 import decodeRegister from "./decodeReg";
 import decodeImmediate from "./decodeImm";
+import Assembler from "../assembler/assembler";
 
 export default class Simulator
 {
@@ -41,9 +42,11 @@ export default class Simulator
     // addresses of each active breakpoint
     private breakPoints: Set<number> = new Set();
     // object file for program to run
-    private objFile: Uint16Array;
+    private userObjFile: Uint16Array;
+    // object file for operating system code
+    private osObjFile: Uint16Array;
     // memory addresses mapped to the code which generated the value there
-    private disAsm: Map<number, string>;
+    private disassembly: Map<number, string>;
 
     /**
      * Initialize the simulator, load the code into memory and set PC to start
@@ -53,8 +56,36 @@ export default class Simulator
      */
     public constructor(objectFile: Uint16Array, sourceCode: Map<number, string>)
     {
-        this.objFile = objectFile;
-        this.disAsm = sourceCode;
+        this.userObjFile = objectFile;
+        this.disassembly = sourceCode;
+
+        // load operating system code
+        this.osObjFile = new Uint16Array([0]); // default value in case of failure
+        const codeReq = new XMLHttpRequest();
+        const sim = this;
+        // get source code, assemble it, load into simulator
+        codeReq.onload = function()
+        {
+            const asmResult = Assembler.assemble(codeReq.response);
+            if (asmResult === null)
+            {
+                console.log("Error occurred while assembling operating system code.");
+            }
+            else
+            {
+                // set simulator's OS object file
+                const [osObj, osSymbols] = asmResult;
+                sim.osObjFile = osObj;
+                // copy memory-mapped disassembly to simulator's map
+                for (let mapping of osSymbols)
+                {
+                    sim.disassembly.set(mapping[0], mapping[1]);
+                }
+            }
+        }
+        // synchronous so it's initialized before we call loadBuiltInCode
+        codeReq.open("GET", "./os/lc3_os.asm", false);
+
         this.loadBuiltInCode();
         this.reloadProgram();
     }
@@ -65,14 +96,26 @@ export default class Simulator
      */
     public reloadProgram()
     {
-        let loc = this.objFile[0];
-        for (let i = 1; i < this.objFile.length; i++)
+        let loc = this.userObjFile[0];
+        for (let i = 1; i < this.userObjFile.length; i++)
         {
-            this.memory[loc++] = this.objFile[i];
+            this.memory[loc++] = this.userObjFile[i];
         }
-        this.pc[0] = this.objFile[0];
+        this.pc[0] = this.userObjFile[0];
 
         this.restorePSR();
+    }
+
+    /**
+     * Load operating system code into memory from object file
+     */
+    private loadBuiltInCode()
+    {
+        let loc = this.osObjFile[0];
+        for (let i = 1; i < this.osObjFile.length; i++)
+        {
+            this.memory[loc++] = this.userObjFile[i];
+        }
     }
 
     /**
@@ -81,7 +124,7 @@ export default class Simulator
      */
     public restartProgram()
     {
-        this.pc[0] = this.objFile[0];
+        this.pc[0] = this.userObjFile[0];
     }
 
     /**
@@ -269,7 +312,7 @@ export default class Simulator
         let res: string[][] = [];
         for (let i = start; i < end; i++)
         {
-            let code = this.disAsm.get(i);
+            let code = this.disassembly.get(i);
             if (typeof(code) === "undefined")
             {
                 code = "";
@@ -420,15 +463,6 @@ export default class Simulator
         this.interruptVector = 0;
         this.savedSSP[0] = 0x3000;
         this.savedUSP[0] = 0;
-    }
-
-    /**
-     * Dummy method which will load the code for built-in traps, exceptions and
-     * interrupts
-     */
-    private loadBuiltInCode()
-    {
-
     }
 
     /**
