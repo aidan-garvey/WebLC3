@@ -32,6 +32,16 @@ export default class Parser
         ["brnz", 9], ["brnp", 9], ["brzp", 9], ["brnzp", 9], ["jsr", 11], ["ld", 9],
         ["ldi", 9], ["ldr", 6], ["lea", 9], ["st", 9], ["sti", 9], ["str", 6]
     ]);
+
+    // valid escape codes mapped to ascii values
+    static escapes = new Map([
+        ['\\', '\\'.charCodeAt(0)],
+        ['\'', '\''.charCodeAt(0)],
+        ['\"', '\"'.charCodeAt(0)],
+        ['n', '\n'.charCodeAt(0)],
+        ['r', '\r'.charCodeAt(0)],
+        ['t', '\t'.charCodeAt(0)]
+    ]);
  
     /**
      * Trim leading and trailing whitespace and remove any comments
@@ -138,7 +148,18 @@ export default class Parser
         {
             for (let i = 1; i < literal.length - 1; i++)
             {
-                result.push(literal.charCodeAt(i));
+                // if there is an escape sequence
+                if (literal[i] === '\\' && i < literal.length - 2 && this.escapes.has(literal[i+1]))
+                {
+                    // we want to jump over the escaped character before the next iteration
+                    ++i;
+                    result.push(this.escapes.get(literal[i]));
+                }
+                else
+                {
+                    result.push(literal.charCodeAt(i));
+                }
+                
             }
         }
         else
@@ -146,6 +167,7 @@ export default class Parser
             FakeUI.print(Assembler.errors.BADQUOTES);
             Assembler.hasError = true;
         }
+        // @ts-ignore
         return result;
     }
 
