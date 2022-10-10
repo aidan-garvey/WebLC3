@@ -256,6 +256,15 @@ export default class Parser
      */
     static tokenizeLine(line: string) : string[]
     {
+        // if the line contains a string literal, split it off first
+        const firstQuote = line.search(/['"]/);
+        let stringOperand = "";
+        if (firstQuote >= 0)
+        {
+            stringOperand = line.slice(firstQuote);
+            line = line.slice(0, firstQuote);
+        }
+
         /**
          * split on colons and commas
          * trim all resulting strings
@@ -278,6 +287,11 @@ export default class Parser
             {
                 result.push(t[j]);
             }
+        }
+
+        if (firstQuote >= 0)
+        {
+            result.push(stringOperand);
         }
         return result;
     }
