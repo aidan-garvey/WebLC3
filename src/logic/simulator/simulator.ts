@@ -73,6 +73,7 @@ export default class Simulator
             }
             else
             {
+                console.log("Operating system code assembled successfully");
                 this.osObjFile = asmResult[0];
                 for (let mapping of asmResult[1])
                 {
