@@ -42,15 +42,11 @@ CON_STATUS: .FILL xFE04
 CON_DATA:   .FILL xFE06
 MCR:        .FILL xFFFE
 
-; Constants:
+; Constants (see bottom of code for more strings):
 BYTE_MASK:  .FILL x00FF
 CLOCK_MASK: .FILL x7FFF ; ANDing with MCR will disable the clock
-IN_PROMPT:  .STRINGZ "Input a character > "
-HALT_MSG:   .STRINGZ "Halting computer\n"
 NOTRAP_MSG: .STRINGZ "Invalid TRAP excecuted\n"
 BAD_EX_MSG: .STRINGZ "An invalid interrupt or exception has occured\n"
-PRIV_MSG:   .STRINGZ "Privilege mode violation\n"
-ILL_MSG:    .STRINGZ "Illegal opcode exception\n"
 
 ; -------------------------------
 ; Unimplemented Traps
@@ -214,7 +210,7 @@ TRAP_PUTSP:
     ADD     r1, r0, #0  ; r1 := address of string
     AND     r2, r2, #0  ; r2 will be a loop counter
     LD      r3, BYTE_MASK
-    NOT     r3          ; r3 := 0xFF00
+    NOT     r3, r3      ; r3 := 0xFF00
 
     ; loop until we reach 0x0000
 PUTSP_STRING_LOOP:
@@ -337,5 +333,11 @@ INT_KEYBD:
     LDR     r0, r6, #0
     ADD     r6, r6, #1
     RTI
+
+; Strings output by some traps and exceptions
+IN_PROMPT:  .STRINGZ "Input a character > "
+HALT_MSG:   .STRINGZ "Halting computer\n"
+PRIV_MSG:   .STRINGZ "Privilege mode violation\n"
+ILL_MSG:    .STRINGZ "Illegal opcode exception\n"
 
 .END
