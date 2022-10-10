@@ -151,7 +151,9 @@ export default class Parser
                 // if there is an escape sequence
                 if (literal[i] === '\\' && i < literal.length - 2 && this.escapes.has(literal[i+1]))
                 {
-                    result.push(this.escapes.get(literal[i+1]));
+                    // we want to jump over the escaped character before the next iteration
+                    ++i;
+                    result.push(this.escapes.get(literal[i]));
                 }
                 else
                 {
