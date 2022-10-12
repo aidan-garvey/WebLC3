@@ -12,6 +12,49 @@
 			text: "editor"
 		})
 	}
+
+
+
+
+
+	// PC is on x0200 at startup
+	let pc = 512
+	$: currPtr = pc
+	let shortJumpOffset = 5
+	let longJumpOffset = 23
+
+	// Memory mapping function
+	function newMemoryMap(event){
+		let control = event.detail.text
+		let consoleInner = document.getElementById("console-inner")
+        consoleInner.classList.remove("empty")
+
+		if(control == "pc"){
+			consoleInner.innerText = "Jumped to PC."
+			currPtr = pc
+		}
+		else if(control == "ljb"){
+			consoleInner.innerText = "Long jumped backward."
+			currPtr = currPtr - longJumpOffset
+		}
+		else if(control == "jb"){
+			consoleInner.innerText = "Jumped backward."
+			currPtr = currPtr - shortJumpOffset
+		}
+		else if(control == "jf"){
+			consoleInner.innerText = "Jumped forward."
+			currPtr = currPtr + shortJumpOffset
+		}
+		else if(control == "ljf"){
+			consoleInner.innerText = "Long jumped forward."
+			currPtr = currPtr + longJumpOffset
+		}
+		else{
+			let hex = control.toString(16)
+			consoleInner.innerText = "Jumped to memory location at x" + hex + "."
+			currPtr = control
+		}
+	}
 	
 </script>
 
@@ -24,8 +67,8 @@
 	</section>
 	<section id="sv-right">
         <div class="workSans componame">Memory</div>
-		<Memory />
-        <JumpControls />
+		<Memory ptr={currPtr} />
+        <JumpControls on:jump={newMemoryMap} />
         <button class="switchBtn" on:click={toEditor}>Back to Editor</button>
 	</section>
 </div>

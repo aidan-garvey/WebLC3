@@ -27,7 +27,7 @@
     }
 
     #console-inner{
-        height: 80%;
+        height: 70%;
         width: 85%;
         font-size: 12px;
     }

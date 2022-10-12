@@ -1,56 +1,30 @@
 <script>
-    function pcClick(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "Selected PC."
-        consoleInner.classList.remove("empty")
-        newMap()
-    }
+    import { createEventDispatcher } from 'svelte';
+    const dispatch = createEventDispatcher();
 
-    function longJumpBackwardClick(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "Long jumped backward."
-        consoleInner.classList.remove("empty")
-        newMap()
-    }
-
-    function jumpBackwardClick(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "Jumped backward."
-        consoleInner.classList.remove("empty")
-        newMap()
-    }
-
-    function jumpForwardClick(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "Jumped forward."
-        consoleInner.classList.remove("empty")
-        /*------------------------------------------------------
-			TODO: Validate memory location before calling newMap
-		----------------------------------------------------------*/
-        newMap()
-    }
-
-    function longJumpForwardClick(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "Long jumped forward."
-        consoleInner.classList.remove("empty")
-        newMap()
-    }
-
+    // Control handlers
+    function pcClick(){ jump("pc") }
+    function longJumpBackwardClick(){ jump("ljb") }
+    function jumpBackwardClick(){ jump("jb") }
+    function jumpForwardClick(){ jump("jf") }
+    function longJumpForwardClick(){ jump("ljf") }
     function enterMemory(event){
         if(event.keyCode == 13){
-            let input = document.getElementById("jump-input").innerText
-            let consoleInner = document.getElementById("console-inner")
-            consoleInner.innerText = "Jumped to memory location at " + input + "."
-            consoleInner.classList.remove("empty")
-            newMap()
+            let lc3LowerBound = 0
+            let lc3UpperBound = 65535
+
+            // Validate: Only jump if memory location exists
+            let input = document.getElementById("jump-input").value
+            let loc = parseInt(input.substring(1), 16);
+            if(loc >= lc3LowerBound && loc <= lc3UpperBound){ jump(loc) }
         }
     }
 
-    function newMap(){
-        /*-----------------------------------
-			TODO: Get new memory map
-		------------------------------------*/
+    // Dispatch control
+    function jump(control){
+        dispatch("jump", {
+            text: control
+        })
     }
 </script>
 
