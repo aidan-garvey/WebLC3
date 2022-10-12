@@ -175,6 +175,12 @@ export default class Assembler
                 // instruction:
                 else if (this.opCodes.has(tokens[0]))
                 {
+                    if (!this.validOperandCount(tokens))
+                    {
+                        FakeUI.print(ErrorBuilder.operandError(tokens));
+                        this.hasError = true;
+                        continue;
+                    }
                     const word = Parser.parseCode(tokens, pc, labels, toFix);
                     if (!isNaN(word))
                     {
@@ -200,6 +206,8 @@ export default class Assembler
         {
             const tokens = entry[0];
             const loc = entry[1];
+
+            // .fill and .blkw use absolute addresses, not offsets
             if (tokens[0] == ".fill")
             {
                 if (labels.has(tokens[1]))
