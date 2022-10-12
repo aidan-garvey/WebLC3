@@ -1,5 +1,5 @@
 <script>
-    import * as fs from 'fs';
+    import { onMount } from 'svelte';
     export let currView = "editor"
 
     function newClick(){
@@ -25,7 +25,17 @@
             if(extension == "asm"){
                 let consoleInner = document.getElementById("console-inner")
                 consoleInner.innerText = "Opened file " + filename + "."
-                consoleInner.classList.remove("empty")  
+                consoleInner.classList.remove("empty")
+
+                const reader = new FileReader()
+                reader.readAsText(files[0]);
+                reader.onload = function() {
+                    let editor = globalThis.editor
+                    if(editor)
+                        editor.setValue(reader.result)
+                    else
+                        console.error("Reading .asm file to editor failed.")
+                };
             } else {
                 alert("Invalid file. WebLC3 only accepts .asm files.")
             }
@@ -36,17 +46,31 @@
 		-------------------------------------------------------------------*/
     }
 
-    function saveClick(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "Saving file."
-        consoleInner.classList.remove("empty")
-        
-        /*----------------------------------------------------------------
-			TODO: 
-              - Open file dialog and allow user to enter filename
-              - Saved file must appear in computer
-		-------------------------------------------------------------------*/
-    }
+    // Save file
+    onMount(() => {
+        let save = document.getElementById("save")
+        if(save){
+            save.addEventListener("click", function save(){
+                let editor = globalThis.editor
+                if(editor){
+                    let data = editor.getValue()
+                    let fileName = "untitled.asm"
+                    download(fileName, data)
+                }
+            })
+        }
+
+        function download(fileName, data) {
+            var a = document.createElement("a")
+            document.body.appendChild(a)
+            var blob = new Blob([data], { type: "plain/text" })
+            let url = window.URL.createObjectURL(blob);
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            window.URL.revokeObjectURL(url)
+        }
+    });
 
     function reloadClick(){
         let consoleInner = document.getElementById("console-inner")
@@ -92,7 +116,7 @@
             <span class="material-symbols-outlined">folder</span>
             <p>Open</p>
         </div>
-        <div id="save" class="menu-item" on:click={saveClick}>
+        <div id="save" class="menu-item">
             <span class="material-symbols-outlined">save</span>
             <p>Save</p>
         </div>
