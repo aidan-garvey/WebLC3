@@ -121,7 +121,7 @@ body.dark{
 }
 
 .dark #help{
-	background-color: rgba(42,42,42,0.9);
+	background-color: rgb(42,42,42);
     border: 5px double var(--d-tint);
 }
 
@@ -275,7 +275,7 @@ body.light{
 }
 
 .light #help{
-	background-color: rgba(244,244,244,0.9);
+	background-color: rgb(244,244,244);
     border: 5px double var(--l-alt-tint);
 }
 

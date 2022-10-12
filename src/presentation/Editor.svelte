@@ -37,7 +37,7 @@
 
 <div id="editorCtr">
     <span class="loader"></span>
-    <span class="sourceCodePro">Loading application</span>
+    <span class="sourceCodePro">Assembling application</span>
 </div>
 
 <style>
