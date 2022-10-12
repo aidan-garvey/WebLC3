@@ -1,16 +1,34 @@
+<script>
+    import { createEventDispatcher } from 'svelte';
+    const dispatch = createEventDispatcher();
+
+    // Control handlers
+    function runClick(){ step("run") }
+    function stepInClick(){ step("in") }
+    function stepOutClick(){ step("out") }
+    function stepOverClick(){ step("over") }
+
+    // Dispatch control
+    function step(control){
+        dispatch("step", {
+            text: control
+        })
+    }
+</script>
+
 <div id="step-controls">
-    <button id="run" class="functionBtn">
+    <button id="run" class="functionBtn" on:click={runClick}>
         ▶ RUN
     </button>
-    <button id="step-in" class="functionBtn">
+    <button id="step-in" class="functionBtn" on:click={stepInClick}>
         <span class="material-symbols-outlined">subdirectory_arrow_right</span>
          Step in
     </button>
-    <button id="step-out" class="functionBtn">
+    <button id="step-out" class="functionBtn" on:click={stepOutClick}>
         <span class="material-symbols-outlined">subdirectory_arrow_left</span>
          Step out
     </button>
-    <button id="step-over" class="functionBtn">
+    <button id="step-over" class="functionBtn" on:click={stepOverClick}>
         <span class="material-symbols-outlined">u_turn_right</span>
          Step over
     </button>

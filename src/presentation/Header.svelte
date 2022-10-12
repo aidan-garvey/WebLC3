@@ -2,14 +2,12 @@
     import Menu from "./Menu.svelte";
     import ModeSwitch from "./ModeSwitch.svelte";
     import Title from "./Title.svelte";
-
-    export let view = "editor"
 </script>
 
 <div id="header">
     <div id="header-inner">
         <Title />
-        <Menu currView={view} />
+        <Menu />
         <ModeSwitch />
     </div>
 </div>

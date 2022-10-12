@@ -1,20 +1,43 @@
 <script>
     import Editor from "./Editor.svelte";
     import Console from "./Console.svelte";
-    import { createEventDispatcher } from 'svelte';
 	import { onMount } from 'svelte';
+	import { openedFile, currentView } from './stores';
 
-    const dispatch = createEventDispatcher();
 	function toSimulator() {
-		dispatch("changeView", {
-			text: "simulator"
-		})
+		currentView.set("simulator")
 	}
 
-	export let filename = "No file provided"
 	onMount(() => { 
 		document.getElementById("filename").style.visibility = "visible" 
 	});
+
+	// Manage filename
+	export let filename = "No file provided"
+	openedFile.subscribe(value => {
+		filename = value
+	});
+
+	// Assemble
+	function assembleClick(){
+		let consoleInner = document.getElementById("console-inner")
+		consoleInner.innerText = "Assembly successful."
+		consoleInner.classList.remove("empty")
+		let editor = globalThis.editor
+
+		/*-----------------------------------------
+			Temporary: Print input to console  
+		-------------------------------------------*/
+		if(editor)
+			console.log("Retrieved value from editor:\n\n" + editor.getValue())
+		else
+			console.log("Retrieving text from editor failed. Editor not found in globalThis.")
+
+		/*-----------------------------------------
+			TODO: Dispatch input to assembler 
+		-------------------------------------------*/
+	}
+
 </script>
 
 <div id="editor-view">
@@ -26,7 +49,7 @@
 		<div class="filler">filler</div>
 		<Console />
 		<div id="ev-buttons">
-			<button id="assemble" class="functionBtn">
+			<button id="assemble" class="functionBtn" on:click={assembleClick}>
 				<span class="material-symbols-outlined">memory</span>
 				 ASSEMBLE
 			</button>

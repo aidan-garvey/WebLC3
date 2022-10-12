@@ -1,14 +1,44 @@
+<script>
+    import { createEventDispatcher } from 'svelte';
+    const dispatch = createEventDispatcher();
+
+    // Control handlers
+    function pcClick(){ jump("pc") }
+    function longJumpBackwardClick(){ jump("ljb") }
+    function jumpBackwardClick(){ jump("jb") }
+    function jumpForwardClick(){ jump("jf") }
+    function longJumpForwardClick(){ jump("ljf") }
+    function enterMemory(event){
+        if(event.keyCode == 13){
+            let lc3LowerBound = 0
+            let lc3UpperBound = 65535
+
+            // Validate: Only jump if memory location exists
+            let input = document.getElementById("jump-input").value
+            let loc = parseInt(input.substring(1), 16);
+            if(loc >= lc3LowerBound && loc <= lc3UpperBound){ jump(loc) }
+        }
+    }
+
+    // Dispatch control
+    function jump(control){
+        dispatch("jump", {
+            text: control
+        })
+    }
+</script>
+
 <div id="jump-controls">
     <div>
         <span>JUMP</span><span class="mute"> :</span>
-        <input id="jump-input" type="text" class="sourceCodePro">
+        <input id="jump-input" type="text" class="sourceCodePro" on:keydown={enterMemory}>
     </div>
     <div id="jump-buttons">
-        <div>PC</div>
-        <div>◀</div>
-        <div>◅</div>
-        <div>▻</div>
-        <div>▶</div>
+        <div on:click={pcClick}>PC</div>
+        <div on:click={longJumpBackwardClick}>◀</div>
+        <div on:click={jumpBackwardClick}>◅</div>
+        <div on:click={jumpForwardClick}>▻</div>
+        <div on:click={longJumpForwardClick}>▶</div>
     </div>
 </div>
 

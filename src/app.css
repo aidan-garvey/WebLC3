@@ -121,7 +121,7 @@ body.dark{
 }
 
 .dark #help{
-	background-color: rgba(42,42,42,0.9);
+	background-color: rgb(42,42,42);
     border: 5px double var(--d-tint);
 }
 
@@ -149,7 +149,7 @@ body.dark{
 	background-color: var(--d-fadetext);
 }
 
-.dark .menu-item{
+.dark .menu-item, .dark #console-inner{
 	color: var(--d-fadetext);
 }
 
@@ -217,7 +217,7 @@ body.dark{
 	background-color: var(--d-highlight);
 }
 
-.dark #console-inner{
+.dark #console-inner.empty{
 	color: var(--d-select);
 }
 
@@ -275,7 +275,7 @@ body.light{
 }
 
 .light #help{
-	background-color: rgba(244,244,244,0.9);
+	background-color: rgb(244,244,244);
     border: 5px double var(--l-alt-tint);
 }
 
@@ -303,7 +303,7 @@ body.light{
 	background-color: var(--l-text);
 }
 
-.light .menu-item{
+.light .menu-item, .light #console-inner{
 	color: var(--l-text);
 }
 
@@ -367,7 +367,7 @@ body.light{
 	background-color: var(--l-highlight);
 }
 
-.light #console-inner{
+.light #console-inner.empty{
 	color: var(--l-fadetext);
 }
 
@@ -390,6 +390,10 @@ body.light{
 
 .monaco-editor .line-numbers.active-line-number{
 	color: var(--d-loc);
+}
+
+.decorationsOverviewRuler{
+	width: 0px !important;
 }
 
 .dark .monaco-editor .margin{
