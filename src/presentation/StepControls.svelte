@@ -1,43 +1,18 @@
 <script>
+    import { createEventDispatcher } from 'svelte';
+    const dispatch = createEventDispatcher();
 
-    function runClick(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "Running simulator."
-        consoleInner.classList.remove("empty")
+    // Control handlers
+    function runClick(){ step("run") }
+    function stepInClick(){ step("in") }
+    function stepOutClick(){ step("out") }
+    function stepOverClick(){ step("over") }
 
-        /*-------------------------------------------------------------------
-			TODO: Get console logs, last register and memory state from run
-		----------------------------------------------------------------------*/
-    }
-
-    function stepInClick(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "Stepping in."
-        consoleInner.classList.remove("empty")
-
-        /*-------------------------------------------------------------------
-			TODO: Get console logs, last register and memory state from step in
-		----------------------------------------------------------------------*/
-    }
-
-    function stepOutClick(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "Stepping out."
-        consoleInner.classList.remove("empty")
-
-        /*-------------------------------------------------------------------
-			TODO: Get console logs, last register and memory state from step out
-		----------------------------------------------------------------------*/
-    }
-
-    function stepOverClick(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "Running simulator."
-        consoleInner.classList.remove("empty")
-
-        /*-------------------------------------------------------------------
-			TODO: Get console logs, last register and memory state from step over
-		----------------------------------------------------------------------*/
+    // Dispatch control
+    function step(control){
+        dispatch("step", {
+            text: control
+        })
     }
 </script>
 

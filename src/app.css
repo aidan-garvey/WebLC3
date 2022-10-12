@@ -392,6 +392,10 @@ body.light{
 	color: var(--d-loc);
 }
 
+.decorationsOverviewRuler{
+	width: 0px !important;
+}
+
 .dark .monaco-editor .margin{
 	background-color: var(--d-alt) !important;
 }

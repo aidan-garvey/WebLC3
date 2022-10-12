@@ -1,13 +1,15 @@
 <script>
     import { onMount } from 'svelte';
+    import { createEventDispatcher } from 'svelte';
+    const dispatch = createEventDispatcher();
 
     // Set memory table dimensions
     let cols = Array(7)
     export let rows = 23
 
     // Set PC and pointer on x0200 at startup
-    export let pc = 512
-    export let ptr = 512
+    export let pc
+    export let ptr
     let currPtr = ptr
     
     // Load memory range
@@ -49,9 +51,16 @@
         else{
             this.classList.remove("bp-selected")
             let index = breakpoints.indexOf(id)
-            breakpoints.splice(index, id);
+            breakpoints.splice(index, 1);
         }
+        updateBreakpoints()
     }
+
+    function updateBreakpoints() {
+		dispatch("updateBP", {
+			text: breakpoints
+		})
+	}
 
     // Set PC on click
     function setPC(){
@@ -60,7 +69,14 @@
         if(currPC)
             currPC.classList.remove("ptr-selected")
         this.classList.add("ptr-selected")
+        updatePC(pc)
     }
+
+    function updatePC(newPC) {
+		dispatch("updatePC", {
+			text: newPC
+		})
+	}
 
     // Clear breakpoints and PC on memory reload
     function clearSets(){
