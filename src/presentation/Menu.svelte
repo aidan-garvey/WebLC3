@@ -1,14 +1,23 @@
 <script>
     import { onMount } from 'svelte';
-    export let currView = "editor"
+    import { openedFile, currentView } from './stores.js';
+
+    let currView = "editor"
+    currentView.subscribe(value => {
+		currView = value
+	});
 
     function newClick(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "Started new file."
-        consoleInner.classList.remove("empty")
-        let editor = globalThis.editor
-        if(editor)
-            editor.setValue("")
+        if (confirm('Are you sure you want to start over?\n\nWARNING: This will clear the editor. Make sure to save your current progress first.')) {
+            let consoleInner = document.getElementById("console-inner")
+            consoleInner.innerText = "Started new file."
+            consoleInner.classList.remove("empty")
+            let editor = globalThis.editor
+            if(editor){
+                editor.setValue("")
+                updateFilename("untitled.asm")
+            }
+        }
     }
 
     function openClick(){
@@ -31,8 +40,10 @@
                 reader.readAsText(files[0]);
                 reader.onload = function() {
                     let editor = globalThis.editor
-                    if(editor)
+                    if(editor){
                         editor.setValue(reader.result)
+                        updateFilename(filename)
+                    }
                     else
                         console.error("Reading .asm file to editor failed.")
                 };
@@ -71,6 +82,11 @@
             window.URL.revokeObjectURL(url)
         }
     });
+
+    // Update filename in EditorView
+    function updateFilename(fn) {
+		openedFile.set(fn)
+	}
 
     function reloadClick(){
         let consoleInner = document.getElementById("console-inner")

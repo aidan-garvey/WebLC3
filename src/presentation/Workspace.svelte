@@ -1,28 +1,20 @@
 <script>
     import EditorView from "./EditorView.svelte";
     import SimulatorView from "./SimulatorView.svelte";
-    import { createEventDispatcher } from 'svelte';
+    import { currentView } from '../presentation/stores.js';
 
-    const dispatch = createEventDispatcher();
-	function swapView(view) {
-		dispatch("changeView", {
-			text: view
-		})
-	}
-
-    export let view="editor"
-    function loadView(event) {
-        view = event.detail.text
-        swapView(view)
-	}
+    let currView = "editor"
+    currentView.subscribe(value => {
+		currView = value
+	});
 </script>
 
 <div id="workspace">
     <div id="workspace-inner">
-        {#if view == "editor"}
-            <EditorView on:changeView={loadView} />
+        {#if currView == "editor"}
+            <EditorView />
         {:else}
-            <SimulatorView on:changeView={loadView} />
+            <SimulatorView />
         {/if}
     </div>
 </div>

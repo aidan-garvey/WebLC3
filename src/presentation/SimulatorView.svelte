@@ -4,13 +4,10 @@
     import Console from "./Console.svelte";
     import StepControls from "./StepControls.svelte";
     import JumpControls from "./JumpControls.svelte";
-    import { createEventDispatcher } from 'svelte';
+	import { currentView } from './stores';
 
-    const dispatch = createEventDispatcher();
 	function toEditor() {
-		dispatch("changeView", {
-			text: "editor"
-		})
+		currentView.set("editor")
 	}
 
 	// PC is on x0200 at startup
