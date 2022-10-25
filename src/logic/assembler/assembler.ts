@@ -46,23 +46,7 @@ export default class Assembler
         INFILE: "Source code is empty",
         FIRSTLINE: "The first line of code must be a .ORIG directive",
         MULTORIG: "Multiple .ORIG directives used"
-        /*
-        IMMEDIATE: "Invalid immediate value",
-        OPERANDS: "Incorrect number of operands",
-        INVSYMBOL: "Unreconginzed opcode/directive or invalid label",
-        BADQUOTES: "String literal has invalid quotes",
-        EMPTYSTRING: "String literals cannot be empty",
-        BADREG: "Invalid register",
-        BADMNEMONIC: "Invalid instruction",
-        IMMBOUNDS: "Immediate value is out of bounds for the instruction",
-        BADOPRND: "Invalid operand",
-        BADLABEL: "Unknown label",
-        LBLBOUNDS: "Distance to label is out of range",
-        BADMEMORY: "Value written to memory does not fit in 16 bits"
-        */
     };
-
-    static hasError = false;
 
     /**
      * Assemble the given source code.
@@ -78,7 +62,7 @@ export default class Assembler
      */
     static assemble(sourceCode: string) : [Uint16Array, Map<number, string>] | null
     {
-        this.hasError = false;
+        let hasError = false;
 
         const srcLines = sourceCode.split(/[\n\r]+/);
         if (srcLines.length == 0)
@@ -171,13 +155,17 @@ export default class Assembler
                     if (!this.validOperandCount(tokens))
                     {
                         FakeUI.print(errorBuilder.operandCount(lineNum, tokens));
-                        this.hasError = true;
+                        hasError = true;
                         continue;
                     }
                     const pcInc = parser.parseDirective(lineNum, tokens, pc, memory, toFix);
                     if (pcInc < 0)
                     {
                         atEnd = true;
+                    }
+                    else if (pcInc == 0)
+                    {
+                        hasError = true;
                     }
                     else
                     {
@@ -190,7 +178,7 @@ export default class Assembler
                     if (!this.validOperandCount(tokens))
                     {
                         FakeUI.print(errorBuilder.operandCount(lineNum, tokens));
-                        this.hasError = true;
+                        hasError = true;
                         continue;
                     }
                     const word = parser.parseCode(lineNum, tokens, pc, labels, toFix);
@@ -208,7 +196,7 @@ export default class Assembler
                 else
                 {
                     FakeUI.print(errorBuilder.unknownMnemonic(lineNum, tokens[0]));
-                    this.hasError = true;
+                    hasError = true;
                 }
             } // end if 
         } // end white
@@ -235,7 +223,7 @@ export default class Assembler
                 const labelVal = labels.get(tokens[1]);
                 if (typeof(labelVal) === "undefined")
                 {
-                    this.hasError = true;
+                    hasError = true;
                     FakeUI.print(errorBuilder.badLabel(lineNum, tokens[1]));
                 }
                 else
@@ -258,13 +246,13 @@ export default class Assembler
                     }
                     else
                     {
-                        this.hasError = true;
+                        hasError = true;
                         FakeUI.print(errorBuilder.badLabel(lineNum, tokens[2]));
                     }
                 }
                 else
                 {
-                    this.hasError = true;
+                    hasError = true;
                     FakeUI.print(errorBuilder.badLabel(lineNum, tokens[2]));
                 }
             }
@@ -284,7 +272,7 @@ export default class Assembler
                 }
                 else
                 {
-                    this.hasError = true;
+                    hasError = true;
                     FakeUI.print(errorBuilder.badLabel(lineNum, tokens[0]));
                 }
             }
@@ -298,7 +286,7 @@ export default class Assembler
             if (memory[i] > 0xFFFF)
             {
                 FakeUI.print(errorBuilder.badMemory(i, memory[i]));
-                this.hasError = true;
+                hasError = true;
                 result[i + 1] = 0;
             }
             else if (isNaN(memory[i]))
@@ -311,7 +299,7 @@ export default class Assembler
             }
         }
 
-        if (this.hasError)
+        if (hasError)
             return null;
         else
             return [result, addrToCode];

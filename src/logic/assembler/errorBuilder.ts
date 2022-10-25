@@ -116,4 +116,9 @@ export default class ErrorBuilder
     {
         return "Assembler error: no line number stored for memory address " + addr;
     }
+
+    public emptyString(lineNum: number): string
+    {
+        return this.formatMessage(lineNum, "Empty string literal");
+    }
 }

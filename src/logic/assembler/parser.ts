@@ -137,14 +137,12 @@ export default class Parser
         if (isNaN(result))
         {
             FakeUI.print(this.errorBuilder.immOperand(lineNum, token));
-            Assembler.hasError = true;
             return NaN;
         }
         // value does not fit in allowed bits
         else if (result < min || result > max)
         {
             FakeUI.print(this.errorBuilder.immBoundsBits(lineNum, bits, token));
-            Assembler.hasError = true;
             return NaN;
         }
         else
@@ -158,7 +156,7 @@ export default class Parser
      * @param {string} literal 
      * @returns {number[]}
      */
-    private stringToCodes(literal: string, lineNum: number) : number[]
+    private stringToCodes(literal: string, lineNum: number) : number[] | null
     {
         const result: number[] = [];
         let quote = literal[0];
@@ -184,7 +182,7 @@ export default class Parser
         else
         {
             FakeUI.print(this.errorBuilder.badQuotes(lineNum, literal));
-            Assembler.hasError = true;
+            return null;
         }
         return result;
     }
@@ -200,7 +198,6 @@ export default class Parser
         if (regStr[0] != 'r' && regStr[0] != 'R')
         {
             FakeUI.print(this.errorBuilder.badRegister(lineNum, regStr));
-            Assembler.hasError = true;
             return NaN;
         }
         else
@@ -209,7 +206,6 @@ export default class Parser
             if (isNaN(regNum) || regNum < 0 || regNum >= 8)
             {
                 FakeUI.print(this.errorBuilder.badRegister(lineNum, regStr));
-                Assembler.hasError = true;
                 return NaN;
             }
             else
@@ -259,7 +255,6 @@ export default class Parser
             if (diff < min || diff > max)
             {
                 FakeUI.print(this.errorBuilder.labelBounds(lineNum, label, bits));
-                Assembler.hasError = true;
                 return NaN;
             }
             else
@@ -270,7 +265,6 @@ export default class Parser
         else
         {
             FakeUI.print(this.errorBuilder.badLabel(lineNum, label));
-            Assembler.hasError = true;
             return NaN;
         }
     }
@@ -541,6 +535,7 @@ export default class Parser
      * directive, handle its effects and return the amount that
      * the program counter must be increased by after the operation.
      * If the directive is .end, return -1.
+     * If there is an error, return 0.
      * Assumes that the number of operands is valid.
      * @param {number} lineNum
      * @param {string[]} tokens 
@@ -562,7 +557,6 @@ export default class Parser
         {
             case ".orig":
                 FakeUI.print(Assembler.errors.MULTORIG);
-                Assembler.hasError = true;
                 break;
 
             case ".end":
@@ -615,7 +609,7 @@ export default class Parser
 
             case ".stringz":
                 const codes = this.stringToCodes(tokens[1], lineNum);
-                if (codes != null && codes.length > 0)
+                if (codes !== null && codes.length > 0)
                 {
                     for (let i = 0; i < codes.length; i++)
                     {
@@ -624,6 +618,10 @@ export default class Parser
                     // null-terminate the string
                     memory[pc++] = 0;
                     inc = codes.length + 1;
+                }
+                else if (codes !== null)
+                {
+                    FakeUI.print(this.errorBuilder.emptyString(lineNum));
                 }
                 break;
         }
