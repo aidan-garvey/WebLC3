@@ -50,6 +50,12 @@ export default class Parser
         this.errorBuilder = errorBuilder;
     }
 
+    static getImmBitCount(token: string)
+    : number | undefined
+    {
+        return this.immBitCounts.get(token);
+    }
+
     /**
      * Trim leading and trailing whitespace and remove any comments
      * from a line of source code, convert to lowercase.
@@ -154,7 +160,7 @@ export default class Parser
      */
     private stringToCodes(literal: string, lineNum: number) : number[]
     {
-        const result = [];
+        const result: number[] = [];
         let quote = literal[0];
         if ((quote == '"' || quote == "'") && literal[literal.length - 1] == quote)
         {
@@ -165,6 +171,7 @@ export default class Parser
                 {
                     // we want to jump over the escaped character before the next iteration
                     ++i;
+                    // @ts-ignore
                     result.push(Parser.escapes.get(literal[i]));
                 }
                 else
@@ -179,13 +186,13 @@ export default class Parser
             FakeUI.print(this.errorBuilder.badQuotes(lineNum, literal));
             Assembler.hasError = true;
         }
-        // @ts-ignore
         return result;
     }
 
     /**
      * Parse a register operand, return the register number
      * @param {string} regStr 
+     * @param {number} lineNum
      * @returns {number}
      */
     private parseReg(regStr: string, lineNum: number) : number
@@ -331,7 +338,7 @@ export default class Parser
     public parseCode(lineNum: number, tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
     {
         if (tokens[0].startsWith("br"))
-            return this.asmBrJsr(tokens, pc, labels, toFix);
+            return this.asmBrJsr(lineNum, tokens, pc, labels, toFix);
         switch (tokens[0])
         {
             case "add":
@@ -339,21 +346,21 @@ export default class Parser
             case "not":
                 return this.asmAluOp(lineNum, tokens);
             case "jsr":
-                return this.asmBrJsr(tokens, pc, labels, toFix);
+                return this.asmBrJsr(lineNum, tokens, pc, labels, toFix);
             case "jmp":
             case "jsrr":
-                return this.asmRegJump(tokens);
+                return this.asmRegJump(lineNum, tokens);
             case "ld":
             case "ldi":
             case "lea":
             case "st":
             case "sti":
-                return this.asmPcLoadStore(tokens, pc, labels, toFix);
+                return this.asmPcLoadStore(lineNum, tokens, pc, labels, toFix);
             case "ldr":
             case "str":
-                return this.asmRegLoadStore(tokens);
+                return this.asmRegLoadStore(lineNum, tokens);
             case "trap":
-                return this.asmTrap(tokens[1]);
+                return this.asmTrap(lineNum, tokens[1]);
             case "getc":
             case "out":
             case "puts":
@@ -380,10 +387,10 @@ export default class Parser
         let res = Parser.opcodeVals.get(tokens[0]);
         // destination register
         // @ts-ignore
-        res |= this.parseReg(tokens[1]) << 9;
+        res |= this.parseReg(tokens[1], lineNum) << 9;
         // source reg 1
         // @ts-ignore
-        res |= this.parseReg(tokens[2]) << 6;
+        res |= this.parseReg(tokens[2], lineNum) << 6;
 
         // if doing NOT, we only need 2 registers
         if (tokens[0] != "not")
@@ -397,8 +404,7 @@ export default class Parser
                 // set immediate flag
                 // @ts-ignore
                 res |= 0b10_0000;
-                // @ts-ignore
-                source2 = this.parseImmediate(tokens[3], true, Parser.immBitCounts.get(tokens[0]));
+                source2 = this.parseImmediate(tokens[3], true, lineNum, Parser.immBitCounts.get(tokens[0]));
             }
             
             if (!isNaN(source2))
@@ -418,20 +424,21 @@ export default class Parser
 
     /**
      * generate machine code for a branch or subroutine call (control flow with PC offset)
+     * @param {number} lineNum
      * @param {string[]} tokens 
      * @param {number} pc 
      * @param {Map<string, number>} labels 
      * @param {Map<string[], number>} toFix 
      * @returns {number}
      */
-    private asmBrJsr(tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
+    private asmBrJsr(lineNum: number, tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
     {
         let res = Parser.opcodeVals.get(tokens[0]);
         let bits = Parser.immBitCounts.get(tokens[0]);
         if (labels.has(tokens[1]))
         {
             // @ts-ignore
-            return res | this.calcLabelOffset(tokens[1], pc, labels, bits);
+            return res | this.calcLabelOffset(tokens[1], pc, labels, bits, lineNum);
         }
         else
         {
@@ -443,33 +450,35 @@ export default class Parser
 
     /**
      * generate machine code for JMP or JSRR (control flow with a register)
+     * @param {number} lineNum
      * @param {string[]} tokens 
      * @returns {number}
      */
-    private asmRegJump(tokens: string[]) : number
+    private asmRegJump(lineNum: number, tokens: string[]) : number
     {
         let res = Parser.opcodeVals.get(tokens[0]);
         // @ts-ignore
-        return (res | this.parseReg(tokens[1])) << 6;
+        return (res | this.parseReg(tokens[1], lineNum)) << 6;
     }
 
     /**
      * generate machine code for a load or store operation which uses a PC offset
+     * @param {lineNum}
      * @param {string[]} tokens 
      * @param {number} pc 
      * @param {Map<string, number>} labels 
      * @param {Map<string[], number>} toFix 
      * @returns {number}
      */
-    private asmPcLoadStore(tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
+    private asmPcLoadStore(lineNum: number, tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
     {
         let res = Parser.opcodeVals.get(tokens[0]);
         // @ts-ignore
-        res |= this.parseReg(tokens[1]) << 9;
+        res |= this.parseReg(tokens[1], lineNum) << 9;
         if (labels.has(tokens[2]))
         {
             // @ts-ignore
-            return res | this.calcLabelOffset(tokens[2], pc, labels, this.immBitCounts.get(tokens[0]));
+            return res | this.calcLabelOffset(tokens[2], pc, labels, Parser.immBitCounts.get(tokens[0]), lineNum);
         }
         else
         {
@@ -481,18 +490,19 @@ export default class Parser
 
     /**
      * generate machine code for a load or store which uses a register + immediate offset
+     * @param {number} lineNum
      * @param {string[]} tokens 
      * @returns {number}
      */
-    private asmRegLoadStore(tokens: string[]) : number
+    private asmRegLoadStore(lineNum: number, tokens: string[]) : number
     {
         let res = Parser.opcodeVals.get(tokens[0]);
         // @ts-ignore
-        res |= this.parseReg(tokens[1]) << 9;
+        res |= this.parseReg(tokens[1], lineNum) << 9;
         // @ts-ignore
-        res |= this.parseReg(tokens[2]) << 6;
+        res |= this.parseReg(tokens[2], lineNum) << 6;
         // @ts-ignore
-        let imm = this.parseImmediate(tokens[3], true, Parser.immBitCounts.get(tokens[0]));
+        let imm = this.parseImmediate(tokens[3], true, lineNum, Parser.immBitCounts.get(tokens[0]));
         if (isNaN(imm))
             return NaN;
         else
@@ -502,12 +512,13 @@ export default class Parser
 
     /**
      * generate machine code for a trap instruction
+     * @param {number} lineNum
      * @param {string} code 
      * @returns {number}
      */
-    private asmTrap(code: string) : number
+    private asmTrap(lineNum: number, code: string) : number
     {
-        let immCode = this.parseImmediate(code, false, 8);
+        let immCode = this.parseImmediate(code, false, lineNum, 8);
         if (isNaN(immCode))
             return NaN;
         else

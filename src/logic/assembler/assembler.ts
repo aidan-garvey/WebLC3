@@ -232,15 +232,15 @@ export default class Assembler
             // .fill and .blkw use absolute addresses, not offsets
             if (tokens[0] == ".fill")
             {
-                if (labels.has(tokens[1]))
-                {
-                    // @ts-ignore
-                    memory[loc] = labels.get(tokens[1]) + startOffset;
-                }
-                else
+                const labelVal = labels.get(tokens[1]);
+                if (typeof(labelVal) === "undefined")
                 {
                     this.hasError = true;
                     FakeUI.print(errorBuilder.badLabel(lineNum, tokens[1]));
+                }
+                else
+                {
+                    memory[loc] = labelVal;
                 }
             }
             else if (tokens[0] == ".blkw")
@@ -274,8 +274,8 @@ export default class Assembler
                     tokens[tokens.length - 1],
                     loc,
                     labels,
-                    // @ts-ignore
-                    Parser.immBitCounts.get(tokens[0]),
+                    //@ts-ignore
+                    Parser.getImmBitCount(tokens[0]),
                     lineNum
                 );
                 if (!isNaN(offset))
