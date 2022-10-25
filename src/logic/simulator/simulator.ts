@@ -1,5 +1,8 @@
 /**
+ * simulator.ts
  * 
+ * The LC-3 simulator. Each instance keeps track of the machine's state and
+ * executes code.
  */
 
 import Opcodes from "./opcodes";
