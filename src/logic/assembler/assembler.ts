@@ -45,9 +45,10 @@ export default class Assembler
     static errors = {
         INFILE: "Source code is empty",
         FIRSTLINE: "The first line of code must be a .ORIG directive",
+        MULTORIG: "Multiple .ORIG directives used"
+        /*
         IMMEDIATE: "Invalid immediate value",
-        MULTORIG: "Multiple .ORIG directives used",
-        // OPERANDS: "Incorrect number of operands",
+        OPERANDS: "Incorrect number of operands",
         INVSYMBOL: "Unreconginzed opcode/directive or invalid label",
         BADQUOTES: "String literal has invalid quotes",
         EMPTYSTRING: "String literals cannot be empty",
@@ -58,6 +59,7 @@ export default class Assembler
         BADLABEL: "Unknown label",
         LBLBOUNDS: "Distance to label is out of range",
         BADMEMORY: "Value written to memory does not fit in 16 bits"
+        */
     };
 
     static hasError = false;
@@ -84,6 +86,10 @@ export default class Assembler
             FakeUI.print(this.errors.INFILE);
             return null;
         }
+        // object which will generate error messages
+        const errorBuilder = new ErrorBuilder(srcLines);
+        // helps parse parts of the source code
+        const parser = new Parser(errorBuilder);
 
         // stores the resulting machine code / binary data,
         // each entry corresponds to the address given by the .ORIG
@@ -98,6 +104,10 @@ export default class Assembler
         const toFix: Map<string[], number> = new Map();
         // maps memory locations where code is stored to the source code
         const addrToCode: Map<number, string> = new Map();
+        // maps memory locations to line numbers so we can print line numbers
+        // if an error occurs while fixing labels
+        const addrToLineNum: Map<number, number> = new Map();
+
         let startOffset;
         let lineNum = 0;
         // keeps track of our spot in the memory array (not the final address)
@@ -119,10 +129,10 @@ export default class Assembler
             const tokens = currLine.split(/\s+/);
             if (!this.validOperandCount(tokens))
             {
-                FakeUI.print(ErrorBuilder.operandError(tokens));
+                FakeUI.print(errorBuilder.operandCount(lineNum, tokens));
                 return null;
             }
-            const addr = Parser.parseImmediate(tokens[1], false);
+            const addr = parser.parseImmediate(tokens[1], false, lineNum);
             if (!isNaN(addr))
             {
                 startOffset = addr;
@@ -141,6 +151,8 @@ export default class Assembler
             currLine = Parser.trimLine(srcLines[lineNum]);
             if (currLine)
             {
+                addrToLineNum.set(pc, lineNum);
+
                 const tokens = Parser.tokenizeLine(currLine);
                 // check for label as first token
                 if (tokens[0][0] != '.' && !this.opCodes.has(tokens[0]))
@@ -158,11 +170,11 @@ export default class Assembler
                 {
                     if (!this.validOperandCount(tokens))
                     {
-                        FakeUI.print(ErrorBuilder.operandError(tokens));
+                        FakeUI.print(errorBuilder.operandCount(lineNum, tokens));
                         this.hasError = true;
                         continue;
                     }
-                    const pcInc = Parser.parseDirective(tokens, pc, memory, toFix);
+                    const pcInc = parser.parseDirective(lineNum, tokens, pc, memory, toFix);
                     if (pcInc < 0)
                     {
                         atEnd = true;
@@ -177,11 +189,11 @@ export default class Assembler
                 {
                     if (!this.validOperandCount(tokens))
                     {
-                        FakeUI.print(ErrorBuilder.operandError(tokens));
+                        FakeUI.print(errorBuilder.operandCount(lineNum, tokens));
                         this.hasError = true;
                         continue;
                     }
-                    const word = Parser.parseCode(tokens, pc, labels, toFix);
+                    const word = parser.parseCode(lineNum, tokens, pc, labels, toFix);
                     if (!isNaN(word))
                     {
                         memory[pc] = word;
@@ -195,7 +207,7 @@ export default class Assembler
                 }
                 else
                 {
-                    FakeUI.print(this.errors.BADMNEMONIC);
+                    FakeUI.print(errorBuilder.unknownMnemonic(lineNum, tokens[0]));
                     this.hasError = true;
                 }
             } // end if 
@@ -206,6 +218,16 @@ export default class Assembler
         {
             const tokens = entry[0];
             const loc = entry[1];
+            let line = addrToLineNum.get(loc);
+            if (typeof(line) === "undefined")
+            {
+                FakeUI.print(errorBuilder.noLineNumForAddr(loc));
+                lineNum = -1;
+            }
+            else
+            {
+                lineNum = line;
+            }
 
             // .fill and .blkw use absolute addresses, not offsets
             if (tokens[0] == ".fill")
@@ -218,14 +240,14 @@ export default class Assembler
                 else
                 {
                     this.hasError = true;
-                    FakeUI.print(this.errors.BADLABEL + ": " + tokens[1]);
+                    FakeUI.print(errorBuilder.badLabel(lineNum, tokens[1]));
                 }
             }
             else if (tokens[0] == ".blkw")
             {
                 if (labels.has(tokens[2]))
                 {
-                    const amt = Parser.parseImmediate(tokens[1], false);
+                    const amt = parser.parseImmediate(tokens[1], false, lineNum);
                     if (!isNaN(amt))
                     {
                         for (let i = 0; i < amt; i++)
@@ -237,23 +259,24 @@ export default class Assembler
                     else
                     {
                         this.hasError = true;
-                        FakeUI.print(this.errors.BADLABEL + ": " + tokens[2]);
+                        FakeUI.print(errorBuilder.badLabel(lineNum, tokens[2]));
                     }
                 }
                 else
                 {
                     this.hasError = true;
-                    FakeUI.print(this.errors.BADLABEL + ": " + tokens[2]);
+                    FakeUI.print(errorBuilder.badLabel(lineNum, tokens[2]));
                 }
             }
             else
             {
-                const offset = Parser.calcLabelOffset(
+                const offset = parser.calcLabelOffset(
                     tokens[tokens.length - 1],
                     loc,
                     labels,
                     // @ts-ignore
-                    Parser.immBitCounts.get(tokens[0]) 
+                    Parser.immBitCounts.get(tokens[0]),
+                    lineNum
                 );
                 if (!isNaN(offset))
                 {
@@ -262,7 +285,7 @@ export default class Assembler
                 else
                 {
                     this.hasError = true;
-                    FakeUI.print(this.errors.BADLABEL);
+                    FakeUI.print(errorBuilder.badLabel(lineNum, tokens[0]));
                 }
             }
         }
@@ -274,9 +297,13 @@ export default class Assembler
         {
             if (memory[i] > 0xFFFF)
             {
-                FakeUI.print(this.errors.BADMEMORY + ": " + memory[i]);
+                FakeUI.print(errorBuilder.badMemory(i, memory[i]));
                 this.hasError = true;
                 result[i + 1] = 0;
+            }
+            else if (isNaN(memory[i]))
+            {
+                FakeUI.print(errorBuilder.nanMemory(i));
             }
             else
             {
