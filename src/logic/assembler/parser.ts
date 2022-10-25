@@ -531,7 +531,7 @@ export default class Parser
 
             case ".fill":
                 // if the first 1 or 2 characters indicate a numerical value
-                if (tokens[1].match(/^#?[bBxX].+$/) != null)
+                if (tokens[1].match(/^[#bBxX].+$/) != null)
                 {
                     val = this.parseImmediate(tokens[1], false);
                     if (!isNaN(val))
@@ -553,7 +553,7 @@ export default class Parser
                 val = 0;
                 if (tokens.length == 3)
                 {
-                    if (tokens[2].match(/^#?[bBxX].+$/) != null)
+                    if (tokens[2].match(/^[#bBxX].+$/) != null)
                     {
                         val = this.parseImmediate(tokens[2], false);
                     }
