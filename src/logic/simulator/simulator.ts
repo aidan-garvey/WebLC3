@@ -10,7 +10,7 @@
 import Opcodes from "./opcodes";
 import decodeRegister from "./decodeReg";
 import decodeImmediate from "./decodeImm";
-import Assembler from "../assembler/assembler";
+import Vectors from "./vectors";
 import * as fs from "node:fs";
 
 export default class Simulator
@@ -49,10 +49,11 @@ export default class Simulator
     private breakPoints: Set<number> = new Set();
     // object file for program to run
     private userObjFile: Uint16Array;
+    // memory addresses mapped to the code which generated the value there
+    private userDisassembly: Map<number, string>;
     // object file for operating system code
     private osObjFile: Uint16Array;
-    // memory addresses mapped to the code which generated the value there
-    private disassembly: Map<number, string>;
+    
 
     /**
      * Initialize the simulator, load the code into memory and set PC to start
@@ -63,7 +64,7 @@ export default class Simulator
     public constructor(objectFile: Uint16Array, sourceCode: Map<number, string>)
     {
         this.userObjFile = objectFile;
-        this.disassembly = sourceCode;
+        this.userDisassembly = sourceCode;
 
         this.osObjFile = this.getOSObj();
 
@@ -204,7 +205,7 @@ export default class Simulator
         let currDepth = 1;
         this.enableClock();
 
-        // ignore breakpoints for first instruction cycle
+        // execute first instruction cycle, ignoring breakpoints
         if (Opcodes.isRETorRTI(this.pc[0]))
         {
             --currDepth;
@@ -322,7 +323,7 @@ export default class Simulator
         let res: string[][] = [];
         for (let i = start; i < end; i++)
         {
-            let code = this.disassembly.get(i);
+            let code = this.userDisassembly.get(i);
             if (typeof(code) === "undefined")
             {
                 code = "";
@@ -508,11 +509,23 @@ export default class Simulator
         (3) if INT asserted, initialize and return true. Else, return false
         */
         
+        const instruction = this.memory[this.pc[0]++];
+
         // (1) check for exception
-        // not yet implemented
+        // (a) priviledge mode exception
+        if (this.userMode && Opcodes.isRTI(instruction))
+        {
+            this.initException(Vectors.privilegeViolation());
+            return true;
+        }
+        // (b) illegal opcode exception
+        else if (Opcodes.isIllegal(instruction))
+        {
+            this.initException(Vectors.illegalOpcode());
+            return true;
+        }
 
         // (2) execute instruction
-        const instruction = this.memory[this.pc[0]++];
         switch ((instruction & 0xF000) >> 12)
         {
             case 0b0000:
@@ -568,9 +581,15 @@ export default class Simulator
         }
 
         // (3) handle interrupt
-        // not yet implemented
-
-        return false;
+        if (this.interruptSignal)
+        {
+            this.initInterrupt();
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /**
@@ -582,6 +601,66 @@ export default class Simulator
         this.flagNegative = (result & 0x8000) != 0;
         this.flagZero = result == 0;
         this.flagPositive = (result & 0x8000) == 0 && result > 0;
+    }
+
+    /**
+     * Initialize an exception with the given vector
+     * @param vector 
+     */
+    private initException(vector: number)
+    {
+        // push PSR and PC onto supervisor stack
+        let ssp = this.savedSSP[0];
+        this.memory[--ssp] = this.getPSR();
+        this.memory[--ssp] = this.pc[0];
+        this.savedSSP[0] = ssp;
+
+        // load R6 with supervisor stack if it is not the SSP already
+        if (this.userMode)
+        {
+            this.savedUSP[0] = this.registers[6];
+            this.registers[6] = this.savedSSP[0];
+        }
+
+        // set privilege mode to supervisor (PSR[15] = 0)
+        this.userMode = false;
+        
+        // expand vector to 16 bits, adding 0x0100 to its value
+        vector += 0x0100;
+
+        // set the PC to the value of this expanded vector
+        this.pc[0] = vector;
+    }
+
+    /**
+     * Initialize an interrupt
+     */
+    private initInterrupt()
+    {
+        // disable interrupt signal
+        this.interruptSignal = false;
+
+        // push PSR and PC onto supervisor stack
+        let ssp = this.savedSSP[0];
+        this.memory[--ssp] = this.getPSR();
+        this.memory[--ssp] = this.pc[0];
+        this.savedSSP[0] = ssp;
+
+        // load R6 with supervisor stack if it is not the SSP already
+        if (this.userMode)
+        {
+            this.savedUSP[0] = this.registers[6];
+            this.registers[6] = this.savedSSP[0];
+        }
+
+        // set privilege mode to supervisor (PSR[15] = 0)
+        this.userMode = false;
+
+        // set priority level to the one given by the interrupt
+        this.priorityLevel = this.interruptPriority;
+
+        // set the PC to the value of the vector expanded to 16 bits + 0x0100
+        this.pc[0] = this.interruptVector + 0x0100;
     }
 
     /**
@@ -694,11 +773,28 @@ export default class Simulator
         this.setConditions(this.registers[destReg]);
     }
 
+    /**
+     * Pop the PC and PSR off the stack, if privilege mode changes from
+     * supervisor to user then load the USP into R6.
+     * @param instruction 
+     */
     private execRti(instruction: number)
     {
-        // for now, does not trigger privilege mode exception
+        let sp = this.savedSSP[0];
+        this.pc[0] = this.memory[sp++];
+        this.setPSR(this.memory[sp++]);
+        this.savedSSP[0] = sp;
 
-        // need to swap stack pointers if we go supervisor -> user
+        // if we went user -> supervisor, load R6 with USP
+        if (this.userMode)
+        {
+            this.registers[6] = this.savedUSP[0];
+        }
+        // otherwise, load R6 with SSP
+        else
+        {
+            this.registers[6] = this.savedSSP[0];
+        }
     }
 
     private execSt(instruction: number)
@@ -720,8 +816,14 @@ export default class Simulator
         this.memory[dest] = this.registers[decodeRegister(instruction, 0)];
     }
 
+    /**
+     * Load R7 with the incremented PC, then load PC with the zero-extended
+     * trap vector in the instruction
+     * @param instruction 
+     */
     private execTrap(instruction: number)
     {
-        // will be implemented later
+        this.registers[7] = this.pc[0];
+        this.pc[0] = instruction & 0x00FF;
     }
 }
