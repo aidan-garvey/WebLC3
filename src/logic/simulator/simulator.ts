@@ -65,46 +65,38 @@ export default class Simulator
         this.userObjFile = objectFile;
         this.disassembly = sourceCode;
 
-        this.osObjFile = new Uint16Array([]);
-        this.assembleOS();
-        // wait for it to be done
-        while (this.osObjFile.length == 0) {}
-        console.log("Loading user's object file into memory.");
+        this.osObjFile = this.getOSObj();
 
         this.loadBuiltInCode();
         this.reloadProgram();
     }
 
     /**
-     * Assemble the operating system's code and set the value of osObjFile. If an
-     * error occurs, set osObjFile = [-1].
+     * Retrieve the object file for the simulator's operating system
      */
-    private async assembleOS()
+    private getOSObj() : Uint16Array
     {
-        let osSource: string;
+        const objFile = fs.readFileSync("src/logic/simulator/os/lc3_os_obj.json", "utf-8");
+        let objArray;
         try
         {
-            osSource = fs.readFileSync("src/logic/simulator/os/lc3_os.asm", "utf8");
-            const asmResult = await Assembler.assemble(osSource);
-            if (asmResult === null)
-            {
-                console.log("Error assembling operating system code");
-                this.osObjFile = new Uint16Array([-1]);
-            }
-            else
-            {
-                console.log("Operating system code assembled successfully");
-                this.osObjFile = asmResult[0];
-                for (let mapping of asmResult[1])
-                {
-                    this.disassembly.set(mapping[0], mapping[1]);
-                }
-            }
+            objArray = JSON.parse(objFile);
         }
         catch (error)
         {
-            console.log("Error retrieving operating system source code: " + error);
-            this.osObjFile = new Uint16Array([-1]);
+            console.log("Error parsing operating system JSON file: " + error);
+            return new Uint16Array([0]);
+        }
+
+        try
+        {
+            const result = new Uint16Array(objArray);
+            return result;
+        }
+        catch (error)
+        {
+            console.log("Error converting parsed operating system JSON to Uint16Array: " + error);
+            return new Uint16Array([0]);
         }
     }
 
