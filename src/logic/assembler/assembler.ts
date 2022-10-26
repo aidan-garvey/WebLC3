@@ -7,6 +7,8 @@
  * addresses as the keys and corresponding lines of source code as the
  * values, which is needed to display the code alongside the computer's
  * memory in the simulator user interface.
+ * 
+ * The assemble function is async.
  */
 
 import Parser from "./parser";
@@ -16,7 +18,7 @@ import ErrorBuilder from "./errorBuilder";
 export default class Assembler
 {
     // all valid opcodes, including trap aliases
-    static opCodes = new Set([
+    private static opCodes = new Set([
         "add", "and", "br", "brn", "brz", "brp",
         "brnz", "brnp", "brzp", "brnzp", "jmp", "jsr",
         "jsrr", "ld", "ldi", "ldr", "lea", "not",
@@ -25,14 +27,14 @@ export default class Assembler
     ]);
 
     // all valid assembler directives
-    static directives = new Set([
+    private static directives = new Set([
         ".orig", ".end", ".fill", ".blkw", ".stringz"
     ]);
 
     // All instructions and directives mapped to the number of operands
     // they take. The only thing not mapped is .blkw, which can accept
     // 1 or 2 operands (handled in this.validOperandCount())
-    static operandCounts = new Map([
+    private static operandCounts = new Map([
         ["add", 3], ["and", 3], ["br", 1], ["brn", 1], ["brz", 1], ["brp", 1],
         ["brnz", 1], ["brnp", 1], ["brzp", 1], ["brnzp", 1], ["jmp", 1], ["jsr", 1],
         ["jsrr", 1], ["ld", 2], ["ldi", 2], ["ldr", 3], ["lea", 2], ["not", 2],
@@ -41,11 +43,10 @@ export default class Assembler
         [".orig", 1], [".end", 0], [".fill", 1], [".stringz", 1]
     ]);
 
-    // assembler errors which may be output to the console
-    static errors = {
+    // Errors where assembly cannot begin for given file
+    private static errors = {
         INFILE: "Source code is empty",
-        FIRSTLINE: "The first line of code must be a .ORIG directive",
-        MULTORIG: "Multiple .ORIG directives used"
+        FIRSTLINE: "The first line of code must be a .ORIG directive"
     };
 
     /**
@@ -58,9 +59,9 @@ export default class Assembler
      * Uint16Array and a Map of memory addresses mapped to the source
      * code that was assembled and placed at that address.
      * @param {string} sourceCode 
-     * @returns {[Uint16Array, Map<number, string>] | null}
+     * @returns {Promise<[Uint16Array, Map<number, string>] | null>}
      */
-    static assemble(sourceCode: string) : [Uint16Array, Map<number, string>] | null
+    public static async assemble(sourceCode: string) : Promise<[Uint16Array, Map<number, string>] | null>
     {
         let hasError = false;
 
@@ -311,7 +312,7 @@ export default class Assembler
      * @param {string[]} tokens 
      * @returns {boolean}
      */
-    static validOperandCount(tokens: string[]) : boolean
+    public static validOperandCount(tokens: string[]) : boolean
     {
         if (tokens[0] == ".blkw")
         {
@@ -321,5 +322,13 @@ export default class Assembler
         {
             return (tokens.length - 1) == this.operandCounts.get(tokens[0]);
         }
+    }
+
+    /**
+     * determine if string is a valid instruction or directive name
+     */
+    public static validMnemonic(symbol: string) : boolean
+    {
+        return this.opCodes.has(symbol) || this.directives.has(symbol);
     }
 }

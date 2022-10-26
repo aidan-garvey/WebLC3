@@ -50,7 +50,7 @@ export default class Parser
         this.errorBuilder = errorBuilder;
     }
 
-    static getImmBitCount(token: string)
+    public static getImmBitCount(token: string)
     : number | undefined
     {
         return this.immBitCounts.get(token);
@@ -62,7 +62,7 @@ export default class Parser
      * @param {string} line 
      * @returns {string}
      */
-    static trimLine(line: string) : string
+    public static trimLine(line: string) : string
     {
         let res = line;
         const cmt = line.indexOf(';');
@@ -274,7 +274,7 @@ export default class Parser
      * @param {string} line 
      * @returns {string[]}
      */
-    static tokenizeLine(line: string) : string[]
+    public static tokenizeLine(line: string) : string[]
     {
         // if the line contains a string literal, split it off first
         const firstQuote = line.search(/['"]/);
@@ -556,7 +556,7 @@ export default class Parser
         switch (tokens[0])
         {
             case ".orig":
-                FakeUI.print(Assembler.errors.MULTORIG);
+                FakeUI.print(this.errorBuilder.multiOrig(lineNum));
                 break;
 
             case ".end":

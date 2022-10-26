@@ -17,9 +17,9 @@ export default class FakeUI
         console.log(message + ".");
     }
 
-    static run()
+    static async run()
     {
-        const result = Assembler.assemble (
+        const result = await Assembler.assemble (
     ".orig x3000\n\
     add r0, r1, r2\n\
     .fill LABEL2\n\

@@ -46,7 +46,7 @@ export default class ErrorBuilder
         {
             expected = "1 or 2";
         }
-        else if (!Assembler.operandCounts.has(tokens[0]))
+        else if (!Assembler.validMnemonic(tokens[0]))
         {
             return "Assembler error: attempted to throw operand count error for unknown instruction/directive " + tokens[0];
         }
@@ -202,5 +202,14 @@ export default class ErrorBuilder
     public emptyString(lineNum: number): string
     {
         return this.formatMessage(lineNum, "Empty string literal");
+    }
+
+    /**
+     * Multiple .orig directives used
+     */
+    public multiOrig(lineNum: number): string
+    {
+        return this.formatMessage(lineNum,
+            "Multiple .ORIG directives used, you must only use one .ORIG directive");
     }
 }

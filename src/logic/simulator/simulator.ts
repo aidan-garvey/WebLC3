@@ -3,6 +3,8 @@
  * 
  * The LC-3 simulator. Each instance keeps track of the machine's state and
  * executes code.
+ * 
+ * All functions that run the simulator (and only those functions) are async.
  */
 
 import Opcodes from "./opcodes";
@@ -63,16 +65,31 @@ export default class Simulator
         this.userObjFile = objectFile;
         this.disassembly = sourceCode;
 
-        // load operating system code
+        this.osObjFile = new Uint16Array([]);
+        this.assembleOS();
+        // wait for it to be done
+        while (this.osObjFile.length == 0) {}
+        console.log("Loading user's object file into memory.");
+
+        this.loadBuiltInCode();
+        this.reloadProgram();
+    }
+
+    /**
+     * Assemble the operating system's code and set the value of osObjFile. If an
+     * error occurs, set osObjFile = [-1].
+     */
+    private async assembleOS()
+    {
         let osSource: string;
         try
         {
             osSource = fs.readFileSync("src/logic/simulator/os/lc3_os.asm", "utf8");
-            const asmResult = Assembler.assemble(osSource);
+            const asmResult = await Assembler.assemble(osSource);
             if (asmResult === null)
             {
                 console.log("Error assembling operating system code");
-                this.osObjFile = new Uint16Array([0]);
+                this.osObjFile = new Uint16Array([-1]);
             }
             else
             {
@@ -87,11 +104,8 @@ export default class Simulator
         catch (error)
         {
             console.log("Error retrieving operating system source code: " + error);
-            this.osObjFile = new Uint16Array([0]);
+            this.osObjFile = new Uint16Array([-1]);
         }
-
-        this.loadBuiltInCode();
-        this.reloadProgram();
     }
 
     /**
@@ -168,7 +182,7 @@ export default class Simulator
      * clock-enable bit is cleared (including due to the invokation of the HALT
      * trap)
      */
-    public run()
+    public async run()
     {
         this.enableClock();
         let intOrEx = this.instructionCycle();
@@ -182,7 +196,7 @@ export default class Simulator
     /**
     * Set clock-enable and run one instruction
      */
-    public stepIn()
+    public async stepIn()
     {
         this.enableClock();
         let intOrEx = this.instructionCycle();
@@ -193,7 +207,7 @@ export default class Simulator
      * service call is returned from, or any of the conditions for run()
      * stopping are encountered
      */
-    public stepOut()
+    public async stepOut()
     {
         let currDepth = 1;
         this.enableClock();
@@ -239,7 +253,7 @@ export default class Simulator
      * TRAP, in which case run until one of the conditions for stepOut() or
      * run() is encountered. Will also step over exceptions and interrupts.
      */
-    public stepOver()
+    public async stepOver()
     {
         let depth = 0;
 
