@@ -6,6 +6,7 @@
  */
 
 import Assembler from "./assembler";
+import UI from "../../presentation/ui";
 
 export default class FakeUI
 {
@@ -14,7 +15,7 @@ export default class FakeUI
      */
     static print(message: string)
     {
-        console.log(message + ".");
+        UI.printConsole(message + ".");
     }
 
     static async run()

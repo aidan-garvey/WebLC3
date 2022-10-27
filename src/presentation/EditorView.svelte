@@ -1,8 +1,9 @@
 <script>
-    import Editor from "./Editor.svelte";
-    import Console from "./Console.svelte";
-	import { onMount } from 'svelte';
-	import { openedFile, currentView } from './stores';
+    import Editor from "./Editor.svelte"
+    import Console from "./Console.svelte"
+	import { onMount } from 'svelte'
+	import { openedFile, currentView, objFile, objMap } from './stores'
+	import Assembler from "../logic/assembler/assembler"
 
 	function toSimulator() {
 		currentView.set("simulator")
@@ -19,23 +20,19 @@
 	});
 
 	// Assemble
-	function assembleClick(){
-		let consoleInner = document.getElementById("console-inner")
-		consoleInner.innerText = "Assembly successful."
-		consoleInner.classList.remove("empty")
+	async function assembleClick(){
 		let editor = globalThis.editor
+		if(editor){
+			let sourceCode = editor.getValue()
+			let obj = await Assembler.assemble(sourceCode)
 
-		/*-----------------------------------------
-			Temporary: Print input to console  
-		-------------------------------------------*/
-		if(editor)
-			console.log("Retrieved value from editor:\n\n" + editor.getValue())
-		else
-			console.log("Retrieving text from editor failed. Editor not found in globalThis.")
-
-		/*-----------------------------------------
-			TODO: Dispatch input to assembler 
-		-------------------------------------------*/
+			// Store successful object file
+			if(obj){
+				let map = obj.pop()
+				objFile.set(obj)
+				objMap.set(map)
+			}
+		}
 	}
 
 </script>

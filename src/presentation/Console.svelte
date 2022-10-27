@@ -1,8 +1,8 @@
 <script>
+    import UI from "./ui";
+
     function clearConsole(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "console empty"
-        consoleInner.classList.add("empty")
+        UI.clearConsole()
     }
 </script>
 

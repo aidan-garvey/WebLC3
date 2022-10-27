@@ -14,6 +14,7 @@
 import Parser from "./parser";
 import FakeUI from "./fakeUI";
 import ErrorBuilder from "./errorBuilder";
+import UI from "../../presentation/ui";
 
 export default class Assembler
 {
@@ -303,7 +304,10 @@ export default class Assembler
         if (hasError)
             return null;
         else
+        {
+            UI.printConsole("Assembly successful.")
             return [result, addrToCode];
+        }
     }
 
     /**

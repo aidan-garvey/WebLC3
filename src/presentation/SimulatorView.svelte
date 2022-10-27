@@ -4,11 +4,28 @@
     import Console from "./Console.svelte";
     import StepControls from "./StepControls.svelte";
     import JumpControls from "./JumpControls.svelte";
-	import { currentView } from './stores';
+	import { currentView, objFile, objMap } from './stores';
+	import Simulator from "../logic/simulator/simulator";
+	import UI from "./ui";
 
 	function toEditor() {
 		currentView.set("editor")
 	}
+
+	let obj
+	objFile.subscribe(value => {
+		obj = value
+	});
+
+	let map
+	objMap.subscribe(value => {
+		map = value
+	});
+
+	// Create Simulator class from latest assembled object file
+	let simulator
+	if(obj && map)
+		simulator = new Simulator(obj, map)
 
 	// PC is on x0200 at startup
 	$: pc = 512
@@ -45,21 +62,19 @@
 	// Step controls
 	function step(event){
 		let control = event.detail.text
-		let consoleInner = document.getElementById("console-inner")
-        consoleInner.classList.remove("empty")
 
 		if(control == "in"){
-			consoleInner.innerText = "Stepping in."
+			UI.printConsole("Stepping in.")
 			stepDemo()
 		}
 		else if(control == "out"){
-			consoleInner.innerText = "Stepping out."
+			UI.printConsole("Stepping out.")
 		}
 		else if(control == "over"){
-			consoleInner.innerText = "Stepping over."
+			UI.printConsole("Stepping over.")
 		}
 		else if(control == "run"){
-			consoleInner.innerText = "Running simulator."
+			UI.printConsole("Running simulator.")
 
 			while(!atBreakpoint && pc < 65535){
 				stepDemo()
@@ -67,9 +82,9 @@
 			}
 
 			if (atBreakpoint)
-				consoleInner.innerText += "\nBreakpoint detected at x" + pc.toString(16) + "."
+				UI.appendConsole("\nBreakpoint detected at x" + pc.toString(16) + ".")
 			else
-				consoleInner.innerText += "\n\nYou reached the end of the world (wow, must be exhausting to run this far)\n\nCome back home to x3000."
+				UI.appendConsole("\n\nYou reached the end of the world (wow, must be exhausting to run this far)\n\nCome back home to x3000.")
 
 			atBreakpoint = false
 		}
@@ -85,32 +100,30 @@
 	// Jump controls
 	function jump(event){
 		let control = event.detail.text
-		let consoleInner = document.getElementById("console-inner")
-        consoleInner.classList.remove("empty")
 
 		if(control == "pc"){
-			consoleInner.innerText = "Jumped to PC."
+			UI.printConsole("Jumped to PC.")
 			currPtr = pc
 		}
 		else if(control == "ljb"){
-			consoleInner.innerText = "Long jumped backward."
+			UI.printConsole("Long jumped backward.")
 			currPtr = currPtr - longJumpOffset
 		}
 		else if(control == "jb"){
-			consoleInner.innerText = "Jumped backward."
+			UI.printConsole("Jumped backward.")
 			currPtr = currPtr - shortJumpOffset
 		}
 		else if(control == "jf"){
-			consoleInner.innerText = "Jumped forward."
+			UI.printConsole("Jumped forward.")
 			currPtr = currPtr + shortJumpOffset
 		}
 		else if(control == "ljf"){
-			consoleInner.innerText = "Long jumped forward."
+			UI.printConsole("Long jumped forward.")
 			currPtr = currPtr + longJumpOffset
 		}
 		else{
 			let hex = control.toString(16)
-			consoleInner.innerText = "Jumped to memory location at x" + hex + "."
+			UI.printConsole("Jumped to memory location at x" + hex + ".")
 			currPtr = control
 		}
 	}

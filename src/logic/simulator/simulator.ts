@@ -11,7 +11,7 @@ import Opcodes from "./opcodes";
 import decodeRegister from "./decodeReg";
 import decodeImmediate from "./decodeImm";
 import Vectors from "./vectors";
-import * as fs from "node:fs";
+import UI from "../../presentation/ui"
 
 export default class Simulator
 {
@@ -66,18 +66,24 @@ export default class Simulator
         this.userObjFile = objectFile;
         this.userDisassembly = sourceCode;
 
-        this.osObjFile = this.getOSObj();
+        ;(async ()=>{
+            this.osObjFile = await this.getOSObj();
 
-        this.loadBuiltInCode();
-        this.reloadProgram();
+            this.loadBuiltInCode();
+            this.reloadProgram();
+
+            UI.printConsole("Simulator processed object file successfully.")
+        })()
     }
 
     /**
      * Retrieve the object file for the simulator's operating system
      */
-    private getOSObj() : Uint16Array
+    private async getOSObj() : Uint16Array
     {
-        const objFile = fs.readFileSync("src/logic/simulator/os/lc3_os_obj.json", "utf-8");
+        let res = await fetch('src/logic/simulator/os/lc3_os_obj.json');
+        const objFile = await res.text()
+
         let objArray;
         try
         {
