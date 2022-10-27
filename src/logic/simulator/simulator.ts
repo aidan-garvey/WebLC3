@@ -590,12 +590,12 @@ export default class Simulator
         }
 
         // (3) console output
-        if ((this.memory[Simulator.KBSR] & 0x8000) == 0)
+        if ((this.memory[Simulator.DSR] & 0x8000) == 0)
         {
             // print character, set ready bit
-            const toPrint = this.memory[Simulator.KBDR] & 0x00FF;
+            const toPrint = this.memory[Simulator.DDR] & 0x00FF;
             FakeUI.print(String.fromCharCode(toPrint));
-            this.memory[Simulator.KBSR] |= 0x8000;
+            this.memory[Simulator.DSR] |= 0x8000;
         }
 
         // (4) handle interrupt
