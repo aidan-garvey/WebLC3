@@ -12,6 +12,7 @@ import decodeRegister from "./decodeReg";
 import decodeImmediate from "./decodeImm";
 import Vectors from "./vectors";
 import UI from "../../presentation/ui"
+import FakeUI from "../assembler/fakeUI";
 
 export default class Simulator
 {
@@ -280,11 +281,16 @@ export default class Simulator
      * Invoke a keyboard interrupt if the conditions are valid. Namely, the
      * keyboard interrupt-enable bit must be set and the current priority level
      * must be less than 4.
+     * The interrupt enable bit is bit 14 of the keyboard status register.
+     * Regardless of interrupt invokation, the keyboard data register is
+     * updated with the new ascii code and the keyboard status register's ready
+     * bit is set
      */
     public keyboardInterrupt(asciiCode: number)
     {
         this.memory[Simulator.KBDR] = asciiCode;
-        if (this.priorityLevel < 4 && (this.memory[Simulator.KBSR] & 0x8000) != 0)
+        this.memory[Simulator.KBSR] |= 0x8000;
+        if (this.priorityLevel < 4 && (this.memory[Simulator.KBSR] & 0x4000) != 0)
         {
             this.interruptSignal = true;
             this.interruptPriority = 4;
@@ -512,7 +518,10 @@ export default class Simulator
         (2) execute the instruction
             * fetch, increment PC
             * call subroutine for opcode
-        (3) if INT asserted, initialize and return true. Else, return false
+        (3) check if the console ready bit has been cleared. If so, output the
+            character in the console data register to the screen and set the
+            console ready bit
+        (4) if INT asserted, initialize and return true. Else, return false
         */
         
         const instruction = this.memory[this.pc[0]++];
@@ -586,7 +595,16 @@ export default class Simulator
                 break;
         }
 
-        // (3) handle interrupt
+        // (3) console output
+        if ((this.memory[Simulator.DSR] & 0x8000) == 0)
+        {
+            // print character, set ready bit
+            const toPrint = this.memory[Simulator.DDR] & 0x00FF;
+            FakeUI.print(String.fromCharCode(toPrint));
+            this.memory[Simulator.DSR] |= 0x8000;
+        }
+
+        // (4) handle interrupt
         if (this.interruptSignal)
         {
             this.initInterrupt();
