@@ -12,7 +12,6 @@ import decodeRegister from "./decodeReg";
 import decodeImmediate from "./decodeImm";
 import Vectors from "./vectors";
 import UI from "../../presentation/ui"
-import FakeUI from "../assembler/fakeUI";
 
 export default class Simulator
 {
@@ -600,7 +599,7 @@ export default class Simulator
         {
             // print character, set ready bit
             const toPrint = this.memory[Simulator.DDR] & 0x00FF;
-            FakeUI.print(String.fromCharCode(toPrint));
+            UI.appendConsole(String.fromCharCode(toPrint));
             this.memory[Simulator.DSR] |= 0x8000;
         }
 

@@ -12,7 +12,6 @@
  */
 
 import Parser from "./parser";
-import FakeUI from "./fakeUI";
 import ErrorBuilder from "./errorBuilder";
 import UI from "../../presentation/ui";
 
@@ -69,7 +68,7 @@ export default class Assembler
         const srcLines = sourceCode.split(/[\n\r]+/);
         if (srcLines.length == 0)
         {
-            FakeUI.print(this.errors.INFILE);
+            UI.appendConsole(this.errors.INFILE + "\n");
             return null;
         }
         // object which will generate error messages
@@ -107,7 +106,7 @@ export default class Assembler
         }
         if (!currLine.startsWith(".orig"))
         {
-            FakeUI.print(this.errors.FIRSTLINE);
+            UI.appendConsole(this.errors.FIRSTLINE + "\n");
             return null;
         }
         else
@@ -115,7 +114,7 @@ export default class Assembler
             const tokens = currLine.split(/\s+/);
             if (!this.validOperandCount(tokens))
             {
-                FakeUI.print(errorBuilder.operandCount(lineNum, tokens));
+                UI.appendConsole(errorBuilder.operandCount(lineNum, tokens) + "\n");
                 return null;
             }
             const addr = parser.parseImmediate(tokens[1], false, lineNum);
@@ -156,7 +155,7 @@ export default class Assembler
                 {
                     if (!this.validOperandCount(tokens))
                     {
-                        FakeUI.print(errorBuilder.operandCount(lineNum, tokens));
+                        UI.appendConsole(errorBuilder.operandCount(lineNum, tokens) + "\n");
                         hasError = true;
                         continue;
                     }
@@ -179,7 +178,7 @@ export default class Assembler
                 {
                     if (!this.validOperandCount(tokens))
                     {
-                        FakeUI.print(errorBuilder.operandCount(lineNum, tokens));
+                        UI.appendConsole(errorBuilder.operandCount(lineNum, tokens) + "\n");
                         hasError = true;
                         continue;
                     }
@@ -197,7 +196,7 @@ export default class Assembler
                 }
                 else
                 {
-                    FakeUI.print(errorBuilder.unknownMnemonic(lineNum, tokens[0]));
+                    UI.appendConsole(errorBuilder.unknownMnemonic(lineNum, tokens[0]) + "\n");
                     hasError = true;
                 }
             } // end if 
@@ -211,7 +210,7 @@ export default class Assembler
             let line = addrToLineNum.get(loc);
             if (typeof(line) === "undefined")
             {
-                FakeUI.print(errorBuilder.noLineNumForAddr(loc));
+                UI.appendConsole(errorBuilder.noLineNumForAddr(loc) + "\n");
                 lineNum = -1;
             }
             else
@@ -226,7 +225,7 @@ export default class Assembler
                 if (typeof(labelVal) === "undefined")
                 {
                     hasError = true;
-                    FakeUI.print(errorBuilder.badLabel(lineNum, tokens[1]));
+                    UI.appendConsole(errorBuilder.badLabel(lineNum, tokens[1]) + "\n");
                 }
                 else
                 {
@@ -249,13 +248,13 @@ export default class Assembler
                     else
                     {
                         hasError = true;
-                        FakeUI.print(errorBuilder.badLabel(lineNum, tokens[2]));
+                        UI.appendConsole(errorBuilder.badLabel(lineNum, tokens[2]) + "\n");
                     }
                 }
                 else
                 {
                     hasError = true;
-                    FakeUI.print(errorBuilder.badLabel(lineNum, tokens[2]));
+                    UI.appendConsole(errorBuilder.badLabel(lineNum, tokens[2]) + "\n");
                 }
             }
             else
@@ -275,7 +274,7 @@ export default class Assembler
                 else
                 {
                     hasError = true;
-                    FakeUI.print(errorBuilder.badLabel(lineNum, tokens[0]));
+                    UI.appendConsole(errorBuilder.badLabel(lineNum, tokens[0]) + "\n");
                 }
             }
         }
@@ -287,13 +286,13 @@ export default class Assembler
         {
             if (memory[i] > 0xFFFF)
             {
-                FakeUI.print(errorBuilder.badMemory(i, memory[i]));
+                UI.appendConsole(errorBuilder.badMemory(i, memory[i]) + "\n");
                 hasError = true;
                 result[i + 1] = 0;
             }
             else if (isNaN(memory[i]))
             {
-                FakeUI.print(errorBuilder.nanMemory(i));
+                UI.appendConsole(errorBuilder.nanMemory(i) + "\n");
             }
             else
             {
@@ -305,7 +304,7 @@ export default class Assembler
             return null;
         else
         {
-            UI.printConsole("Assembly successful.")
+            UI.printConsole("Assembly successful.\n")
             return [result, addrToCode];
         }
     }

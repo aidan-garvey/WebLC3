@@ -6,9 +6,8 @@
  * parsing tokens as any type of operand.
  */
 
-import Assembler from "./assembler";
 import type ErrorBuilder from "./errorBuilder";
-import FakeUI from "./fakeUI";
+import UI from "../../presentation/ui";
 
 export default class Parser
 {
@@ -136,13 +135,13 @@ export default class Parser
         // parseInt failed
         if (isNaN(result))
         {
-            FakeUI.print(this.errorBuilder.immOperand(lineNum, token));
+            UI.appendConsole(this.errorBuilder.immOperand(lineNum, token) + "\n");
             return NaN;
         }
         // value does not fit in allowed bits
         else if (result < min || result > max)
         {
-            FakeUI.print(this.errorBuilder.immBoundsBits(lineNum, bits, token));
+            UI.appendConsole(this.errorBuilder.immBoundsBits(lineNum, bits, token) + "\n");
             return NaN;
         }
         else
@@ -181,7 +180,7 @@ export default class Parser
         }
         else
         {
-            FakeUI.print(this.errorBuilder.badQuotes(lineNum, literal));
+            UI.appendConsole(this.errorBuilder.badQuotes(lineNum, literal) + "\n");
             return null;
         }
         return result;
@@ -197,7 +196,7 @@ export default class Parser
     {
         if (regStr[0] != 'r' && regStr[0] != 'R')
         {
-            FakeUI.print(this.errorBuilder.badRegister(lineNum, regStr));
+            UI.appendConsole(this.errorBuilder.badRegister(lineNum, regStr) + "\n");
             return NaN;
         }
         else
@@ -205,7 +204,7 @@ export default class Parser
             const regNum = parseInt(regStr.substring(1));
             if (isNaN(regNum) || regNum < 0 || regNum >= 8)
             {
-                FakeUI.print(this.errorBuilder.badRegister(lineNum, regStr));
+                UI.appendConsole(this.errorBuilder.badRegister(lineNum, regStr) + "\n");
                 return NaN;
             }
             else
@@ -254,7 +253,7 @@ export default class Parser
             const min = -(1<<(bits-1));
             if (diff < min || diff > max)
             {
-                FakeUI.print(this.errorBuilder.labelBounds(lineNum, label, bits));
+                UI.appendConsole(this.errorBuilder.labelBounds(lineNum, label, bits) + "\n");
                 return NaN;
             }
             else
@@ -264,7 +263,7 @@ export default class Parser
         }
         else
         {
-            FakeUI.print(this.errorBuilder.badLabel(lineNum, label));
+            UI.appendConsole(this.errorBuilder.badLabel(lineNum, label) + "\n");
             return NaN;
         }
     }
@@ -556,7 +555,7 @@ export default class Parser
         switch (tokens[0])
         {
             case ".orig":
-                FakeUI.print(this.errorBuilder.multiOrig(lineNum));
+                UI.appendConsole(this.errorBuilder.multiOrig(lineNum) + "\n");
                 break;
 
             case ".end":
@@ -621,7 +620,7 @@ export default class Parser
                 }
                 else if (codes !== null)
                 {
-                    FakeUI.print(this.errorBuilder.emptyString(lineNum));
+                    UI.appendConsole(this.errorBuilder.emptyString(lineNum) + "\n");
                 }
                 break;
         }
