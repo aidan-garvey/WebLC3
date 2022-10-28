@@ -6,10 +6,10 @@
     const dispatch = createEventDispatcher()
 
     // Set memory table dimensions
-    let cols = Array(7)
+    let cols = Array(5)
     export let rows = 23
 
-    // Set PC and pointer on x0200 at startup
+    // Set PC and pointer on startup
     export let extPC
     export let ptr
     export let map
@@ -42,7 +42,7 @@
                 if(bpItem)
                     bpItem.classList.add("bp-selected")
             }
-        }, 100)
+        }, 300)
     }
 
     onMount(() => { 

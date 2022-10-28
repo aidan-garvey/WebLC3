@@ -15,11 +15,26 @@
 	$: pc = 512
 	$: currPtr = -1
 	$: memMap = []
+	$: regMap = [
+        ["R0", "0x0", "0"],
+        ["R1", "0x0", "0"],
+        ["R2", "0x0", "0"],
+        ["R3", "0x0", "0"],
+        ["R4", "0x0", "0"],
+        ["R5", "0x0", "0"],
+        ["R6", "0x0", "0"],
+        ["R7", "0x0", "0"],
+        ["PSR", "0x2", "2", "CC: Z"],
+        ["PC", "0x2", "512"],
+        ["MCR", "0x0", "0"],
+    ]
 	let shortJumpOffset = 5
 	let longJumpOffset = 23
+	let numRegisters = 8
 
 	function newPC(event){
 		pc = event.detail.text
+		updateRegisters()
 	}
 
 	onMount(() => {
@@ -30,6 +45,7 @@
 			else
 				currPtr = pc
 			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+			updateRegisters()
 		}
 
 		// Save last pointer On Destroy
@@ -42,9 +58,34 @@
 	// Detect memory reload override
     reloadOverride.subscribe(value => {
 		let override = value
-        if(override)
+        if(override){
 			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+			updateRegisters()
+		}
 	});
+
+	// Update Register Map
+	function updateRegisters(){
+		if(globalThis.simulator){
+			let tempRegMap = []
+			for(let n=0; n<numRegisters; n++){
+				let regName = "R" + n
+				let regDec = globalThis.simulator.getRegister(n)
+				let regHex = "0x" + regDec.toString(16)
+				tempRegMap.push([regName, regHex, regDec.toString()])
+			}
+
+			let psrDec = globalThis.simulator.getPSR()
+			let psrHex = "0x" + psrDec.toString(16)
+			tempRegMap.push(["PSR", psrHex, psrDec])
+
+			tempRegMap.push(["PC", "0x"+pc.toString(16), pc])
+
+			tempRegMap.push(["MCR", "0x0", "0"])
+
+			regMap = tempRegMap
+		}
+	}
 
 
 	// Step controls
@@ -84,9 +125,7 @@
 			}
 		}
 		
-		/*----------------------------------------------------
-			TODO: Update each register
-		-----------------------------------------------------*/
+		updateRegisters()
 	}
 
 	// Jump controls
@@ -145,7 +184,7 @@
 <div id="sim-view">
 	<section id="sv-left">
 		<div class="workSans componame">Registers</div>
-		<Register />
+		<Register map={regMap} />
         <StepControls on:step={step} />
         <Console />
 	</section>

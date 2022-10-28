@@ -1,26 +1,22 @@
 <script>
-    let data = [
-        ["R0", "x0000", "0"],
-        ["R1", "x0000", "0"],
-        ["R2", "x0000", "0"],
-        ["R3", "x0000", "0"],
-        ["R4", "x0000", "0"],
-        ["R5", "x0000", "0"],
-        ["R6", "x3000", "12288"],
-        ["R7", "x0000", "0"],
-        ["PSR", "x0002", "2", "CC: Z"],
-        ["PC", "x0200", "512"],
-        ["MCR", "x0000", "0"],
-    ]
+    // Set register table dimensions
+    let cols = Array(5)
 
-    let cols = Array(4)
+    // Set register data
+    export let map
+    let data = map
+
+    // Detect registerMap change
+    $: if (data != map) {
+        data = map
+	}
 </script>
 
 <div id="regCtr" class="sourceCodePro">
     {#each data as row, i}
         {#if i%2==1}
             <div id="regRow-{i}" class="regRow highlighted">
-                {#each cols as col, n}
+                {#each cols as _, n}
                     {#if row[n]}
                         <div>{row[n]}</div>
                     {/if}
@@ -28,7 +24,7 @@
             </div>
         {:else}
             <div id="regRow-{i}" class="regRow">
-                {#each cols as col, n}
+                {#each cols as _, n}
                     {#if row[n]}
                         <div>{row[n]}</div>
                     {/if}
