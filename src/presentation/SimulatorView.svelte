@@ -1,35 +1,20 @@
 <script>
+	import { onMount } from 'svelte';
     import Register from "./Register.svelte";
     import Memory from "./Memory.svelte";
     import Console from "./Console.svelte";
     import StepControls from "./StepControls.svelte";
     import JumpControls from "./JumpControls.svelte";
-	import { currentView, objFile, objMap } from './stores';
-	import Simulator from "../logic/simulator/simulator";
+	import { currentView } from './stores';
 	import UI from "./ui";
 
 	function toEditor() {
 		currentView.set("editor")
 	}
 
-	let obj
-	objFile.subscribe(value => {
-		obj = value
-	});
-
-	let map
-	objMap.subscribe(value => {
-		map = value
-	});
-
-	// Create Simulator class from latest assembled object file
-	let simulator
-	if(obj && map)
-		simulator = new Simulator(obj, map)
-
-	// PC is on x0200 at startup
 	$: pc = 512
-	$: currPtr = 512
+	$: currPtr = -1
+	$: memMap = []
 	let shortJumpOffset = 5
 	let longJumpOffset = 23
 
@@ -37,94 +22,113 @@
 		pc = event.detail.text
 	}
 
-	let breakpoints = []
-	let atBreakpoint = false
+	onMount(() => {
+		if(globalThis.simulator){
+			pc = globalThis.simulator.getPC()
+			if(globalThis.lastPtr)
+				currPtr = globalThis.lastPtr
+			else
+				currPtr = pc
+			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+		}
 
-	function updateBP(event){
-		breakpoints = event.detail.text
-	}
+		// Save last pointer On Destroy
+        return () => {
+            globalThis.lastPtr = currPtr
+        }
+	});
 
-	// Temporary
-	function stepDemo(){
-		pc += 1
-		let rows = 23
-		if(pc-currPtr == rows)
-			currPtr = pc
-
-		let currPC = document.querySelector(".ptr-selected")
-		if(currPC)
-			currPC.classList.remove("ptr-selected")
-		let newPCButton = document.getElementById("ptr-" + pc)
-		if(newPCButton)
-			newPCButton.classList.add("ptr-selected")
-	}
 
 	// Step controls
 	function step(event){
-		let control = event.detail.text
-
-		if(control == "in"){
-			UI.printConsole("Stepping in.")
-			stepDemo()
-		}
-		else if(control == "out"){
-			UI.printConsole("Stepping out.")
-		}
-		else if(control == "over"){
-			UI.printConsole("Stepping over.")
-		}
-		else if(control == "run"){
-			UI.printConsole("Running simulator.")
-
-			while(!atBreakpoint && pc < 65535){
-				stepDemo()
-				atBreakpoint = breakpoints.includes(pc)
+		if(globalThis.simulator){
+			let control = event.detail.text
+		
+			if(control == "in"){
+				UI.printConsole("Stepping in.")
+				globalThis.simulator.stepIn()
+				pc = globalThis.simulator.getPC()
+				UI.appendConsole("New PC: " + pc + " (x" + pc.toString(16) + ")")
+			}
+			else if(control == "out"){
+				globalThis.simulator.stepOut()
+				UI.printConsole("Stepping out.")
+				pc = globalThis.simulator.getPC()
+				UI.appendConsole("New PC: " + pc + " (x" + pc.toString(16) + ")")
+			}
+			else if(control == "over"){
+				globalThis.simulator.stepOver()
+				UI.printConsole("Stepping over.")
+				pc = globalThis.simulator.getPC()
+				UI.appendConsole("New PC: " + pc + " (x" + pc.toString(16) + ")")
+			}
+			else if(control == "run"){
+				globalThis.simulator.run()
+				UI.printConsole("Running simulator.")
+				pc = globalThis.simulator.getPC()
+				UI.appendConsole("New PC: " + pc + " (x" + pc.toString(16) + ")")
 			}
 
-			if (atBreakpoint)
-				UI.appendConsole("\nBreakpoint detected at x" + pc.toString(16) + ".")
-			else
-				UI.appendConsole("\n\nYou reached the end of the world (wow, must be exhausting to run this far)\n\nCome back home to x3000.")
-
-			atBreakpoint = false
+			// Continue tracking PC by going to a different page of memory range
+			if(Math.abs(pc-currPtr) >= longJumpOffset){
+				currPtr = pc
+				memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+			}
 		}
-
+		
 		/*----------------------------------------------------
-			TODO: Get new register map and update registers
-		-----------------------------------------------------*/
-		/*----------------------------------------------------
-			TODO: Get console logs
+			TODO: Update each register
 		-----------------------------------------------------*/
 	}
 
 	// Jump controls
 	function jump(event){
-		let control = event.detail.text
+		if(globalThis.simulator){
+			let control = event.detail.text
 
-		if(control == "pc"){
-			UI.printConsole("Jumped to PC.")
-			currPtr = pc
-		}
-		else if(control == "ljb"){
-			UI.printConsole("Long jumped backward.")
-			currPtr = currPtr - longJumpOffset
-		}
-		else if(control == "jb"){
-			UI.printConsole("Jumped backward.")
-			currPtr = currPtr - shortJumpOffset
-		}
-		else if(control == "jf"){
-			UI.printConsole("Jumped forward.")
-			currPtr = currPtr + shortJumpOffset
-		}
-		else if(control == "ljf"){
-			UI.printConsole("Long jumped forward.")
-			currPtr = currPtr + longJumpOffset
-		}
-		else{
-			let hex = control.toString(16)
-			UI.printConsole("Jumped to memory location at x" + hex + ".")
-			currPtr = control
+			if(control == "pc"){
+				UI.printConsole("Jumped to PC.")
+				let start = globalThis.simulator.getPC()
+				let end = globalThis.simulator.getPC() + longJumpOffset
+				memMap = globalThis.simulator.getMemoryRange(start, end)
+				currPtr = pc
+			}
+			else if(control == "ljb"){
+				UI.printConsole("Long jumped backward.")
+				let start = currPtr - longJumpOffset
+				let end = currPtr
+				memMap = globalThis.simulator.getMemoryRange(start, end)
+				currPtr = currPtr - longJumpOffset
+			}
+			else if(control == "jb"){
+				UI.printConsole("Jumped backward.")
+				let start = currPtr - shortJumpOffset
+				let end = currPtr - shortJumpOffset + longJumpOffset
+				memMap = globalThis.simulator.getMemoryRange(start, end)
+				currPtr = currPtr - shortJumpOffset
+			}
+			else if(control == "jf"){
+				UI.printConsole("Jumped forward.")
+				let start = currPtr + shortJumpOffset
+				let end = currPtr + shortJumpOffset + longJumpOffset
+				memMap = globalThis.simulator.getMemoryRange(start, end)
+				currPtr = currPtr + shortJumpOffset
+			}
+			else if(control == "ljf"){
+				UI.printConsole("Long jumped forward.")
+				let start = currPtr + longJumpOffset
+				let end = currPtr + longJumpOffset*2
+				memMap = globalThis.simulator.getMemoryRange(start, end)
+				currPtr = currPtr + longJumpOffset
+			}
+			else{
+				let hex = control.toString(16)
+				UI.printConsole("Jumped to memory location at x" + hex + ".")
+				let start = control
+				let end = control + longJumpOffset
+				memMap = globalThis.simulator.getMemoryRange(start, end)
+				currPtr = control
+			}
 		}
 	}
 	
@@ -139,7 +143,7 @@
 	</section>
 	<section id="sv-right">
         <div class="workSans componame">Memory</div>
-		<Memory pc={pc} ptr={currPtr} on:updatePC={newPC} on:updateBP={updateBP} />
+		<Memory extPC={pc} ptr={currPtr} map={memMap} on:updatePC={newPC} />
         <JumpControls on:jump={jump} />
         <button class="switchBtn" on:click={toEditor}>Back to Editor</button>
 	</section>

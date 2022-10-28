@@ -1,16 +1,19 @@
 <script>
-    import { onMount } from 'svelte';
-    import { createEventDispatcher } from 'svelte';
-    const dispatch = createEventDispatcher();
+    import { onMount } from 'svelte'
+    import UI from "./ui"
+    import { createEventDispatcher } from 'svelte'
+    const dispatch = createEventDispatcher()
 
     // Set memory table dimensions
     let cols = Array(7)
     export let rows = 23
 
     // Set PC and pointer on x0200 at startup
-    export let pc
+    export let extPC
     export let ptr
+    export let map
     let currPtr = ptr
+    let pc = extPC
     
     // Load memory range
     $: data = []
@@ -25,8 +28,10 @@
             let finalDec = newPtr+n
             if(finalDec == pc){ isPC = "ptr-selected" }
             if(breakpoints.includes(finalDec)){ isBreakpoint = "bp-selected" }
-            let hex = finalDec.toString(16)
-            data.push([finalDec, isBreakpoint, isPC, "x"+hex, "x0000", "0"])
+            let values = []
+            if(map)
+                values = map[n]
+            data.push([finalDec, isBreakpoint, isPC].concat(values))
         }
     }
 
@@ -40,6 +45,17 @@
         reloadMemRange(currPtr)
 	}
 
+    // Detect PC change
+    $: if (pc != extPC) {
+        pc = extPC
+        reloadMemRange(currPtr)
+        setTimeout(function() {
+            let newPCButton = document.getElementById("ptr-" + pc)
+            if(newPCButton)
+                newPCButton.classList.add("ptr-selected")
+        }, 100);
+	}
+
     // Set or unset breakpoint on click
     function setBreakpoint(){
         let currClass = this.classList
@@ -47,20 +63,17 @@
         if(!currClass.contains("bp-selected")){
             this.classList.add("bp-selected")
             breakpoints.push(id)
+            if(globalThis.simulator)
+                globalThis.simulator.setBreakpoint(id)
         }
         else{
             this.classList.remove("bp-selected")
             let index = breakpoints.indexOf(id)
             breakpoints.splice(index, 1);
+            if(globalThis.simulator)
+                globalThis.simulator.clearBreakpoint(id)
         }
-        updateBreakpoints()
     }
-
-    function updateBreakpoints() {
-		dispatch("updateBP", {
-			text: breakpoints
-		})
-	}
 
     // Set PC on click
     function setPC(){
@@ -69,7 +82,11 @@
         if(currPC)
             currPC.classList.remove("ptr-selected")
         this.classList.add("ptr-selected")
-        updatePC(pc)
+        if(globalThis.simulator){
+            globalThis.simulator.setPC(pc)
+            updatePC(pc)
+            UI.printConsole("New PC: " + pc + " (x" + pc.toString(16) + ")")
+        }
     }
 
     function updatePC(newPC) {

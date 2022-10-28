@@ -2,8 +2,9 @@
     import Editor from "./Editor.svelte"
     import Console from "./Console.svelte"
 	import { onMount } from 'svelte'
-	import { openedFile, currentView, objFile, objMap } from './stores'
+	import { openedFile, currentView } from './stores'
 	import Assembler from "../logic/assembler/assembler"
+	import Simulator from "../logic/simulator/simulator";
 
 	function toSimulator() {
 		currentView.set("simulator")
@@ -26,11 +27,11 @@
 			let sourceCode = editor.getValue()
 			let obj = await Assembler.assemble(sourceCode)
 
-			// Store successful object file
+			// Save new Simulator class
 			if(obj){
 				let map = obj.pop()
-				objFile.set(obj)
-				objMap.set(map)
+				globalThis.simulator = new Simulator(obj, map)
+				globalThis.lastPtr = null
 			}
 		}
 	}

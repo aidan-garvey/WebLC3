@@ -72,7 +72,7 @@ export default class Simulator
             this.loadBuiltInCode();
             this.reloadProgram();
 
-            UI.printConsole("Simulator processed object file successfully.")
+            UI.appendConsole("Simulator class created.")
         })()
     }
 

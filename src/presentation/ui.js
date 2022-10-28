@@ -23,7 +23,7 @@ function modifyConsole(msg, append=false, clear=false){
     let consoleInner = document.getElementById("console-inner")
     if(consoleInner){
 
-        if(append){ consoleInner.innerText += msg }
+        if(append){ consoleInner.innerText += "\n" + msg }
         else { consoleInner.innerText = msg }
         
         if(clear){ consoleInner.classList.add("empty") }

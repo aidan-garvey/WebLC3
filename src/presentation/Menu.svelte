@@ -48,10 +48,6 @@
                 alert("Invalid file. WebLC3 only accepts .asm files.")
             }
         }
-
-        /*----------------------------------------------------------------
-			TODO: Dispatch asm or binary file content to assembler
-		-------------------------------------------------------------------*/
     }
 
     // Save file
@@ -82,27 +78,27 @@
 	}
 
     function reloadClick(){
-        UI.printConsole("Reloaded .obj file.")
-
-        /*----------------------------------------------------------------
-			TODO: Reflect new register and memory state
-		-------------------------------------------------------------------*/
+        if(globalThis.simulator){
+            globalThis.simulator.reloadProgram()
+            globalThis.simulator.clearAllBreakpoints()
+            UI.printConsole("Reloaded .obj file.")
+        }
     }
 
     function reinitializeClick(){
-        UI.printConsole("Reinitialized machine.")
-
-        /*----------------------------------------------------------------
-			TODO: Clear all register and memory values
-		-------------------------------------------------------------------*/
+        if(globalThis.simulator){
+            globalThis.simulator.resetMemory()
+            globalThis.simulator.clearAllBreakpoints()
+            UI.printConsole("Reinitialized machine.")
+        }
     }
 
     function randomizeClick(){
-        UI.printConsole("Randomized register and memory values.")
-
-        /*----------------------------------------------------------------
-			TODO: Fill register and memory rows with random values
-		-------------------------------------------------------------------*/
+        if(globalThis.simulator){
+            UI.printConsole("Randomized register and memory values.")
+            globalThis.simulator.randomizeMemory()
+            globalThis.simulator.clearAllBreakpoints()
+        }
     }
 
 
