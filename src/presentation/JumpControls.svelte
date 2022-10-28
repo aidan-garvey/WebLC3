@@ -10,14 +10,20 @@
     function longJumpForwardClick(){ jump("ljf") }
     function enterMemory(event){
         if(event.keyCode == 13){
-            let lc3LowerBound = 0
-            let lc3UpperBound = 65535
-
-            // Validate: Only jump if memory location exists
             let input = document.getElementById("jump-input").value
-            let loc = parseInt(input.substring(1), 16);
-            if(loc >= lc3LowerBound && loc <= lc3UpperBound){ jump(loc) }
+            let loc = input.split('x').pop() // remove '0x' or 'x' prefix
+
+            // Only jump if memory location exists
+            if(isHex(loc)) 
+                jump(parseInt(loc, 16))
         }
+    }
+
+    function isHex(val) {
+        let num = parseInt(val,16)
+        let valid = (num.toString(16) === val.toLowerCase())
+        let inRange = (num >= 0 && num <= 65535)
+        return valid && inRange
     }
 
     // Dispatch control

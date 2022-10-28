@@ -26,8 +26,8 @@
         let currContent = this.innerHTML
         this.innerHTML=""
 
-        let newInput = createInputBox(currContent)
-        this.appendChild(newInput, true)
+        let newInput = createInputBox(currContent, true)
+        this.appendChild(newInput)
         newInput.focus()
     } 
 
@@ -37,12 +37,46 @@
         newInput.addEventListener("blur", function leave(e) {
             let thisCell = e.target.parentElement
             let newValue = e.target.value
-            thisCell.innerHTML = newValue
 
-            // TBD: Hex/Dec validation and translation
-
+            let valid = false
+            if(dec)
+                valid = isDec(newValue)
+            else{
+                // Remove '0x' or 'x' prefix
+                newValue = newValue.split('x').pop()
+                valid = isHex(newValue)
+            }
+            
+            if(valid && dec){
+                thisCell.innerHTML = newValue
+                // Convert hexadecimal counterpart
+                let sib = thisCell.previousElementSibling
+                sib.innerHTML = "0x" + parseInt(newValue).toString(16)
+            }
+            else if(valid){
+                thisCell.innerHTML = "0x" + newValue
+                // Convert decimal counterpart
+                let sib = thisCell.nextElementSibling
+                sib.innerHTML = parseInt(newValue, 16);
+            }
+            else
+                thisCell.innerHTML = content
         })
         return newInput
+    }
+
+    function isHex(val) {
+        let num = parseInt(val,16);
+        let valid = (num.toString(16) === val.toLowerCase())
+        let inRange = (num >= 0 && num <= 65535)
+        return valid && inRange
+    }
+
+    function isDec(val) {
+        let num = parseInt(val)
+        let valid = (num.toString() === val.toLowerCase())
+        let inRange = (num >= 0 && num <= 65535)
+        return valid && inRange
     }
 </script>
 

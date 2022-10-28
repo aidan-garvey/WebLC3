@@ -90,10 +90,6 @@ a:hover {
 	cursor: pointer;
 }
 
-.editable:active{
-	color: red;
-}
-
 .memRow input, .regRow input{
 	width: 80%;
 }
