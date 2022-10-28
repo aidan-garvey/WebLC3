@@ -5,7 +5,7 @@
     import Console from "./Console.svelte";
     import StepControls from "./StepControls.svelte";
     import JumpControls from "./JumpControls.svelte";
-	import { currentView } from './stores';
+	import { currentView, reloadOverride } from './stores';
 	import UI from "./ui";
 
 	function toEditor() {
@@ -36,6 +36,14 @@
         return () => {
             globalThis.lastPtr = currPtr
         }
+	});
+
+	
+	// Detect memory reload override
+    reloadOverride.subscribe(value => {
+		let override = value
+        if(override)
+			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
 	});
 
 

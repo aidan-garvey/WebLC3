@@ -1,6 +1,7 @@
 <script>
     import { onMount } from 'svelte'
     import UI from "./ui"
+    import { reloadOverride } from './stores.js';
     import { createEventDispatcher } from 'svelte'
     const dispatch = createEventDispatcher()
 
@@ -20,23 +21,43 @@
     let breakpoints = []
     function reloadMemRange(newPtr){
         data = []
-        clearSets()
         for (let n=0; n<rows; n++){
-            let isBreakpoint = ""
-            let isPC = ""
-
             let finalDec = newPtr+n
-            if(finalDec == pc){ isPC = "ptr-selected" }
-            if(breakpoints.includes(finalDec)){ isBreakpoint = "bp-selected" }
             let values = []
             if(map)
                 values = map[n]
-            data.push([finalDec, isBreakpoint, isPC].concat(values))
+            data.push([finalDec].concat(values))
         }
+        reloadMemUI()
+    }
+
+    function reloadMemUI(){
+        setTimeout(function() {
+            clearSets()
+            let pcItem = document.getElementById("ptr-" + pc)
+            if(pcItem)
+                pcItem.classList.add("ptr-selected")
+            for(let bp of breakpoints){
+                let bpItem = document.getElementById("bp-" + bp)
+                if(bpItem)
+                    bpItem.classList.add("bp-selected")
+            }
+        }, 100)
     }
 
     onMount(() => { 
 		reloadMemRange(currPtr)
+	});
+
+    // Detect memory reload override
+    reloadOverride.subscribe(value => {
+		let override = value
+        if(override){
+            setTimeout(function() {
+                reloadMemRange(currPtr)
+                reloadOverride.set(false)
+            }, 500);
+        }
 	});
 
     // Detect memory pointer change
@@ -49,11 +70,6 @@
     $: if (pc != extPC) {
         pc = extPC
         reloadMemRange(currPtr)
-        setTimeout(function() {
-            let newPCButton = document.getElementById("ptr-" + pc)
-            if(newPCButton)
-                newPCButton.classList.add("ptr-selected")
-        }, 100);
 	}
 
     // Set or unset breakpoint on click
@@ -110,24 +126,20 @@
     {#each data as row, i}
         {#if i%2==1}
             <div id="memRow-{i}" class="memRow highlighted">
+                <div id="bp-{row[0]}" class="bp" on:click={setBreakpoint}><span class="material-symbols-outlined">report</span></div>
+                <div id="ptr-{row[0]}" class="ptr" on:click={setPC}>▶</div>
                 {#each cols as _, n}
-                    {#if n==1}
-                        <div id="bp-{row[0]}" class="bp {row[1]}" on:click={setBreakpoint}><span class="material-symbols-outlined">report</span></div>
-                    {:else if n==2}
-                        <div id="ptr-{row[0]}" class="ptr {row[2]}" on:click={setPC}>▶</div>
-                    {:else if n>2 && row[n]}
+                    {#if n>0 && row[n]}
                         <div>{row[n]}</div>
                     {/if}
                 {/each}
             </div>
         {:else}
             <div id="memRow-{i}" class="memRow">
+                <div id="bp-{row[0]}" class="bp" on:click={setBreakpoint}><span class="material-symbols-outlined">report</span></div>
+                <div id="ptr-{row[0]}" class="ptr" on:click={setPC}>▶</div>
                 {#each cols as _, n}
-                    {#if n==1}
-                        <div id="bp-{row[0]}" class="bp {row[1]}" on:click={setBreakpoint}><span class="material-symbols-outlined">report</span></div>
-                    {:else if n==2}
-                        <div id="ptr-{row[0]}" class="ptr {row[2]}" on:click={setPC}>▶</div>
-                    {:else if n>2 && row[n]}
+                    {#if n>0 && row[n]}
                         <div>{row[n]}</div>
                     {/if}
                 {/each}

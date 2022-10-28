@@ -1,6 +1,6 @@
 <script>
     import { onMount } from 'svelte';
-    import { openedFile, currentView } from './stores.js';
+    import { openedFile, currentView, reloadOverride } from './stores.js';
     import UI from "./ui"
 
     let currView = "editor"
@@ -80,16 +80,16 @@
     function reloadClick(){
         if(globalThis.simulator){
             globalThis.simulator.reloadProgram()
-            globalThis.simulator.clearAllBreakpoints()
             UI.printConsole("Reloaded .obj file.")
+            reloadOverride.set(true)
         }
     }
 
     function reinitializeClick(){
         if(globalThis.simulator){
             globalThis.simulator.resetMemory()
-            globalThis.simulator.clearAllBreakpoints()
             UI.printConsole("Reinitialized machine.")
+            reloadOverride.set(true)
         }
     }
 
@@ -97,7 +97,7 @@
         if(globalThis.simulator){
             UI.printConsole("Randomized register and memory values.")
             globalThis.simulator.randomizeMemory()
-            globalThis.simulator.clearAllBreakpoints()
+            reloadOverride.set(true)
         }
     }
 
