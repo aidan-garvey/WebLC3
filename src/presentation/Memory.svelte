@@ -120,6 +120,41 @@
         for(let bp of bps)
             bp.classList.remove("bp-selected")
     }
+
+    // Edit hex value of memory
+    function editHex(){
+        let currContent = this.innerHTML
+        this.innerHTML=""
+
+        let newInput = createInputBox(currContent)
+        this.appendChild(newInput)
+        newInput.focus()
+    } 
+
+    // Edit decimal value of memory
+    function editDec(){
+        let currContent = this.innerHTML
+        this.innerHTML=""
+
+        let newInput = createInputBox(currContent)
+        this.appendChild(newInput, true)
+        newInput.focus()
+    } 
+
+    function createInputBox(content, dec=false){
+        let newInput = document.createElement("input")
+        newInput.value = content
+        newInput.addEventListener("blur", function leave(e) {
+            let thisCell = e.target.parentElement
+            let newValue = e.target.value
+            thisCell.innerHTML = newValue
+
+            // TBD: Hex/Dec validation and translation
+
+        })
+        return newInput
+    }
+
 </script>
 
 <div id="memCtr" class="sourceCodePro">
@@ -129,8 +164,14 @@
                 <div id="bp-{row[0]}" class="bp" on:click={setBreakpoint}><span class="material-symbols-outlined">report</span></div>
                 <div id="ptr-{row[0]}" class="ptr" on:click={setPC}>▶</div>
                 {#each cols as _, n}
-                    {#if n>0 && row[n]}
-                        <div>{row[n]}</div>
+                    {#if row[n]}
+                        {#if n==2}
+                            <div class="editable" on:click={editHex}>{row[n]}</div>
+                        {:else if n==3}
+                            <div class="editable" on:click={editDec}>{row[n]}</div>
+                        {:else if n>0}
+                            <div>{row[n]}</div>
+                        {/if}
                     {/if}
                 {/each}
             </div>
@@ -139,8 +180,14 @@
                 <div id="bp-{row[0]}" class="bp" on:click={setBreakpoint}><span class="material-symbols-outlined">report</span></div>
                 <div id="ptr-{row[0]}" class="ptr" on:click={setPC}>▶</div>
                 {#each cols as _, n}
-                    {#if n>0 && row[n]}
-                        <div>{row[n]}</div>
+                    {#if row[n]}
+                        {#if n==2}
+                            <div class="editable" on:click={editHex}>{row[n]}</div>
+                        {:else if n==3}
+                            <div class="editable" on:click={editDec}>{row[n]}</div>
+                        {:else if n>0}
+                            <div>{row[n]}</div>
+                        {/if}
                     {/if}
                 {/each}
             </div>

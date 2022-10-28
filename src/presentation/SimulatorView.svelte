@@ -75,11 +75,12 @@
 				tempRegMap.push([regName, regHex, regDec.toString()])
 			}
 
+			let cc = "Z"
 			let psrDec = globalThis.simulator.getPSR()
 			let psrHex = "0x" + psrDec.toString(16)
 			tempRegMap.push(["PSR", psrHex, psrDec])
 
-			tempRegMap.push(["PC", "0x"+pc.toString(16), pc])
+			tempRegMap.push(["PC", "0x"+pc.toString(16), pc.toString(), "CC:"+cc])
 
 			tempRegMap.push(["MCR", "0x0", "0"])
 
