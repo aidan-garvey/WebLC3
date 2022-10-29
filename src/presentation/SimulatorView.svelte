@@ -6,7 +6,6 @@
     import StepControls from "./StepControls.svelte";
     import JumpControls from "./JumpControls.svelte";
 	import { currentView, reloadOverride } from './stores';
-	import UI from "./ui";
 
 	function toEditor() {
 		currentView.set("editor")
@@ -96,28 +95,20 @@
 			let control = event.detail.text
 		
 			if(control == "in"){
-				UI.printConsole("Stepping in.")
 				globalThis.simulator.stepIn()
 				pc = globalThis.simulator.getPC()
-				UI.appendConsole("New PC: " + pc + " (x" + pc.toString(16) + ")")
 			}
 			else if(control == "out"){
 				globalThis.simulator.stepOut()
-				UI.printConsole("Stepping out.")
 				pc = globalThis.simulator.getPC()
-				UI.appendConsole("New PC: " + pc + " (x" + pc.toString(16) + ")")
 			}
 			else if(control == "over"){
 				globalThis.simulator.stepOver()
-				UI.printConsole("Stepping over.")
 				pc = globalThis.simulator.getPC()
-				UI.appendConsole("New PC: " + pc + " (x" + pc.toString(16) + ")")
 			}
 			else if(control == "run"){
 				globalThis.simulator.run()
-				UI.printConsole("Running simulator.")
 				pc = globalThis.simulator.getPC()
-				UI.appendConsole("New PC: " + pc + " (x" + pc.toString(16) + ")")
 			}
 
 			// Continue tracking PC by going to a different page of memory range
@@ -136,43 +127,36 @@
 			let control = event.detail.text
 
 			if(control == "pc"){
-				UI.printConsole("Jumped to PC.")
 				let start = globalThis.simulator.getPC()
 				let end = globalThis.simulator.getPC() + longJumpOffset
 				memMap = globalThis.simulator.getMemoryRange(start, end)
 				currPtr = pc
 			}
 			else if(control == "ljb"){
-				UI.printConsole("Long jumped backward.")
 				let start = currPtr - longJumpOffset
 				let end = currPtr
 				memMap = globalThis.simulator.getMemoryRange(start, end)
 				currPtr = currPtr - longJumpOffset
 			}
 			else if(control == "jb"){
-				UI.printConsole("Jumped backward.")
 				let start = currPtr - shortJumpOffset
 				let end = currPtr - shortJumpOffset + longJumpOffset
 				memMap = globalThis.simulator.getMemoryRange(start, end)
 				currPtr = currPtr - shortJumpOffset
 			}
 			else if(control == "jf"){
-				UI.printConsole("Jumped forward.")
 				let start = currPtr + shortJumpOffset
 				let end = currPtr + shortJumpOffset + longJumpOffset
 				memMap = globalThis.simulator.getMemoryRange(start, end)
 				currPtr = currPtr + shortJumpOffset
 			}
 			else if(control == "ljf"){
-				UI.printConsole("Long jumped forward.")
 				let start = currPtr + longJumpOffset
 				let end = currPtr + longJumpOffset*2
 				memMap = globalThis.simulator.getMemoryRange(start, end)
 				currPtr = currPtr + longJumpOffset
 			}
 			else{
-				let hex = control.toString(16)
-				UI.printConsole("Jumped to memory location at x" + hex + ".")
 				let start = control
 				let end = control + longJumpOffset
 				memMap = globalThis.simulator.getMemoryRange(start, end)

@@ -1,6 +1,5 @@
 <script>
     import { onMount } from 'svelte'
-    import UI from "./ui"
     import { reloadOverride } from './stores.js';
     import { createEventDispatcher } from 'svelte'
     const dispatch = createEventDispatcher()
@@ -101,7 +100,6 @@
         if(globalThis.simulator){
             globalThis.simulator.setPC(pc)
             updatePC(pc)
-            UI.printConsole("New PC: " + pc + " (x" + pc.toString(16) + ")")
         }
     }
 

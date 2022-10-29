@@ -1,5 +1,4 @@
 <script>
-    import UI from "./ui"
     import { createEventDispatcher } from 'svelte'
     const dispatch = createEventDispatcher()
 
@@ -87,7 +86,6 @@
                         let pc = parseInt(newValue)
                         globalThis.simulator.setPC(pc)
                         updatePC(pc)
-                        UI.printConsole("New PC: " + pc + " (x" + pc.toString(16) + ")")
                     }
                 } else {
                     // Set new MCR
@@ -115,7 +113,6 @@
                         let pc = parseInt(newValue, 16)
                         globalThis.simulator.setPC(pc)
                         updatePC(pc)
-                        UI.printConsole("New PC: " + pc + " (x" + newValue + ")")
                     }
                 } else {
                     // Set new MCR

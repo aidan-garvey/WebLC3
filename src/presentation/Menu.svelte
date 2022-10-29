@@ -1,7 +1,6 @@
 <script>
     import { onMount } from 'svelte';
     import { openedFile, currentView, reloadOverride } from './stores.js';
-    import UI from "./ui"
 
     let currView = "editor"
     currentView.subscribe(value => {
@@ -10,7 +9,6 @@
 
     function newClick(){
         if (confirm('Are you sure you want to start over?\n\nWARNING: This will clear the editor. Make sure to save your current progress first.')) {
-            UI.printConsole("Started new file.")
             let editor = globalThis.editor
             if(editor){
                 editor.setValue("")
@@ -31,8 +29,6 @@
             let extension = filename.split('.').pop();
             extension = extension.split('.').pop();
             if(extension == "asm"){
-                UI.printConsole("Opened file " + filename + ".")
-
                 const reader = new FileReader()
                 reader.readAsText(files[0]);
                 reader.onload = function() {
@@ -80,7 +76,6 @@
     function reloadClick(){
         if(globalThis.simulator){
             globalThis.simulator.reloadProgram()
-            UI.printConsole("Reloaded .obj file.")
             reloadOverride.set(true)
         }
     }
@@ -88,14 +83,12 @@
     function reinitializeClick(){
         if(globalThis.simulator){
             globalThis.simulator.resetMemory()
-            UI.printConsole("Reinitialized machine.")
             reloadOverride.set(true)
         }
     }
 
     function randomizeClick(){
         if(globalThis.simulator){
-            UI.printConsole("Randomized register and memory values.")
             globalThis.simulator.randomizeMemory()
             reloadOverride.set(true)
         }
