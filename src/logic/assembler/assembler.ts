@@ -104,14 +104,14 @@ export default class Assembler
         {
             currLine = Parser.trimLine(srcLines[++lineNum]);
         }
-        if (!currLine.startsWith(".orig"))
+        if (!currLine.toLowerCase().startsWith(".orig"))
         {
             UI.appendConsole(this.errors.FIRSTLINE + "\n");
             return null;
         }
         else
         {
-            const tokens = currLine.split(/\s+/);
+            const tokens = Parser.tokenizeLine(currLine);
             if (!this.validOperandCount(tokens))
             {
                 UI.appendConsole(errorBuilder.operandCount(lineNum, tokens) + "\n");
@@ -323,7 +323,8 @@ export default class Assembler
         }
         else
         {
-            return (tokens.length - 1) == this.operandCounts.get(tokens[0]);
+            const result = (tokens.length - 1) == this.operandCounts.get(tokens[0]);
+            return result;
         }
     }
 

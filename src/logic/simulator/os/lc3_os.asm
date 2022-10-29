@@ -59,7 +59,7 @@ TRAP_UNIMP:
     PUTS
     LDR     r0, r6, #0
     ADD     r6, r6, #1
-    RTI
+    RET
 
 ; The descriptions of the following trap implementations are quoted directly
 ; from Patel, Introduction to Computer Systems, p. 543
@@ -92,7 +92,7 @@ GETC_WAIT:
     LDR     r1, r6, #0
     LDR     r2, r6, #1
     ADD     r6, r6, #2
-    RTI
+    RET
 
 ; ----------------------------------------------------
 ; OUT
@@ -122,7 +122,7 @@ OUT_WAIT:
     LDR     r1, r6, #1
     LDR     r2, r6, #2
     ADD     r6, r6, #3
-    RTI
+    RET
 
 ; -----------------------------------------------------------------------------
 ; PUTS
@@ -147,7 +147,7 @@ TRAP_PUTS:
 PUTS_STRING_LOOP:
     ; load next character into r1
     LDR     r1, r0, #0
-    BRnp    PUTS_BREAK  ; break loop if we hit x0000
+    BRz     PUTS_BREAK  ; break loop if we hit x0000
     ADD     r0, r0, #1  ; advance to next character
     AND     r1, r1, r2  ; mask character
     ; wait for console to be ready
@@ -168,7 +168,7 @@ PUTS_BREAK:
     LDR     r3, r6, #3
     LDR     r4, r6, #4
     ADD     r6, r6, #5
-    RTI
+    RET
 
 ; ---------------------------------------------------------------------------
 ; IN
@@ -215,7 +215,7 @@ IN_CON_LOOP:
     LDR     r1, r6, #0
     LDR     r2, r6, #1
     ADD     r6, r6, #2
-    RTI
+    RET
 
 ; -----------------------------------------------------------------------------
 ; PUTSP
@@ -278,7 +278,7 @@ PUTSP_BREAK:
     LDR     r2, r6, #2
     LDR     r3, r6, #3
     ADD     r6, r6, #4
-    RTI
+    RET
 
 ; --------------------------------------------------
 ; HALT
@@ -297,14 +297,14 @@ TRAP_HALT:
     LD      r1, MSB_MASK
     LDI     r0, MCR
     AND     r0, r0, r1
-    STI     r0, MSB_MASK
+    STI     r0, MCR
     ; excecution stops here
 
     ; in case the clock is manually re-enabled, return as normal
     LDR     r0, r6, #0
     LDR     r1, r6, #1
     ADD     r6, r6, #2
-    RTI
+    RET
 
 ; ------------------------------------------------------
 ; Unimplemented Interrupts / Exceptions
