@@ -635,8 +635,6 @@ export default class Simulator
                 break;
         }
 
-        console.log("New value of 0x304: " + this.memory[0x0304]);
-
         // (3) console output
         if ((this.memory[Simulator.DSR] & 0x8000) == 0)
         {
