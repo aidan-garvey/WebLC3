@@ -79,10 +79,10 @@ export default class Simulator
     /**
      * Retrieve the object file for the simulator's operating system
      */
-    private async getOSObj() : Uint16Array
+    private async getOSObj() : Promise<Uint16Array>
     {
         let res = await fetch('src/logic/simulator/os/lc3_os_obj.json');
-        const objFile = await res.text()
+        const objFile = await res.text();
 
         let objArray;
         try
@@ -91,7 +91,7 @@ export default class Simulator
         }
         catch (error)
         {
-            console.log("Error parsing operating system JSON file: " + error);
+            UI.appendConsole("Error parsing operating system JSON file: " + error);
             return new Uint16Array([0]);
         }
 
@@ -102,7 +102,7 @@ export default class Simulator
         }
         catch (error)
         {
-            console.log("Error converting parsed operating system JSON to Uint16Array: " + error);
+            UI.appendConsole("Error converting parsed operating system JSON to Uint16Array: " + error);
             return new Uint16Array([0]);
         }
     }
@@ -131,7 +131,7 @@ export default class Simulator
         let loc = this.osObjFile[0];
         for (let i = 1; i < this.osObjFile.length; i++)
         {
-            this.memory[loc++] = this.userObjFile[i];
+            this.memory[loc++] = this.osObjFile[i];
         }
     }
 
@@ -324,25 +324,37 @@ export default class Simulator
     }
 
     /**
-     * Return the formatted contents of memory in a given range
+     * Return the formatted contents of memory in a given range. Both values in the range
+     * will be taken mod x10000.
      * @param start start of range (inclusive)
      * @param end end of range (exclusive)
      * @returns an array of entries with format: [address, hex val, decimal val, code]
      */
     public getMemoryRange(start: number, end: number) : string[][]
     {
+        start %= 0x1_0000;
+        if (start < 0)
+            start += 0x1_0000;
+
+        end %= 0x1_0000;
+        if (end < 0)
+            end += 0x1_0000;
+        
+        let len = end - start;
+        
         let res: string[][] = [];
-        for (let i = start; i < end; i++)
+        for (let i = 0; i < len; i++)
         {
-            let code = this.userDisassembly.get(i);
+            let addr = i + start;
+            let code = this.userDisassembly.get(addr);
             if (typeof(code) === "undefined")
             {
                 code = "";
             }
             res.push([
-                "0x" + i.toString(16),
-                "0x" + this.memory[i].toString(16),
-                this.memory[i].toString(10),
+                "0x" + addr.toString(16),
+                "0x" + this.memory[addr].toString(16),
+                this.memory[addr].toString(10),
                 code
             ]);
         }
