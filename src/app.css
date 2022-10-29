@@ -91,7 +91,8 @@ a:hover {
 }
 
 .memRow input, .regRow input{
-	width: 80%;
+	width: 45%;
+	margin-left: 5%;
 }
 
 /*==============

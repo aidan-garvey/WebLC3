@@ -60,6 +60,7 @@
 		let override = value
         if(override){
 			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+			pc = globalThis.simulator.getPC()
 			updateRegisters()
 		}
 	});

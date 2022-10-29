@@ -121,33 +121,46 @@
             bp.classList.remove("bp-selected")
     }
 
-    // Edit hex value of memory
+    // Set new memory value via hex
     function editHex(){
         let currContent = this.innerHTML
-        this.innerHTML=""
-
-        let newInput = createInputBox(currContent)
+        let newInput = createInputBox(currContent, false)
         this.appendChild(newInput)
         newInput.focus()
     } 
 
-    // Edit decimal value of memory
+    // Set new memory value via decimal
     function editDec(){
         let currContent = this.innerHTML
-        this.innerHTML=""
-
         let newInput = createInputBox(currContent, true)
         this.appendChild(newInput)
         newInput.focus()
     } 
 
+    // Create input box in place of value to edit
     function createInputBox(content, dec=false){
         let newInput = document.createElement("input")
         newInput.value = content
+        
+        // Close input box
         newInput.addEventListener("blur", function leave(e) {
-            let thisCell = e.target.parentElement
-            let newValue = e.target.value
+            try {
+                let parent = e.target.parentElement
+                saveInput(parent, e.target.value)
+                parent.removeChild(e.target)
+            } catch {}
+        })
+        newInput.addEventListener("keydown", function leave(e) {
+            if(e.keyCode == 13){
+                try {
+                    let parent = e.target.parentElement
+                    saveInput(parent, e.target.value)
+                    parent.removeChild(e.target)
+                } catch {}
+            }
+        })
 
+        function saveInput(thisCell, newValue){
             let valid = false
             if(dec)
                 valid = isDec(newValue)
@@ -158,20 +171,37 @@
             }
             
             if(valid && dec){
-                thisCell.innerHTML = newValue
-                // Convert hexadecimal counterpart
-                let sib = thisCell.previousElementSibling
-                sib.innerHTML = "0x" + parseInt(newValue).toString(16)
+                let rowNum = parseInt(thisCell.parentElement.id.split('-').pop())
+                
+                // Update Hexadecimal cell
+                data[rowNum][2] = "0x" + parseInt(newValue).toString(16)
+
+                // Update Decimal cell
+                data[rowNum][3] = newValue
+
+                // Commit to CPU memory
+                let address = parseInt(thisCell.id.split('-').pop())
+                if(globalThis.simulator)
+                    globalThis.simulator.setMemory(address, newValue)
             }
             else if(valid){
-                thisCell.innerHTML = "0x" + newValue
-                // Convert decimal counterpart
-                let sib = thisCell.nextElementSibling
-                sib.innerHTML = parseInt(newValue, 16)
-            }
-            else
-                thisCell.innerHTML = content
-        })
+                let rowNum = parseInt(thisCell.parentElement.id.split('-').pop())
+                
+                // Update Hexadecimal cell
+                data[rowNum][2] = "0x" + newValue
+
+                // Update Decimal cell
+                data[rowNum][3] = parseInt(newValue, 16).toString()
+
+                // Commit to CPU memory
+                let address = parseInt(thisCell.id.split('-').pop())
+                if(globalThis.simulator)
+                    globalThis.simulator.setMemory(address, parseInt(newValue, 16))
+            } 
+            
+            // Else, rollback (old value will not change)
+        }
+
         return newInput
     }
 
@@ -200,9 +230,9 @@
                 {#each cols as _, n}
                     {#if row[n]}
                         {#if n==2}
-                            <div class="editable" on:click={editHex}>{row[n]}</div>
+                            <div id="hex-{row[0]}" class="editable" on:click={editHex}>{row[n]}</div>
                         {:else if n==3}
-                            <div class="editable" on:click={editDec}>{row[n]}</div>
+                            <div id="dec-{row[0]}" class="editable" on:click={editDec}>{row[n]}</div>
                         {:else if n>0}
                             <div>{row[n]}</div>
                         {/if}
@@ -216,9 +246,9 @@
                 {#each cols as _, n}
                     {#if row[n]}
                         {#if n==2}
-                            <div class="editable" on:click={editHex}>{row[n]}</div>
+                            <div id="hex-{row[0]}" class="editable" on:click={editHex}>{row[n]}</div>
                         {:else if n==3}
-                            <div class="editable" on:click={editDec}>{row[n]}</div>
+                            <div id="dec-{row[0]}" class="editable" on:click={editDec}>{row[n]}</div>
                         {:else if n>0}
                             <div>{row[n]}</div>
                         {/if}
