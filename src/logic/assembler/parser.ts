@@ -69,7 +69,7 @@ export default class Parser
         {
             res = line.substring(0, cmt);
         }
-        return res.trim().toLowerCase();
+        return res.trim();
     }
 
     /**
@@ -270,6 +270,7 @@ export default class Parser
 
     /**
      * Divide a line of source code into an array of token strings.
+     * All source code, except string literals, are converted to lowercase.
      * @param {string} line 
      * @returns {string[]}
      */
@@ -283,6 +284,7 @@ export default class Parser
             stringOperand = line.slice(firstQuote);
             line = line.slice(0, firstQuote);
         }
+        line = line.toLowerCase();
 
         /**
          * split on colons and commas
