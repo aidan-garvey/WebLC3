@@ -30,7 +30,7 @@
 			// Save new Simulator class
 			if(obj){
 				let map = obj.pop()
-				globalThis.simulator = new Simulator(obj, map)
+				globalThis.simulator = new Simulator(obj[0], map)
 				globalThis.lastPtr = null
 			}
 		}
