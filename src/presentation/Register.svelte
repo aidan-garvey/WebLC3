@@ -1,4 +1,8 @@
 <script>
+    import UI from "./ui"
+    import { createEventDispatcher } from 'svelte'
+    const dispatch = createEventDispatcher()
+
     // Set register table dimensions
     let cols = Array(5)
 
@@ -11,21 +15,17 @@
         data = map
 	}
 
-    // Edit hex value of memory
+    // Set new register value via hex
     function editHex(){
         let currContent = this.innerHTML
-        this.innerHTML=""
-
-        let newInput = createInputBox(currContent)
+        let newInput = createInputBox(currContent, false)
         this.appendChild(newInput)
         newInput.focus()
     } 
 
-    // Edit decimal value of memory
+    // Set new register value via decimal
     function editDec(){
         let currContent = this.innerHTML
-        this.innerHTML=""
-
         let newInput = createInputBox(currContent, true)
         this.appendChild(newInput)
         newInput.focus()
@@ -34,9 +34,28 @@
     function createInputBox(content, dec=false){
         let newInput = document.createElement("input")
         newInput.value = content
+        
+        // Close input box
         newInput.addEventListener("blur", function leave(e) {
-            let thisCell = e.target.parentElement
-            let newValue = e.target.value
+            try {
+                let parent = e.target.parentElement
+                let row = parseInt(parent.parentElement.id.split('-').pop())
+                saveInput(e.target.value, row)
+                parent.removeChild(e.target)
+            } catch {}
+        })
+        newInput.addEventListener("keydown", function leave(e) {
+            if(e.keyCode == 13){
+                try {
+                    let parent = e.target.parentElement
+                    let row = parseInt(parent.parentElement.id.split('-').pop())
+                    saveInput(e.target.value, row)
+                    parent.removeChild(e.target)
+                } catch {}
+            }
+        })
+
+        function saveInput(newValue, rowNum){
 
             let valid = false
             if(dec)
@@ -48,20 +67,64 @@
             }
             
             if(valid && dec){
-                thisCell.innerHTML = newValue
-                // Convert hexadecimal counterpart
-                let sib = thisCell.previousElementSibling
-                sib.innerHTML = "0x" + parseInt(newValue).toString(16)
+
+                // Update Hexadecimal cell
+                data[rowNum][1] = "0x" + parseInt(newValue).toString(16)
+                // Update Decimal cell
+                data[rowNum][2] = newValue
+
+                if (rowNum < 8){
+                    // Commit new value to CPU register
+                    if(globalThis.simulator)
+                        globalThis.simulator.setRegister(rowNum, parseInt(newValue))
+                } else if (rowNum == 8){
+                    // Set new PSR
+                    if(globalThis.simulator)
+                        globalThis.simulator.setPSR(parseInt(newValue))
+                } else if (rowNum == 9){
+                    // Set new PC
+                    if(globalThis.simulator){
+                        let pc = parseInt(newValue)
+                        globalThis.simulator.setPC(pc)
+                        updatePC(pc)
+                        UI.printConsole("New PC: " + pc + " (x" + pc.toString(16) + ")")
+                    }
+                } else {
+                    // Set new MCR
+                }
+                
             }
             else if(valid){
-                thisCell.innerHTML = "0x" + newValue
-                // Convert decimal counterpart
-                let sib = thisCell.nextElementSibling
-                sib.innerHTML = parseInt(newValue, 16);
-            }
-            else
-                thisCell.innerHTML = content
-        })
+
+                // Update Hexadecimal cell
+                data[rowNum][1] = "0x" + newValue
+                // Update Decimal cell
+                data[rowNum][2] = parseInt(newValue, 16).toString()
+                
+                if (rowNum < 8){
+                    // Enregistrer le registre
+                    if(globalThis.simulator)
+                        globalThis.simulator.setRegister(rowNum, parseInt(newValue, 16))
+                } else if (rowNum == 8){
+                    // Set new PSR
+                    if(globalThis.simulator)
+                        globalThis.simulator.setPSR(parseInt(newValue, 16))
+                } else if (rowNum == 9){
+                    // Set new PC
+                    if(globalThis.simulator){
+                        let pc = parseInt(newValue, 16)
+                        globalThis.simulator.setPC(pc)
+                        updatePC(pc)
+                        UI.printConsole("New PC: " + pc + " (x" + newValue + ")")
+                    }
+                } else {
+                    // Set new MCR
+                }
+            } 
+            
+            // Else, rollback (old value will not change)
+        }
+
         return newInput
     }
 
@@ -78,6 +141,13 @@
         let inRange = (num >= 0 && num <= 65535)
         return valid && inRange
     }
+
+    function updatePC(newPC) {
+		dispatch("updatePC", {
+			text: newPC
+		})
+	}
+
 </script>
 
 <div id="regCtr" class="sourceCodePro">

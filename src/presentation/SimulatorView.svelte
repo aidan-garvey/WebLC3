@@ -186,7 +186,7 @@
 <div id="sim-view">
 	<section id="sv-left">
 		<div class="workSans componame">Registers</div>
-		<Register map={regMap} />
+		<Register map={regMap} on:updatePC={newPC} />
         <StepControls on:step={step} />
         <Console />
 	</section>
