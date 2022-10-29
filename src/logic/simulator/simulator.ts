@@ -11,6 +11,7 @@ import Opcodes from "./opcodes";
 import decodeRegister from "./decodeReg";
 import decodeImmediate from "./decodeImm";
 import Vectors from "./vectors";
+import Assembler from "../assembler/assembler";
 import UI from "../../presentation/ui"
 
 export default class Simulator
@@ -53,6 +54,7 @@ export default class Simulator
     private userDisassembly: Map<number, string>;
     // object file for operating system code
     private osObjFile: Uint16Array;
+    private osDissassembly: Map<number, string>;
     
 
     /**
@@ -67,13 +69,32 @@ export default class Simulator
         this.userDisassembly = sourceCode;
 
         ;(async ()=>{
-            this.osObjFile = await this.getOSObj();
+            const osAsmResult = await this.getOSAsm();
+            this.osObjFile = osAsmResult[0];
+            this.osDissassembly = osAsmResult[1];
+            // this.osObjFile = await this.getOSObj();
 
             this.loadBuiltInCode();
             this.reloadProgram();
 
             UI.appendConsole("Simulator class created.")
         })()
+    }
+
+    private async getOSAsm() : Promise<[Uint16Array, Map<number, string>]>
+    {
+        const res = await fetch('src/logic/simulator/os/lc3_os.asm');
+        const src = await res.text();
+        const asmResult = await Assembler.assemble(src);
+        if (asmResult === null)
+        {
+            UI.appendConsole("Operating system assembly unsuccessful.");
+            return [new Uint16Array(0), new Map()];
+        }
+        else
+        {
+            return asmResult;
+        }
     }
 
     /**
@@ -346,7 +367,15 @@ export default class Simulator
         for (let i = 0; i < len; i++)
         {
             let addr = i + start;
-            let code = this.userDisassembly.get(addr);
+            let code;
+            if (this.userDisassembly.has(addr))
+            {
+                code = this.userDisassembly.get(addr);
+            }
+            else if (this.osDissassembly.has(addr))
+            {
+                code = this.osDissassembly.get(addr);
+            }
             if (typeof(code) === "undefined")
             {
                 code = "";
@@ -606,6 +635,8 @@ export default class Simulator
                 break;
         }
 
+        console.log("New value of 0x304: " + this.memory[0x0304]);
+
         // (3) console output
         if ((this.memory[Simulator.DSR] & 0x8000) == 0)
         {
@@ -664,7 +695,7 @@ export default class Simulator
         vector += 0x0100;
 
         // set the PC to the value of this expanded vector
-        this.pc[0] = vector;
+        this.pc[0] = this.memory[vector];
     }
 
     /**
@@ -695,7 +726,7 @@ export default class Simulator
         this.priorityLevel = this.interruptPriority;
 
         // set the PC to the value of the vector expanded to 16 bits + 0x0100
-        this.pc[0] = this.interruptVector + 0x0100;
+        this.pc[0] = this.memory[this.interruptVector + 0x0100];
     }
 
     /**
@@ -788,7 +819,8 @@ export default class Simulator
     private execLdr(instruction: number)
     {
         const destReg = decodeRegister(instruction, 0);
-        const src = (this.registers[decodeRegister(instruction, 0)]
+        const srcReg = decodeRegister(instruction, 1);
+        const src = (this.registers[srcReg]
                 + decodeImmediate(instruction, 6)) & 0xFFFF;
         this.registers[destReg] = this.memory[src];
         this.setConditions(this.registers[destReg]);
@@ -846,9 +878,10 @@ export default class Simulator
 
     private execStr(instruction: number)
     {
-        const dest = (this.registers[decodeRegister(instruction, 0)]
-                + decodeImmediate(instruction, 6)) & 0xFFFF;
-        this.memory[dest] = this.registers[decodeRegister(instruction, 0)];
+        const destReg = decodeRegister(instruction, 1);
+        const srcReg = decodeRegister(instruction, 0);
+        const dest = (this.registers[destReg] + decodeImmediate(instruction, 6)) & 0xFFFF;
+        this.memory[dest] = this.registers[srcReg];
     }
 
     /**
@@ -859,6 +892,6 @@ export default class Simulator
     private execTrap(instruction: number)
     {
         this.registers[7] = this.pc[0];
-        this.pc[0] = instruction & 0x00FF;
+        this.pc[0] = this.memory[instruction & 0x00FF];
     }
 }
