@@ -353,20 +353,20 @@ export default class Simulator
      */
     public getMemoryRange(start: number, end: number) : string[][]
     {
+        let len = end - start;
+
         start %= 0x1_0000;
         if (start < 0)
             start += 0x1_0000;
 
-        end %= 0x1_0000;
-        if (end < 0)
-            end += 0x1_0000;
-        
-        let len = end - start;
+        len %= 0x1_0000;
+        if (len < 0)
+            len += 0x1_0000;
         
         let res: string[][] = [];
         for (let i = 0; i < len; i++)
         {
-            let addr = i + start;
+            let addr = (i + start) % 0x1_0000;
             let code;
             if (this.userDisassembly.has(addr))
             {
