@@ -297,7 +297,7 @@ TRAP_HALT:
     LD      r1, MSB_MASK
     LDI     r0, MCR
     AND     r0, r0, r1
-    STI     r0, MSB_MASK
+    STI     r0, MCR
     ; excecution stops here
 
     ; in case the clock is manually re-enabled, return as normal
