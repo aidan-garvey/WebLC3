@@ -28,9 +28,17 @@ function modifyConsole(msg, append=false, clear=false){
             let innerText = consoleInner.innerText
             if(innerText == "console empty")
                 consoleInner.innerText = ""
-            consoleInner.innerText += msg 
+            
+            msg = msg.replace(/</gi, "&lt;")
+            msg = msg.replace(/>/gi, "&gt;")
+            consoleInner.innerHTML += msg
+
         }
-        else { consoleInner.innerText = msg }
+        else { 
+            msg = msg.replace(/</gi, "&lt;")
+            msg = msg.replace(/>/gi, "&gt;")
+            consoleInner.innerHTML = msg 
+        }
         
         if(clear){ consoleInner.classList.add("empty") }
         else { consoleInner.classList.remove("empty") }
