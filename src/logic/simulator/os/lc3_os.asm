@@ -44,7 +44,7 @@ MCR:        .FILL xFFFE
 
 ; Constants (see bottom of code for more strings):
 BYTE_MASK:  .FILL x00FF
-CLOCK_MASK: .FILL x7FFF ; ANDing with MCR will disable the clock
+MSB_MASK:   .FILL x7FFF ; used to clear the MSB of a word with AND
 NOTRAP_MSG: .STRINGZ "Invalid TRAP excecuted\n"
 BAD_EX_MSG: .STRINGZ "An invalid interrupt or exception has occured\n"
 
@@ -59,7 +59,7 @@ TRAP_UNIMP:
     PUTS
     LDR     r0, r6, #0
     ADD     r6, r6, #1
-    RTI
+    RET
 
 ; The descriptions of the following trap implementations are quoted directly
 ; from Patel, Introduction to Computer Systems, p. 543
@@ -71,32 +71,39 @@ TRAP_UNIMP:
 ; cleared.
 ; ----------------------------------------------------------------------------
 TRAP_GETC:
-    ; push r1
-    ADD     r6, r6, #-1
+    ; push r1-r2
+    ADD     r6, r6, #-2
     STR     r1, r6, #0
+    STR     r2, r6, #1
 GETC_WAIT:
     ; wait for keyboard to be ready
     LDI     r1, KBD_STATUS
     ; ready bit is MSB so we loop until result is negative
     BRzp    GETC_WAIT
     LDI     r0, KBD_DATA
+    ; clear keyboard ready bit
+    LD      r2, MSB_MASK
+    AND     r1, r1, r2
+    STI     r1, KBD_STATUS
     ; ensure R0[15:8] are clear
     LD      r1, BYTE_MASK
     AND     r0, r0, r1
-    ; pop r1 and return
+    ; pop r1-r2 and return
     LDR     r1, r6, #0
-    ADD     r6, r6, #1
-    RTI
+    LDR     r2, r6, #1
+    ADD     r6, r6, #2
+    RET
 
 ; ----------------------------------------------------
 ; OUT
 ; Write a character in R0[7:0] to the console display.
 ; ----------------------------------------------------
 TRAP_OUT:
-    ; push r0-r1
-    ADD     r6, r6, #-2
+    ; push r0-r2
+    ADD     r6, r6, #-3
     STR     r0, r6, #0
     STR     r1, r6, #1
+    STR     r2, r6, #2
     ; ensure we only write lower byte to console
     LD      r1, BYTE_MASK
     AND     r0, r0, r1
@@ -106,11 +113,16 @@ OUT_WAIT:
     ; ready bit is MSB so we loop until result is negative
     BRzp    OUT_WAIT
     STI     r0, CON_DATA
+    ; clear console ready bit
+    LD      r2, MSB_MASK
+    AND     r1, r1, r2
+    STI     r1, CON_STATUS
     ; pop registers and return
     LDR     r0, r6, #0
     LDR     r1, r6, #1
-    ADD     r6, r6, #2
-    RTI
+    LDR     r2, r6, #2
+    ADD     r6, r6, #3
+    RET
 
 ; -----------------------------------------------------------------------------
 ; PUTS
@@ -120,19 +132,22 @@ OUT_WAIT:
 ; occurrence of x0000 in a memory location.
 ; -----------------------------------------------------------------------------
 TRAP_PUTS:
-    ; push r0-r3
-    ADD     r6, r6, #-4
+    ; push r0-r4
+    ADD     r6, r6, #-5
     STR     r0, r6, #0
     STR     r1, r6, #1
     STR     r2, r6, #2
     STR     r3, r6, #3
+    STR     r4, r4, #4
 
     ; r2 will mask ASCII characters
     LD      r2, BYTE_MASK
+    ; r4 will be used to clear the console ready bit
+    LD      r4, MSB_MASK
 PUTS_STRING_LOOP:
     ; load next character into r1
     LDR     r1, r0, #0
-    BRnp    PUTS_BREAK  ; break loop if we hit x0000
+    BRz     PUTS_BREAK  ; break loop if we hit x0000
     ADD     r0, r0, #1  ; advance to next character
     AND     r1, r1, r2  ; mask character
     ; wait for console to be ready
@@ -141,6 +156,9 @@ PUTS_CONSOLE_LOOP:
     BRzp    PUTS_CONSOLE_LOOP
     ; write character
     STI     r1, CON_DATA
+    ; clear console ready bit
+    AND     r3, r3, r4
+    STI     r3, CON_STATUS
     BR      PUTS_STRING_LOOP
 PUTS_BREAK:
     ; pop registers and return
@@ -148,8 +166,9 @@ PUTS_BREAK:
     LDR     r1, r6, #1
     LDR     r2, r6, #2
     LDR     r3, r6, #3
-    ADD     r6, r6, #4
-    RTI
+    LDR     r4, r6, #4
+    ADD     r6, r6, #5
+    RET
 
 ; ---------------------------------------------------------------------------
 ; IN
@@ -158,18 +177,25 @@ PUTS_BREAK:
 ; copied into R0. The high eight bits of R0 are cleared.
 ; ---------------------------------------------------------------------------
 TRAP_IN:
-    ; push r1
-    ADD     r6, r6, #-1
+    ; push r1-r2
+    ADD     r6, r6, #-2
     STR     r1, r6, #0
+    STR     r2, r6, #1
 
     ; print the prompt
     LEA     r0, IN_PROMPT
     PUTS    ; I call this one exceptionception
 
+    ; r2 will be used to clear ready bits
+    LD      r2, MSB_MASK
+
     ; wait for character
 IN_KBD_LOOP:
     LDI     r1, KBD_STATUS
     BRzp    IN_KBD_LOOP
+    ; clear keyboard ready bit
+    AND     r1, r1, r2
+    STI     r1, KBD_STATUS
 
     ; copy the character and clear upper 8 bits
     LDI     r0, KBD_DATA
@@ -181,11 +207,15 @@ IN_CON_LOOP:
     LDI     r1, CON_STATUS
     BRzp    IN_CON_LOOP
     STI     r0, CON_DATA
+    ; clear console ready bit
+    AND     r1, r1, r2
+    STI     r1, CON_STATUS
 
-    ; pop r1 and return
+    ; pop r1-r2 and return
     LDR     r1, r6, #0
-    ADD     r6, r6, #1
-    RTI
+    LDR     r2, r6, #1
+    ADD     r6, r6, #2
+    RET
 
 ; -----------------------------------------------------------------------------
 ; PUTSP
@@ -248,7 +278,7 @@ PUTSP_BREAK:
     LDR     r2, r6, #2
     LDR     r3, r6, #3
     ADD     r6, r6, #4
-    RTI
+    RET
 
 ; --------------------------------------------------
 ; HALT
@@ -264,17 +294,17 @@ TRAP_HALT:
     LEA     r0, HALT_MSG
     PUTS
     ; stop the clock, leave rest of MCR untouched
-    LD      r1, CLOCK_MASK
+    LD      r1, MSB_MASK
     LDI     r0, MCR
     AND     r0, r0, r1
-    STI     r0, CLOCK_MASK
+    STI     r0, MCR
     ; excecution stops here
 
     ; in case the clock is manually re-enabled, return as normal
     LDR     r0, r6, #0
     LDR     r1, r6, #1
     ADD     r6, r6, #2
-    RTI
+    RET
 
 ; ------------------------------------------------------
 ; Unimplemented Interrupts / Exceptions

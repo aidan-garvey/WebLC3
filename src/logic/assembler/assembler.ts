@@ -7,16 +7,18 @@
  * addresses as the keys and corresponding lines of source code as the
  * values, which is needed to display the code alongside the computer's
  * memory in the simulator user interface.
+ * 
+ * The assemble function is async.
  */
 
 import Parser from "./parser";
-import FakeUI from "./fakeUI";
 import ErrorBuilder from "./errorBuilder";
+import UI from "../../presentation/ui";
 
 export default class Assembler
 {
     // all valid opcodes, including trap aliases
-    static opCodes = new Set([
+    private static opCodes = new Set([
         "add", "and", "br", "brn", "brz", "brp",
         "brnz", "brnp", "brzp", "brnzp", "jmp", "jsr",
         "jsrr", "ld", "ldi", "ldr", "lea", "not",
@@ -25,14 +27,14 @@ export default class Assembler
     ]);
 
     // all valid assembler directives
-    static directives = new Set([
+    private static directives = new Set([
         ".orig", ".end", ".fill", ".blkw", ".stringz"
     ]);
 
     // All instructions and directives mapped to the number of operands
     // they take. The only thing not mapped is .blkw, which can accept
     // 1 or 2 operands (handled in this.validOperandCount())
-    static operandCounts = new Map([
+    private static operandCounts = new Map([
         ["add", 3], ["and", 3], ["br", 1], ["brn", 1], ["brz", 1], ["brp", 1],
         ["brnz", 1], ["brnp", 1], ["brzp", 1], ["brnzp", 1], ["jmp", 1], ["jsr", 1],
         ["jsrr", 1], ["ld", 2], ["ldi", 2], ["ldr", 3], ["lea", 2], ["not", 2],
@@ -41,26 +43,11 @@ export default class Assembler
         [".orig", 1], [".end", 0], [".fill", 1], [".stringz", 1]
     ]);
 
-    // assembler errors which may be output to the console
-    static errors = {
+    // Errors where assembly cannot begin for given file
+    private static errors = {
         INFILE: "Source code is empty",
-        FIRSTLINE: "The first line of code must be a .ORIG directive",
-        IMMEDIATE: "Invalid immediate value",
-        MULTORIG: "Multiple .ORIG directives used",
-        // OPERANDS: "Incorrect number of operands",
-        INVSYMBOL: "Unreconginzed opcode/directive or invalid label",
-        BADQUOTES: "String literal has invalid quotes",
-        EMPTYSTRING: "String literals cannot be empty",
-        BADREG: "Invalid register",
-        BADMNEMONIC: "Invalid instruction",
-        IMMBOUNDS: "Immediate value is out of bounds for the instruction",
-        BADOPRND: "Invalid operand",
-        BADLABEL: "Unknown label",
-        LBLBOUNDS: "Distance to label is out of range",
-        BADMEMORY: "Value written to memory does not fit in 16 bits"
+        FIRSTLINE: "The first line of code must be a .ORIG directive"
     };
-
-    static hasError = false;
 
     /**
      * Assemble the given source code.
@@ -72,18 +59,22 @@ export default class Assembler
      * Uint16Array and a Map of memory addresses mapped to the source
      * code that was assembled and placed at that address.
      * @param {string} sourceCode 
-     * @returns {[Uint16Array, Map<number, string>] | null}
+     * @returns {Promise<[Uint16Array, Map<number, string>] | null>}
      */
-    static assemble(sourceCode: string) : [Uint16Array, Map<number, string>] | null
+    public static async assemble(sourceCode: string) : Promise<[Uint16Array, Map<number, string>] | null>
     {
-        this.hasError = false;
+        let hasError = false;
 
         const srcLines = sourceCode.split(/[\n\r]+/);
         if (srcLines.length == 0)
         {
-            FakeUI.print(this.errors.INFILE);
+            UI.appendConsole(this.errors.INFILE + "\n");
             return null;
         }
+        // object which will generate error messages
+        const errorBuilder = new ErrorBuilder(srcLines);
+        // helps parse parts of the source code
+        const parser = new Parser(errorBuilder);
 
         // stores the resulting machine code / binary data,
         // each entry corresponds to the address given by the .ORIG
@@ -98,6 +89,10 @@ export default class Assembler
         const toFix: Map<string[], number> = new Map();
         // maps memory locations where code is stored to the source code
         const addrToCode: Map<number, string> = new Map();
+        // maps memory locations to line numbers so we can print line numbers
+        // if an error occurs while fixing labels
+        const addrToLineNum: Map<number, number> = new Map();
+
         let startOffset;
         let lineNum = 0;
         // keeps track of our spot in the memory array (not the final address)
@@ -109,20 +104,20 @@ export default class Assembler
         {
             currLine = Parser.trimLine(srcLines[++lineNum]);
         }
-        if (!currLine.startsWith(".orig"))
+        if (!currLine.toLowerCase().startsWith(".orig"))
         {
-            FakeUI.print(this.errors.FIRSTLINE);
+            UI.appendConsole(this.errors.FIRSTLINE + "\n");
             return null;
         }
         else
         {
-            const tokens = currLine.split(/\s+/);
+            const tokens = Parser.tokenizeLine(currLine);
             if (!this.validOperandCount(tokens))
             {
-                FakeUI.print(ErrorBuilder.operandError(tokens));
+                UI.appendConsole(errorBuilder.operandCount(lineNum, tokens) + "\n");
                 return null;
             }
-            const addr = Parser.parseImmediate(tokens[1], false);
+            const addr = parser.parseImmediate(tokens[1], false, lineNum);
             if (!isNaN(addr))
             {
                 startOffset = addr;
@@ -141,6 +136,8 @@ export default class Assembler
             currLine = Parser.trimLine(srcLines[lineNum]);
             if (currLine)
             {
+                addrToLineNum.set(pc, lineNum);
+
                 const tokens = Parser.tokenizeLine(currLine);
                 // check for label as first token
                 if (tokens[0][0] != '.' && !this.opCodes.has(tokens[0]))
@@ -158,14 +155,18 @@ export default class Assembler
                 {
                     if (!this.validOperandCount(tokens))
                     {
-                        FakeUI.print(ErrorBuilder.operandError(tokens));
-                        this.hasError = true;
+                        UI.appendConsole(errorBuilder.operandCount(lineNum, tokens) + "\n");
+                        hasError = true;
                         continue;
                     }
-                    const pcInc = Parser.parseDirective(tokens, pc, memory, toFix);
+                    const pcInc = parser.parseDirective(lineNum, tokens, pc, memory, toFix);
                     if (pcInc < 0)
                     {
                         atEnd = true;
+                    }
+                    else if (pcInc == 0)
+                    {
+                        hasError = true;
                     }
                     else
                     {
@@ -177,11 +178,11 @@ export default class Assembler
                 {
                     if (!this.validOperandCount(tokens))
                     {
-                        FakeUI.print(ErrorBuilder.operandError(tokens));
-                        this.hasError = true;
+                        UI.appendConsole(errorBuilder.operandCount(lineNum, tokens) + "\n");
+                        hasError = true;
                         continue;
                     }
-                    const word = Parser.parseCode(tokens, pc, labels, toFix);
+                    const word = parser.parseCode(lineNum, tokens, pc, labels, toFix);
                     if (!isNaN(word))
                     {
                         memory[pc] = word;
@@ -195,8 +196,8 @@ export default class Assembler
                 }
                 else
                 {
-                    FakeUI.print(this.errors.BADMNEMONIC);
-                    this.hasError = true;
+                    UI.appendConsole(errorBuilder.unknownMnemonic(lineNum, tokens[0]) + "\n");
+                    hasError = true;
                 }
             } // end if 
         } // end white
@@ -206,26 +207,36 @@ export default class Assembler
         {
             const tokens = entry[0];
             const loc = entry[1];
+            let line = addrToLineNum.get(loc);
+            if (typeof(line) === "undefined")
+            {
+                UI.appendConsole(errorBuilder.noLineNumForAddr(loc) + "\n");
+                lineNum = -1;
+            }
+            else
+            {
+                lineNum = line;
+            }
 
             // .fill and .blkw use absolute addresses, not offsets
             if (tokens[0] == ".fill")
             {
-                if (labels.has(tokens[1]))
+                const labelVal = labels.get(tokens[1]);
+                if (typeof(labelVal) === "undefined")
                 {
-                    // @ts-ignore
-                    memory[loc] = labels.get(tokens[1]) + startOffset;
+                    hasError = true;
+                    UI.appendConsole(errorBuilder.badLabel(lineNum, tokens[1]) + "\n");
                 }
                 else
                 {
-                    this.hasError = true;
-                    FakeUI.print(this.errors.BADLABEL + ": " + tokens[1]);
+                    memory[loc] = labelVal;
                 }
             }
             else if (tokens[0] == ".blkw")
             {
                 if (labels.has(tokens[2]))
                 {
-                    const amt = Parser.parseImmediate(tokens[1], false);
+                    const amt = parser.parseImmediate(tokens[1], false, lineNum);
                     if (!isNaN(amt))
                     {
                         for (let i = 0; i < amt; i++)
@@ -236,24 +247,25 @@ export default class Assembler
                     }
                     else
                     {
-                        this.hasError = true;
-                        FakeUI.print(this.errors.BADLABEL + ": " + tokens[2]);
+                        hasError = true;
+                        UI.appendConsole(errorBuilder.badLabel(lineNum, tokens[2]) + "\n");
                     }
                 }
                 else
                 {
-                    this.hasError = true;
-                    FakeUI.print(this.errors.BADLABEL + ": " + tokens[2]);
+                    hasError = true;
+                    UI.appendConsole(errorBuilder.badLabel(lineNum, tokens[2]) + "\n");
                 }
             }
             else
             {
-                const offset = Parser.calcLabelOffset(
+                const offset = parser.calcLabelOffset(
                     tokens[tokens.length - 1],
                     loc,
                     labels,
-                    // @ts-ignore
-                    Parser.immBitCounts.get(tokens[0]) 
+                    //@ts-ignore
+                    Parser.getImmBitCount(tokens[0]),
+                    lineNum
                 );
                 if (!isNaN(offset))
                 {
@@ -261,8 +273,8 @@ export default class Assembler
                 }
                 else
                 {
-                    this.hasError = true;
-                    FakeUI.print(this.errors.BADLABEL);
+                    hasError = true;
+                    UI.appendConsole(errorBuilder.badLabel(lineNum, tokens[0]) + "\n");
                 }
             }
         }
@@ -274,9 +286,13 @@ export default class Assembler
         {
             if (memory[i] > 0xFFFF)
             {
-                FakeUI.print(this.errors.BADMEMORY + ": " + memory[i]);
-                this.hasError = true;
+                UI.appendConsole(errorBuilder.badMemory(i, memory[i]) + "\n");
+                hasError = true;
                 result[i + 1] = 0;
+            }
+            else if (isNaN(memory[i]))
+            {
+                UI.appendConsole(errorBuilder.nanMemory(i) + "\n");
             }
             else
             {
@@ -284,10 +300,13 @@ export default class Assembler
             }
         }
 
-        if (this.hasError)
+        if (hasError)
             return null;
         else
+        {
+            UI.printConsole("Assembly successful.\n")
             return [result, addrToCode];
+        }
     }
 
     /**
@@ -296,7 +315,7 @@ export default class Assembler
      * @param {string[]} tokens 
      * @returns {boolean}
      */
-    static validOperandCount(tokens: string[]) : boolean
+    public static validOperandCount(tokens: string[]) : boolean
     {
         if (tokens[0] == ".blkw")
         {
@@ -304,7 +323,16 @@ export default class Assembler
         }
         else
         {
-            return (tokens.length - 1) == this.operandCounts.get(tokens[0]);
+            const result = (tokens.length - 1) == this.operandCounts.get(tokens[0]);
+            return result;
         }
+    }
+
+    /**
+     * determine if string is a valid instruction or directive name
+     */
+    public static validMnemonic(symbol: string) : boolean
+    {
+        return this.opCodes.has(symbol) || this.directives.has(symbol);
     }
 }

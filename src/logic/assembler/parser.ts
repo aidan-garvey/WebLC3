@@ -6,14 +6,13 @@
  * parsing tokens as any type of operand.
  */
 
-import Assembler from "./assembler";
-import ErrorBuilder from "./errorBuilder";
-import FakeUI from "./fakeUI";
+import type ErrorBuilder from "./errorBuilder";
+import UI from "../../presentation/ui";
 
 export default class Parser
 {
     // instruction mnemonics mapped to opcodes
-    static opcodeVals = new Map([
+    private static opcodeVals = new Map([
         // instructions
         ["add", 0x1000], ["and", 0x5000], ["br", 0x0E00], ["brn", 0x0800],
         ["brz", 0x0400], ["brp", 0x0200], ["brnz", 0x0C00], ["brnp", 0x0A00],
@@ -27,14 +26,14 @@ export default class Parser
     ]);
 
     // instruction mnemonics mapped to their allowed length in bits of immediate operands
-    static immBitCounts = new Map([
+    private static immBitCounts = new Map([
         ["add", 5], ["and", 5], ["br", 9], ["brn", 9], ["brz", 9], ["brp", 9],
         ["brnz", 9], ["brnp", 9], ["brzp", 9], ["brnzp", 9], ["jsr", 11], ["ld", 9],
         ["ldi", 9], ["ldr", 6], ["lea", 9], ["st", 9], ["sti", 9], ["str", 6]
     ]);
 
     // valid escape codes mapped to ascii values
-    static escapes = new Map([
+    private static escapes = new Map([
         ['\\', '\\'.charCodeAt(0)],
         ['\'', '\''.charCodeAt(0)],
         ['\"', '\"'.charCodeAt(0)],
@@ -43,13 +42,26 @@ export default class Parser
         ['t', '\t'.charCodeAt(0)]
     ]);
  
+    private errorBuilder: ErrorBuilder;
+
+    public constructor(errorBuilder: ErrorBuilder)
+    {
+        this.errorBuilder = errorBuilder;
+    }
+
+    public static getImmBitCount(token: string)
+    : number | undefined
+    {
+        return this.immBitCounts.get(token);
+    }
+
     /**
      * Trim leading and trailing whitespace and remove any comments
      * from a line of source code, convert to lowercase.
      * @param {string} line 
      * @returns {string}
      */
-    static trimLine(line: string) : string
+    public static trimLine(line: string) : string
     {
         let res = line;
         const cmt = line.indexOf(';');
@@ -57,7 +69,7 @@ export default class Parser
         {
             res = line.substring(0, cmt);
         }
-        return res.trim().toLowerCase();
+        return res.trim();
     }
 
     /**
@@ -65,10 +77,15 @@ export default class Parser
      * If it is not a valid value, return NaN.
      * @param {string} token: the value to parse
      * @param {boolean} signed: is this immedate a signed value?
+     * @param {number} lineNum
      * @param {number} bits: length, in bits, that the value is allowed to be
      * @returns {number}
      */
-    static parseImmediate(token: string, signed: boolean, bits: number = 16) : number
+    public parseImmediate(
+        token: string, 
+        signed: boolean,
+        lineNum: number, 
+        bits: number = 16,) : number
     {
         let mask = 0;
         for (let i = 0; i < bits; i++)
@@ -118,15 +135,13 @@ export default class Parser
         // parseInt failed
         if (isNaN(result))
         {
-            FakeUI.print(Assembler.errors.IMMEDIATE + ": " + token);
-            Assembler.hasError = true;
+            UI.appendConsole(this.errorBuilder.immOperand(lineNum, token) + "\n");
             return NaN;
         }
         // value does not fit in allowed bits
         else if (result < min || result > max)
         {
-            FakeUI.print(Assembler.errors.IMMBOUNDS + ": " + token);
-            Assembler.hasError = true;
+            UI.appendConsole(this.errorBuilder.immBoundsBits(lineNum, bits, token) + "\n");
             return NaN;
         }
         else
@@ -140,20 +155,21 @@ export default class Parser
      * @param {string} literal 
      * @returns {number[]}
      */
-    static stringToCodes(literal: string) : number[]
+    private stringToCodes(literal: string, lineNum: number) : number[] | null
     {
-        const result = [];
+        const result: number[] = [];
         let quote = literal[0];
         if ((quote == '"' || quote == "'") && literal[literal.length - 1] == quote)
         {
             for (let i = 1; i < literal.length - 1; i++)
             {
                 // if there is an escape sequence
-                if (literal[i] === '\\' && i < literal.length - 2 && this.escapes.has(literal[i+1]))
+                if (literal[i] === '\\' && i < literal.length - 2 && Parser.escapes.has(literal[i+1]))
                 {
                     // we want to jump over the escaped character before the next iteration
                     ++i;
-                    result.push(this.escapes.get(literal[i]));
+                    // @ts-ignore
+                    result.push(Parser.escapes.get(literal[i]));
                 }
                 else
                 {
@@ -164,24 +180,23 @@ export default class Parser
         }
         else
         {
-            FakeUI.print(Assembler.errors.BADQUOTES);
-            Assembler.hasError = true;
+            UI.appendConsole(this.errorBuilder.badQuotes(lineNum, literal) + "\n");
+            return null;
         }
-        // @ts-ignore
         return result;
     }
 
     /**
      * Parse a register operand, return the register number
      * @param {string} regStr 
+     * @param {number} lineNum
      * @returns {number}
      */
-    static parseReg(regStr: string) : number
+    private parseReg(regStr: string, lineNum: number) : number
     {
         if (regStr[0] != 'r' && regStr[0] != 'R')
         {
-            FakeUI.print(Assembler.errors.BADREG);
-            Assembler.hasError = true;
+            UI.appendConsole(this.errorBuilder.badRegister(lineNum, regStr) + "\n");
             return NaN;
         }
         else
@@ -189,8 +204,7 @@ export default class Parser
             const regNum = parseInt(regStr.substring(1));
             if (isNaN(regNum) || regNum < 0 || regNum >= 8)
             {
-                FakeUI.print(Assembler.errors.BADREG);
-                Assembler.hasError = true;
+                UI.appendConsole(this.errorBuilder.badRegister(lineNum, regStr) + "\n");
                 return NaN;
             }
             else
@@ -213,9 +227,16 @@ export default class Parser
      * @param {number} pc 
      * @param {Map<string, number>} labels 
      * @param {number} bits 
+     * @param {number} lineNum
      * @returns {number}
      */
-    static calcLabelOffset(label: string, pc: number, labels: Map<string, number>, bits: number) : number
+    public calcLabelOffset(
+        label: string, 
+        pc: number, 
+        labels: Map<string, number>,
+        bits: number, 
+        lineNum: number)
+    : number
     {
         let mask = 0;
         for (let i = 0; i < bits; i++)
@@ -232,8 +253,7 @@ export default class Parser
             const min = -(1<<(bits-1));
             if (diff < min || diff > max)
             {
-                FakeUI.print(Assembler.errors.LBLBOUNDS);
-                Assembler.hasError = true;
+                UI.appendConsole(this.errorBuilder.labelBounds(lineNum, label, bits) + "\n");
                 return NaN;
             }
             else
@@ -243,18 +263,18 @@ export default class Parser
         }
         else
         {
-            FakeUI.print(Assembler.errors.BADLABEL);
-            Assembler.hasError = true;
+            UI.appendConsole(this.errorBuilder.badLabel(lineNum, label) + "\n");
             return NaN;
         }
     }
 
     /**
      * Divide a line of source code into an array of token strings.
+     * All source code, except string literals, are converted to lowercase.
      * @param {string} line 
      * @returns {string[]}
      */
-    static tokenizeLine(line: string) : string[]
+    public static tokenizeLine(line: string) : string[]
     {
         // if the line contains a string literal, split it off first
         const firstQuote = line.search(/['"]/);
@@ -264,6 +284,7 @@ export default class Parser
             stringOperand = line.slice(firstQuote);
             line = line.slice(0, firstQuote);
         }
+        line = line.toLowerCase();
 
         /**
          * split on colons and commas
@@ -298,6 +319,7 @@ export default class Parser
 
     /**
      * Convert a line of source code into machine code
+     * @param {number} lineNum
      * @param {string[]} tokens 
      * @param {number} pc 
      * @param {Map<string, number>} labels 
@@ -308,32 +330,32 @@ export default class Parser
     // instruction (given by pc); the known labels in the program; and
     // the map containing labels which have yet to be defined, return
     // the resulting machine code for that instruction. 
-    static parseCode(tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
+    public parseCode(lineNum: number, tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
     {
         if (tokens[0].startsWith("br"))
-            return this.asmBrJsr(tokens, pc, labels, toFix);
+            return this.asmBrJsr(lineNum, tokens, pc, labels, toFix);
         switch (tokens[0])
         {
             case "add":
             case "and":
             case "not":
-                return this.asmAluOp(tokens);
+                return this.asmAluOp(lineNum, tokens);
             case "jsr":
-                return this.asmBrJsr(tokens, pc, labels, toFix);
+                return this.asmBrJsr(lineNum, tokens, pc, labels, toFix);
             case "jmp":
             case "jsrr":
-                return this.asmRegJump(tokens);
+                return this.asmRegJump(lineNum, tokens);
             case "ld":
             case "ldi":
             case "lea":
             case "st":
             case "sti":
-                return this.asmPcLoadStore(tokens, pc, labels, toFix);
+                return this.asmPcLoadStore(lineNum, tokens, pc, labels, toFix);
             case "ldr":
             case "str":
-                return this.asmRegLoadStore(tokens);
+                return this.asmRegLoadStore(lineNum, tokens);
             case "trap":
-                return this.asmTrap(tokens[1]);
+                return this.asmTrap(lineNum, tokens[1]);
             case "getc":
             case "out":
             case "puts":
@@ -355,15 +377,15 @@ export default class Parser
      * @param {string[]} tokens
      * @returns {number}
      */
-    static asmAluOp(tokens: string[]) : number
+    private asmAluOp(lineNum: number, tokens: string[]) : number
     {
-        let res = this.opcodeVals.get(tokens[0]);
+        let res = Parser.opcodeVals.get(tokens[0]);
         // destination register
         // @ts-ignore
-        res |= this.parseReg(tokens[1]) << 9;
+        res |= this.parseReg(tokens[1], lineNum) << 9;
         // source reg 1
         // @ts-ignore
-        res |= this.parseReg(tokens[2]) << 6;
+        res |= this.parseReg(tokens[2], lineNum) << 6;
 
         // if doing NOT, we only need 2 registers
         if (tokens[0] != "not")
@@ -371,13 +393,13 @@ export default class Parser
             // try to treat last operand as a register
             let source2;
             if (tokens[3][0] == 'r' || tokens[3][0] == 'R')
-                source2 = this.parseReg(tokens[3]);
+                source2 = this.parseReg(tokens[3], lineNum);
             else
             {
                 // set immediate flag
                 // @ts-ignore
                 res |= 0b10_0000;
-                source2 = this.parseImmediate(tokens[3], true, this.immBitCounts.get(tokens[0]));
+                source2 = this.parseImmediate(tokens[3], true, lineNum, Parser.immBitCounts.get(tokens[0]));
             }
             
             if (!isNaN(source2))
@@ -397,20 +419,21 @@ export default class Parser
 
     /**
      * generate machine code for a branch or subroutine call (control flow with PC offset)
+     * @param {number} lineNum
      * @param {string[]} tokens 
      * @param {number} pc 
      * @param {Map<string, number>} labels 
      * @param {Map<string[], number>} toFix 
      * @returns {number}
      */
-    static asmBrJsr(tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
+    private asmBrJsr(lineNum: number, tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
     {
-        let res = this.opcodeVals.get(tokens[0]);
-        let bits = this.immBitCounts.get(tokens[0]);
+        let res = Parser.opcodeVals.get(tokens[0]);
+        let bits = Parser.immBitCounts.get(tokens[0]);
         if (labels.has(tokens[1]))
         {
             // @ts-ignore
-            return res | this.calcLabelOffset(tokens[1], pc, labels, bits);
+            return res | this.calcLabelOffset(tokens[1], pc, labels, bits, lineNum);
         }
         else
         {
@@ -422,33 +445,35 @@ export default class Parser
 
     /**
      * generate machine code for JMP or JSRR (control flow with a register)
+     * @param {number} lineNum
      * @param {string[]} tokens 
      * @returns {number}
      */
-    static asmRegJump(tokens: string[]) : number
+    private asmRegJump(lineNum: number, tokens: string[]) : number
     {
-        let res = this.opcodeVals.get(tokens[0]);
+        let res = Parser.opcodeVals.get(tokens[0]);
         // @ts-ignore
-        return (res | this.parseReg(tokens[1])) << 6;
+        return (res | this.parseReg(tokens[1], lineNum)) << 6;
     }
 
     /**
      * generate machine code for a load or store operation which uses a PC offset
+     * @param {lineNum}
      * @param {string[]} tokens 
      * @param {number} pc 
      * @param {Map<string, number>} labels 
      * @param {Map<string[], number>} toFix 
      * @returns {number}
      */
-    static asmPcLoadStore(tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
+    private asmPcLoadStore(lineNum: number, tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
     {
-        let res = this.opcodeVals.get(tokens[0]);
+        let res = Parser.opcodeVals.get(tokens[0]);
         // @ts-ignore
-        res |= this.parseReg(tokens[1]) << 9;
+        res |= this.parseReg(tokens[1], lineNum) << 9;
         if (labels.has(tokens[2]))
         {
             // @ts-ignore
-            return res | this.calcLabelOffset(tokens[2], pc, labels, this.immBitCounts.get(tokens[0]));
+            return res | this.calcLabelOffset(tokens[2], pc, labels, Parser.immBitCounts.get(tokens[0]), lineNum);
         }
         else
         {
@@ -460,17 +485,19 @@ export default class Parser
 
     /**
      * generate machine code for a load or store which uses a register + immediate offset
+     * @param {number} lineNum
      * @param {string[]} tokens 
      * @returns {number}
      */
-    static asmRegLoadStore(tokens: string[]) : number
+    private asmRegLoadStore(lineNum: number, tokens: string[]) : number
     {
-        let res = this.opcodeVals.get(tokens[0]);
+        let res = Parser.opcodeVals.get(tokens[0]);
         // @ts-ignore
-        res |= this.parseReg(tokens[1]) << 9;
+        res |= this.parseReg(tokens[1], lineNum) << 9;
         // @ts-ignore
-        res |= this.parseReg(tokens[2]) << 6;
-        let imm = this.parseImmediate(tokens[3], true, this.immBitCounts.get(tokens[0]));
+        res |= this.parseReg(tokens[2], lineNum) << 6;
+        // @ts-ignore
+        let imm = this.parseImmediate(tokens[3], true, lineNum, Parser.immBitCounts.get(tokens[0]));
         if (isNaN(imm))
             return NaN;
         else
@@ -480,12 +507,13 @@ export default class Parser
 
     /**
      * generate machine code for a trap instruction
+     * @param {number} lineNum
      * @param {string} code 
      * @returns {number}
      */
-    static asmTrap(code: string) : number
+    private asmTrap(lineNum: number, code: string) : number
     {
-        let immCode = this.parseImmediate(code, false, 8);
+        let immCode = this.parseImmediate(code, false, lineNum, 8);
         if (isNaN(immCode))
             return NaN;
         else
@@ -497,10 +525,10 @@ export default class Parser
      * @param {string} alias 
      * @returns {number}
      */
-    static asmTrapAlias(alias: string) : number
+    private asmTrapAlias(alias: string) : number
     {
         // @ts-ignore
-        return this.opcodeVals.get(alias);
+        return Parser.opcodeVals.get(alias);
     }
  
     /**
@@ -508,21 +536,28 @@ export default class Parser
      * directive, handle its effects and return the amount that
      * the program counter must be increased by after the operation.
      * If the directive is .end, return -1.
+     * If there is an error, return 0.
      * Assumes that the number of operands is valid.
+     * @param {number} lineNum
      * @param {string[]} tokens 
      * @param {number} pc 
      * @param {number[]} memory 
      * @returns {number}
      */
-    static parseDirective(tokens: string[], pc: number, memory: number[], toFix: Map<string[], number>) : number
+    public parseDirective(
+        lineNum: number,
+        tokens: string[], 
+        pc: number, 
+        memory: number[], 
+        toFix: Map<string[], number>) 
+    : number
     {
         let inc = 0;
         let val;
         switch (tokens[0])
         {
             case ".orig":
-                FakeUI.print(Assembler.errors.MULTORIG);
-                Assembler.hasError = true;
+                UI.appendConsole(this.errorBuilder.multiOrig(lineNum) + "\n");
                 break;
 
             case ".end":
@@ -533,7 +568,7 @@ export default class Parser
                 // if the first 1 or 2 characters indicate a numerical value
                 if (tokens[1].match(/^[#bBxX].+$/) != null)
                 {
-                    val = this.parseImmediate(tokens[1], false);
+                    val = this.parseImmediate(tokens[1], false, lineNum);
                     if (!isNaN(val))
                     {
                         memory[pc] = val;
@@ -549,13 +584,13 @@ export default class Parser
                 break;
 
             case ".blkw":
-                const amt = this.parseImmediate(tokens[1], false);
+                const amt = this.parseImmediate(tokens[1], false, lineNum);
                 val = 0;
                 if (tokens.length == 3)
                 {
                     if (tokens[2].match(/^[#bBxX].+$/) != null)
                     {
-                        val = this.parseImmediate(tokens[2], false);
+                        val = this.parseImmediate(tokens[2], false, lineNum);
                     }
                     else if (tokens[2].match(/^\D.*$/) != null)
                     {
@@ -574,8 +609,8 @@ export default class Parser
                 break;
 
             case ".stringz":
-                const codes = this.stringToCodes(tokens[1]);
-                if (codes != null && codes.length > 0)
+                const codes = this.stringToCodes(tokens[1], lineNum);
+                if (codes !== null && codes.length > 0)
                 {
                     for (let i = 0; i < codes.length; i++)
                     {
@@ -584,6 +619,10 @@ export default class Parser
                     // null-terminate the string
                     memory[pc++] = 0;
                     inc = codes.length + 1;
+                }
+                else if (codes !== null)
+                {
+                    UI.appendConsole(this.errorBuilder.emptyString(lineNum) + "\n");
                 }
                 break;
         }

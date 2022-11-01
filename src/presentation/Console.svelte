@@ -1,15 +1,13 @@
 <script>
+    import UI from "./ui";
+
     function clearConsole(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "console empty"
-        consoleInner.classList.add("empty")
+        UI.clearConsole()
     }
 </script>
 
 <div id="consoleCtr">
-    <div id="console-inner" class="empty">
-        console empty
-    </div>
+    <pre id="console-inner" class="empty">console empty</pre>
     <div id="clear-console" on:click={clearConsole}>
         <span class="material-symbols-outlined">delete_forever</span>
          CLEAR
@@ -30,6 +28,7 @@
         height: 70%;
         width: 85%;
         font-size: 12px;
+        white-space: pre-wrap;
     }
 
     #clear-console{

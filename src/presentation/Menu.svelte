@@ -1,6 +1,6 @@
 <script>
     import { onMount } from 'svelte';
-    import { openedFile, currentView } from './stores.js';
+    import { openedFile, currentView, reloadOverride } from './stores.js';
 
     let currView = "editor"
     currentView.subscribe(value => {
@@ -9,9 +9,6 @@
 
     function newClick(){
         if (confirm('Are you sure you want to start over?\n\nWARNING: This will clear the editor. Make sure to save your current progress first.')) {
-            let consoleInner = document.getElementById("console-inner")
-            consoleInner.innerText = "Started new file."
-            consoleInner.classList.remove("empty")
             let editor = globalThis.editor
             if(editor){
                 editor.setValue("")
@@ -32,10 +29,6 @@
             let extension = filename.split('.').pop();
             extension = extension.split('.').pop();
             if(extension == "asm"){
-                let consoleInner = document.getElementById("console-inner")
-                consoleInner.innerText = "Opened file " + filename + "."
-                consoleInner.classList.remove("empty")
-
                 const reader = new FileReader()
                 reader.readAsText(files[0]);
                 reader.onload = function() {
@@ -51,27 +44,19 @@
                 alert("Invalid file. WebLC3 only accepts .asm files.")
             }
         }
-
-        /*----------------------------------------------------------------
-			TODO: Dispatch asm or binary file content to assembler
-		-------------------------------------------------------------------*/
     }
 
     // Save file
-    onMount(() => {
-        let save = document.getElementById("save")
-        if(save){
-            save.addEventListener("click", function save(){
-                let editor = globalThis.editor
-                if(editor){
-                    let data = editor.getValue()
-                    let fileName = "untitled.asm"
-                    download(fileName, data)
-                }
-            })
-        }
+    function saveClick(){
+        let editor = globalThis.editor
+        if(editor)
+            download("untitled.asm",editor.getValue())
+    }
 
-        function download(fileName, data) {
+    let download = (fileName, data) => {}
+
+    onMount(() => {
+        download = (fileName, data) => {
             var a = document.createElement("a")
             document.body.appendChild(a)
             var blob = new Blob([data], { type: "plain/text" })
@@ -89,33 +74,24 @@
 	}
 
     function reloadClick(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "Reloaded .obj file."
-        consoleInner.classList.remove("empty")
-
-        /*----------------------------------------------------------------
-			TODO: Clear console, reflect new register and memory state
-		-------------------------------------------------------------------*/
+        if(globalThis.simulator){
+            globalThis.simulator.reloadProgram()
+            reloadOverride.set(true)
+        }
     }
 
     function reinitializeClick(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "Reinitialized machine."
-        consoleInner.classList.remove("empty")
-
-        /*----------------------------------------------------------------
-			TODO: Clear all register and memory values
-		-------------------------------------------------------------------*/
+        if(globalThis.simulator){
+            globalThis.simulator.resetMemory()
+            reloadOverride.set(true)
+        }
     }
 
     function randomizeClick(){
-        let consoleInner = document.getElementById("console-inner")
-        consoleInner.innerText = "Randomized register and memory values."
-        consoleInner.classList.remove("empty")
-
-        /*----------------------------------------------------------------
-			TODO: Fill register and memory rows with random values
-		-------------------------------------------------------------------*/
+        if(globalThis.simulator){
+            globalThis.simulator.randomizeMemory()
+            reloadOverride.set(true)
+        }
     }
 
 
@@ -132,7 +108,7 @@
             <span class="material-symbols-outlined">folder</span>
             <p>Open</p>
         </div>
-        <div id="save" class="menu-item">
+        <div id="save" class="menu-item" on:click={saveClick}>
             <span class="material-symbols-outlined">save</span>
             <p>Save</p>
         </div>

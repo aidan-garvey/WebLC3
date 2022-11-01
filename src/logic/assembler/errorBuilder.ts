@@ -1,21 +1,215 @@
 /**
  * errorBuilder.ts
  * 
- * Contains methods for generating more complex error messages.
+ * Given a copy of the source code being assembled, generates error messages
+ * with as much relevant info as possible.
  */
 
 import Assembler from "./assembler";
 
 export default class ErrorBuilder
 {
-    /**
-     * 
-     * @param {string[]} tokens 
-     * @returns {string}
+    private sourceCode: string[];
+
+    /** 
+     * Creates an ErrorBuilder given the source code, which must be separated
+     * individual lines.
+     * @param {string[]} sourceCode
      */
-    static operandError(tokens: string[]) : string
+    public constructor(sourceCode: string[])
     {
-        return "Incorrect number of operands: expected " + 
-            Assembler.operandCounts.get(tokens[0]) + ", found " + (tokens.length - 1);
+        this.sourceCode = sourceCode;
+    }
+
+    /**
+     * Return an error message with line number, an error-specific description
+     * of the problem, and the entire line of code.
+     * @param lineNum 
+     * @param description 
+     * @returns 
+     */
+    private formatMessage(lineNum: number, description: string): string
+    {
+        return lineNum + ": " + description + "\n" + this.sourceCode[lineNum];
+    }
+
+    /**
+     * Wrong number of operands for an instruction or assembler directive
+     * @param lineNum 
+     * @param tokens 
+     * @returns 
+     */
+    public operandCount(lineNum: number, tokens: string[]): string
+    {
+        let expected: string;
+        if (tokens[0] == ".blkw")
+        {
+            expected = "1 or 2";
+        }
+        else if (!Assembler.validMnemonic(tokens[0]))
+        {
+            return "Assembler error: attempted to throw operand count error for unknown instruction/directive " + tokens[0];
+        }
+        else
+        {
+            //@ts-ignore
+            expected = Assembler.operandCounts.get(tokens[0]);
+        }
+        return this.formatMessage(lineNum,
+            "Incorrect number of operands for " + tokens[0] + ": expected " +
+            expected + ", found " + (tokens.length-1));
+    }
+
+    /**
+     * Invalid instruction mnemonic / directive
+     * @param lineNum 
+     * @param mnemonic 
+     * @returns 
+     */
+    public unknownMnemonic(lineNum: number, mnemonic: string): string
+    {
+        return this.formatMessage(lineNum, "Invalid instruction: " + mnemonic);
+    }
+
+    /**
+     * Invalid immediate operand
+     * @param lineNum 
+     * @param operand 
+     * @returns 
+     */
+    public immOperand(lineNum: number, operand: string): string
+    {
+        return this.formatMessage(lineNum,
+            "Invalid immediate operand: " + operand);
+    }
+
+    /**
+     * Immediate operand does not fit in allowed number of bits for instruction
+     * (displays the name of the instruction in the description)
+     * @param lineNum 
+     * @param instruction 
+     * @param operand 
+     * @returns 
+     */
+    public immBounds(lineNum: number, instruction: string, operand: string): string
+    {
+        return this.formatMessage(lineNum,
+            "Immediate value is out of bounds for " + instruction + ": " + operand);
+    }
+
+    /**
+     * Immediate operand does not fit in allowed number of bits for instruction
+     * (displays the length of the immediate operand field)
+     * @param lineNum 
+     * @param bits 
+     * @param operand 
+     * @returns 
+     */
+    public immBoundsBits(lineNum: number, bits: number, operand: string): string
+    {
+        return this.formatMessage(lineNum,
+            "Immediate value does not fit in the required " +
+            bits + " bits: " + operand);
+    }
+
+    /**
+     * Undefined label
+     * @param lineNum 
+     * @param label 
+     * @returns 
+     */
+    public badLabel(lineNum: number, label: string): string
+    {
+        return this.formatMessage(lineNum, "Unknown label: " + label);
+    }
+
+    /**
+     * Internal error: assembled word of machine code does not fit in 16 bits
+     * @param address 
+     * @param value 
+     * @returns 
+     */
+    public badMemory(address: number, value: number): string
+    {
+        return "Assembler error: value at address " + address + 
+            " is too large for one word: " + value;
+    }
+
+    /**
+     * Internal error: NaN was saved to memory
+     * @param address 
+     * @returns 
+     */
+    public nanMemory(address: number): string
+    {
+        return "Assembler error: value at address " + address + "is NaN";
+    }
+
+    /**
+     * String literal has mismatched quotes around it
+     * @param lineNum 
+     * @param literal 
+     * @returns 
+     */
+    public badQuotes(lineNum: number, literal: string): string
+    {
+        return this.formatMessage(lineNum, 
+            "String literal has invalid quotes: " + literal);
+    }
+
+    /**
+     * Register operand is invalid
+     * @param lineNum 
+     * @param operand 
+     * @returns 
+     */
+    public badRegister(lineNum: number, operand: string): string
+    {
+        return this.formatMessage(lineNum,
+            "Invalid register specifier: " + operand);
+    }
+
+    /**
+     * Difference between program counter and label is too large to fit in the
+     * instruction's PC-offset field
+     * @param lineNum 
+     * @param label 
+     * @param bits 
+     * @returns 
+     */
+    public labelBounds(lineNum: number, label: string, bits: number): string
+    {
+        return this.formatMessage(lineNum,
+            "Program counter offset for label " + label + " does not fit in " + bits +
+            "-bit label field for instruction");
+    }
+
+    /**
+     * Internal error: line number was not stored for a memory address
+     * @param addr 
+     * @returns 
+     */
+    public noLineNumForAddr(addr: number): string
+    {
+        return "Assembler error: no line number stored for memory address " + addr;
+    }
+
+    /**
+     * Empty string literal given for .stringz
+     * @param lineNum 
+     * @returns 
+     */
+    public emptyString(lineNum: number): string
+    {
+        return this.formatMessage(lineNum, "Empty string literal");
+    }
+
+    /**
+     * Multiple .orig directives used
+     */
+    public multiOrig(lineNum: number): string
+    {
+        return this.formatMessage(lineNum,
+            "Multiple .ORIG directives used, you must only use one .ORIG directive");
     }
 }

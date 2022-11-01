@@ -1,117 +1,167 @@
 <script>
+	import { onMount } from 'svelte';
     import Register from "./Register.svelte";
     import Memory from "./Memory.svelte";
     import Console from "./Console.svelte";
     import StepControls from "./StepControls.svelte";
     import JumpControls from "./JumpControls.svelte";
-	import { currentView } from './stores';
+	import { currentView, reloadOverride } from './stores';
 
 	function toEditor() {
 		currentView.set("editor")
 	}
 
-	// PC is on x0200 at startup
 	$: pc = 512
-	$: currPtr = 512
+	$: currPtr = -1
+	$: memMap = []
+	$: regMap = [
+        ["R0", "0x0", "0"],
+        ["R1", "0x0", "0"],
+        ["R2", "0x0", "0"],
+        ["R3", "0x0", "0"],
+        ["R4", "0x0", "0"],
+        ["R5", "0x0", "0"],
+        ["R6", "0x0", "0"],
+        ["R7", "0x0", "0"],
+        ["PSR", "0x2", "2", "CC: Z"],
+        ["PC", "0x2", "512"],
+        ["MCR", "0x0", "0"],
+    ]
 	let shortJumpOffset = 5
 	let longJumpOffset = 23
+	let numRegisters = 8
 
 	function newPC(event){
 		pc = event.detail.text
+		updateRegisters()
 	}
 
-	let breakpoints = []
-	let atBreakpoint = false
+	onMount(() => {
+		if(globalThis.simulator){
+			pc = globalThis.simulator.getPC()
+			if(globalThis.lastPtr)
+				currPtr = globalThis.lastPtr
+			else
+				currPtr = pc
+			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+			updateRegisters()
+		}
 
-	function updateBP(event){
-		breakpoints = event.detail.text
+		// Save last pointer On Destroy
+        return () => {
+            globalThis.lastPtr = currPtr
+        }
+	});
+
+	
+	// Detect memory reload override
+    reloadOverride.subscribe(value => {
+		let override = value
+        if(override){
+			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+			pc = globalThis.simulator.getPC()
+			updateRegisters()
+		}
+	});
+
+	// Update Register Map
+	function updateRegisters(){
+		if(globalThis.simulator){
+			let tempRegMap = []
+			for(let n=0; n<numRegisters; n++){
+				let regName = "R" + n
+				let regDec = globalThis.simulator.getRegister(n)
+				let regHex = "0x" + regDec.toString(16)
+				tempRegMap.push([regName, regHex, regDec.toString()])
+			}
+
+			let cc = "Z"
+			let psrDec = globalThis.simulator.getPSR()
+			let psrHex = "0x" + psrDec.toString(16)
+			tempRegMap.push(["PSR", psrHex, psrDec])
+
+			tempRegMap.push(["PC", "0x"+pc.toString(16), pc.toString(), "CC:"+cc])
+
+			tempRegMap.push(["MCR", "0x0", "0"])
+
+			regMap = tempRegMap
+		}
 	}
 
-	// Temporary
-	function stepDemo(){
-		pc += 1
-		let rows = 23
-		if(pc-currPtr == rows)
-			currPtr = pc
-
-		let currPC = document.querySelector(".ptr-selected")
-		if(currPC)
-			currPC.classList.remove("ptr-selected")
-		let newPCButton = document.getElementById("ptr-" + pc)
-		if(newPCButton)
-			newPCButton.classList.add("ptr-selected")
-	}
 
 	// Step controls
 	function step(event){
-		let control = event.detail.text
-		let consoleInner = document.getElementById("console-inner")
-        consoleInner.classList.remove("empty")
-
-		if(control == "in"){
-			consoleInner.innerText = "Stepping in."
-			stepDemo()
-		}
-		else if(control == "out"){
-			consoleInner.innerText = "Stepping out."
-		}
-		else if(control == "over"){
-			consoleInner.innerText = "Stepping over."
-		}
-		else if(control == "run"){
-			consoleInner.innerText = "Running simulator."
-
-			while(!atBreakpoint && pc < 65535){
-				stepDemo()
-				atBreakpoint = breakpoints.includes(pc)
+		if(globalThis.simulator){
+			let control = event.detail.text
+		
+			if(control == "in"){
+				globalThis.simulator.stepIn()
+				pc = globalThis.simulator.getPC()
+			}
+			else if(control == "out"){
+				globalThis.simulator.stepOut()
+				pc = globalThis.simulator.getPC()
+			}
+			else if(control == "over"){
+				globalThis.simulator.stepOver()
+				pc = globalThis.simulator.getPC()
+			}
+			else if(control == "run"){
+				globalThis.simulator.run()
+				pc = globalThis.simulator.getPC()
 			}
 
-			if (atBreakpoint)
-				consoleInner.innerText += "\nBreakpoint detected at x" + pc.toString(16) + "."
-			else
-				consoleInner.innerText += "\n\nYou reached the end of the world (wow, must be exhausting to run this far)\n\nCome back home to x3000."
-
-			atBreakpoint = false
+			// Continue tracking PC by going to a different page of memory range
+			if(Math.abs(pc-currPtr) >= longJumpOffset){
+				currPtr = pc
+				memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+			}
 		}
-
-		/*----------------------------------------------------
-			TODO: Get new register map and update registers
-		-----------------------------------------------------*/
-		/*----------------------------------------------------
-			TODO: Get console logs
-		-----------------------------------------------------*/
+		
+		updateRegisters()
 	}
 
 	// Jump controls
 	function jump(event){
-		let control = event.detail.text
-		let consoleInner = document.getElementById("console-inner")
-        consoleInner.classList.remove("empty")
+		if(globalThis.simulator){
+			let control = event.detail.text
 
-		if(control == "pc"){
-			consoleInner.innerText = "Jumped to PC."
-			currPtr = pc
-		}
-		else if(control == "ljb"){
-			consoleInner.innerText = "Long jumped backward."
-			currPtr = currPtr - longJumpOffset
-		}
-		else if(control == "jb"){
-			consoleInner.innerText = "Jumped backward."
-			currPtr = currPtr - shortJumpOffset
-		}
-		else if(control == "jf"){
-			consoleInner.innerText = "Jumped forward."
-			currPtr = currPtr + shortJumpOffset
-		}
-		else if(control == "ljf"){
-			consoleInner.innerText = "Long jumped forward."
-			currPtr = currPtr + longJumpOffset
-		}
-		else{
-			let hex = control.toString(16)
-			consoleInner.innerText = "Jumped to memory location at x" + hex + "."
-			currPtr = control
+			if(control == "pc"){
+				let start = globalThis.simulator.getPC()
+				let end = globalThis.simulator.getPC() + longJumpOffset
+				memMap = globalThis.simulator.getMemoryRange(start, end)
+				currPtr = pc
+			}
+			else if(control == "ljb"){
+				let start = currPtr - longJumpOffset
+				let end = currPtr
+				memMap = globalThis.simulator.getMemoryRange(start, end)
+				currPtr = currPtr - longJumpOffset
+			}
+			else if(control == "jb"){
+				let start = currPtr - shortJumpOffset
+				let end = currPtr - shortJumpOffset + longJumpOffset
+				memMap = globalThis.simulator.getMemoryRange(start, end)
+				currPtr = currPtr - shortJumpOffset
+			}
+			else if(control == "jf"){
+				let start = currPtr + shortJumpOffset
+				let end = currPtr + shortJumpOffset + longJumpOffset
+				memMap = globalThis.simulator.getMemoryRange(start, end)
+				currPtr = currPtr + shortJumpOffset
+			}
+			else if(control == "ljf"){
+				let start = currPtr + longJumpOffset
+				let end = currPtr + longJumpOffset*2
+				memMap = globalThis.simulator.getMemoryRange(start, end)
+				currPtr = currPtr + longJumpOffset
+			}
+			else{
+				let start = control
+				let end = control + longJumpOffset
+				memMap = globalThis.simulator.getMemoryRange(start, end)
+				currPtr = control
+			}
 		}
 	}
 	
@@ -120,13 +170,13 @@
 <div id="sim-view">
 	<section id="sv-left">
 		<div class="workSans componame">Registers</div>
-		<Register />
+		<Register map={regMap} on:updatePC={newPC} />
         <StepControls on:step={step} />
         <Console />
 	</section>
 	<section id="sv-right">
         <div class="workSans componame">Memory</div>
-		<Memory pc={pc} ptr={currPtr} on:updatePC={newPC} on:updateBP={updateBP} />
+		<Memory extPC={pc} ptr={currPtr} map={memMap} on:updatePC={newPC} />
         <JumpControls on:jump={jump} />
         <button class="switchBtn" on:click={toEditor}>Back to Editor</button>
 	</section>

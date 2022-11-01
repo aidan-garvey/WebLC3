@@ -86,6 +86,15 @@ a:hover {
 	align-items: center;
 }
 
+.editable{
+	cursor: pointer;
+}
+
+.memRow input, .regRow input{
+	width: 45%;
+	margin-left: 5%;
+}
+
 /*==============
     DARK MODE
   ==============*/
@@ -222,7 +231,6 @@ body.dark{
 }
 
 .dark .regRow:hover, .dark .memRow:hover{
-	cursor: pointer;
 	background-color: var(--d-select);
 }
 
@@ -372,7 +380,6 @@ body.light{
 }
 
 .light .regRow:hover, .light .memRow:hover{
-	cursor: pointer;
 	background-color: var(--l-select);
 }
 
