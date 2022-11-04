@@ -88,6 +88,11 @@ export default class Simulator
 
             // get Web Worker set up with a copy of the data
             this.simWorker = new Worker(Simulator.WORKER_PATH);
+            this.simWorker.onmessage = (event) => {
+                const msg = event.data;
+                if (msg.type === Messages.CYCLE_UPDATE)
+                    this.updateFromWorker(msg);
+            };
             this.simWorker.postMessage (
                 {
                     type: Messages.INIT,
@@ -110,8 +115,6 @@ export default class Simulator
 
             UI.appendConsole("Simulator ready.");
         })();
-
-        
     }
 
     private async getOSAsm() : Promise<[Uint16Array, Map<number, string>]>
@@ -128,6 +131,22 @@ export default class Simulator
         {
             return asmResult;
         }
+    }
+
+    private updateFromWorker(msg: any)
+    {
+        for (let [addr, val] of msg.memoryMap)
+        {
+            this.memory[addr] = val;
+        }
+        this.registers = msg.registers;
+        this.savedUSP = msg.savedUSP;
+        this.savedSSP = msg.savedSSP;
+        this.pc = msg.pc;
+        this.setPSR(msg.psr);
+        this.interruptSignal = msg.intSignal;
+        this.interruptPriority = msg.intPriority;
+        this.interruptVector = msg.intVector;
     }
 
     /**

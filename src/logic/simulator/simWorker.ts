@@ -62,6 +62,8 @@ class SimWorker
     private static osObjFile: Uint16Array;
     private static osDissassembly: Map<number, string>;
 
+    private static changedMemory: Set<number>;
+
     /**
      * Initialize message handlers
      */
@@ -143,7 +145,34 @@ class SimWorker
                     this.setPSR(msg.psr);
                     break;
             }
+        };
+    }
+
+    /**
+     * Send a message to the main thread after an instruction cycle to update
+     * its values.
+     */
+    private static updateMainThread()
+    {
+        // construct map from changedMemory
+        const memUpdates: Map<number, number> = new Map();
+        for (let addr of this.changedMemory)
+        {
+            memUpdates.set(addr, this.memory[addr]);
         }
+        // send the message
+        self.postMessage({
+            type: Messages.CYCLE_UPDATE,
+            memoryMap: memUpdates,
+            registers: this.registers,
+            savedUSP: this.savedUSP,
+            savedSSP: this.savedSSP,
+            pc: this.pc,
+            psr: this.getPSR(),
+            intSignal: this.interruptSignal,
+            intPriority: this.interruptPriority,
+            intVector: this.interruptVector
+        });
     }
 
     /*****************************
@@ -259,6 +288,7 @@ class SimWorker
     private static run()
     {
         this.enableClock();
+        this.haltFlag = false;
         let intOrEx = this.instructionCycle();
 
         while (!this.haltFlag && this.isClockEnabled() && !this.breakPoints.has(this.pc[0]))
@@ -273,6 +303,7 @@ class SimWorker
     private static stepIn()
     {
         this.enableClock();
+        this.haltFlag = false;
         let intOrEx = this.instructionCycle();
     }
 
@@ -285,6 +316,7 @@ class SimWorker
     {
         let currDepth = 1;
         this.enableClock();
+        this.haltFlag = false;
 
         // execute first instruction cycle, ignoring breakpoints
         if (Opcodes.isRETorRTI(this.pc[0]))
@@ -338,6 +370,7 @@ class SimWorker
         }
         // run 1 instruction, if interrupt or exception occurs we'll step out of it
         this.enableClock();
+        this.haltFlag = false;
         if (this.instructionCycle())
         {
             ++depth;
@@ -373,17 +406,22 @@ class SimWorker
         
         const instruction = this.memory[this.pc[0]++];
 
+        // this will track all the memory addresses that get updated
+        this.changedMemory = new Set();
+
         // (1) check for exception
         // (a) priviledge mode exception
         if (this.userMode && Opcodes.isRTI(instruction))
         {
             this.initException(Vectors.privilegeViolation());
+            this.updateMainThread();
             return true;
         }
         // (b) illegal opcode exception
         else if (Opcodes.isIllegal(instruction))
         {
             this.initException(Vectors.illegalOpcode());
+            this.updateMainThread();
             return true;
         }
 
@@ -449,16 +487,19 @@ class SimWorker
             const toPrint = this.memory[this.DDR] & 0x00FF;
             UI.appendConsole(String.fromCharCode(toPrint));
             this.memory[this.DSR] |= 0x8000;
+            this.changedMemory.add(this.DSR);
         }
 
         // (4) handle interrupt
         if (this.interruptSignal)
         {
             this.initInterrupt();
+            this.updateMainThread();
             return true;
         }
         else
         {
+            this.updateMainThread();
             return false;
         }
     }
@@ -485,6 +526,9 @@ class SimWorker
         this.memory[--ssp] = this.getPSR();
         this.memory[--ssp] = this.pc[0];
         this.savedSSP[0] = ssp;
+
+        this.changedMemory.add(ssp);
+        this.changedMemory.add(ssp + 1);
 
         // load R6 with supervisor stack if it is not the SSP already
         if (this.userMode)
@@ -516,6 +560,10 @@ class SimWorker
         this.memory[--ssp] = this.getPSR();
         this.memory[--ssp] = this.pc[0];
         this.savedSSP[0] = ssp;
+
+        this.changedMemory.add(ssp);
+        this.changedMemory.add(ssp + 1);
+        
 
         // load R6 with supervisor stack if it is not the SSP already
         if (this.userMode)
@@ -673,12 +721,16 @@ class SimWorker
     {
         const dest = (this.pc[0] + decodeImmediate(instruction, 9)) & 0xFFFF;
         this.memory[dest] = this.registers[decodeRegister(instruction, 0)];
+
+        this.changedMemory.add(dest);
     }
 
     private static execSti(instruction: number)
     {
         const dest = (this.pc[0] + decodeImmediate(instruction, 9)) & 0xFFFF;
         this.memory[this.memory[dest]] = this.registers[decodeRegister(instruction, 0)];
+    
+        this.changedMemory.add(this.memory[dest]);
     }
 
     private static execStr(instruction: number)
@@ -687,6 +739,8 @@ class SimWorker
         const srcReg = decodeRegister(instruction, 0);
         const dest = (this.registers[destReg] + decodeImmediate(instruction, 6)) & 0xFFFF;
         this.memory[dest] = this.registers[srcReg];
+
+        this.changedMemory.add(dest);
     }
 
     /**
