@@ -234,12 +234,14 @@ export default class Simulator
      */
     public async run()
     {
-        this.enableClock();
-        let intOrEx = this.instructionCycle();
-
-        while (this.isClockEnabled() && !this.breakPoints.has(this.pc[0]))
+        if (!this.workerBusy)
         {
-            let intOrEx = this.instructionCycle();
+            this.workerBusy = true;
+            this.simWorker.postMessage({type: Messages.RUN});
+        }
+        else
+        {
+            UI.appendConsole("Simulator is already running!");
         }
     }
 
@@ -248,8 +250,15 @@ export default class Simulator
      */
     public async stepIn()
     {
-        this.enableClock();
-        let intOrEx = this.instructionCycle();
+        if (!this.workerBusy)
+        {
+            this.workerBusy = true;
+            this.simWorker.postMessage({type: Messages.STEP_IN});
+        }
+        else
+        {
+            UI.appendConsole("Simulator is already running!");
+        }
     }
 
     /**
@@ -259,42 +268,14 @@ export default class Simulator
      */
     public async stepOut()
     {
-        let currDepth = 1;
-        this.enableClock();
-
-        // execute first instruction cycle, ignoring breakpoints
-        if (Opcodes.isRETorRTI(this.pc[0]))
+        if (!this.workerBusy)
         {
-            --currDepth;
+            this.workerBusy = true;
+            this.simWorker.postMessage({type: Messages.STEP_OUT});
         }
-        else if (Opcodes.isJSRorJSRR(this.pc[0]) || Opcodes.isTRAP(this.pc[0]))
+        else
         {
-            ++currDepth;
-        }
-        if (this.instructionCycle())
-        {
-            ++currDepth;
-            // if we have an option to toggle breaking on interrupts/exceptions, handle it here
-        }
-
-        // keep executing but don't ignore clock or breakpoints
-        while (currDepth > 0 && this.isClockEnabled() && !this.breakPoints.has(this.pc[0]))
-        {
-            if (Opcodes.isRETorRTI(this.pc[0]))
-            {
-                --currDepth;
-            }
-            else if (Opcodes.isJSRorJSRR(this.pc[0]) || Opcodes.isTRAP(this.pc[0]))
-            {
-                ++currDepth;
-            }
-
-            // execute instruction cycle, increase depth if we're handling an INT/exception
-            if (this.instructionCycle())
-            {
-                ++currDepth;
-                // if we have an option to toggle breaking on interrupts/exceptions, handle it here
-            }
+            UI.appendConsole("Simulator is already running!");
         }
     }
 
@@ -305,25 +286,14 @@ export default class Simulator
      */
     public async stepOver()
     {
-        let depth = 0;
-
-        // if we have a jsr/jsrr/trap, we'll need to step out of it
-        if (Opcodes.isJSRorJSRR(this.memory[this.pc[0]]) || Opcodes.isTRAP(this.memory[this.pc[0]]))
+        if (!this.workerBusy)
         {
-            ++depth;
+            this.workerBusy = true;
+            this.simWorker.postMessage({type: Messages.STEP_OVER});
         }
-        // run 1 instruction, if interrupt or exception occurs we'll step out of it
-        this.enableClock();
-        if (this.instructionCycle())
+        else
         {
-            ++depth;
-        }
-
-        // call stepOut() until we're back to depth of 0
-        while (depth > 0 && this.isClockEnabled() && !this.breakPoints.has(this.pc[0]))
-        {
-            this.stepOut();
-            --depth;
+            UI.appendConsole("Simulator is already running!");
         }
     }
 
