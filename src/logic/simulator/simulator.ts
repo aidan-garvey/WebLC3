@@ -13,7 +13,6 @@ import decodeImmediate from "./decodeImm";
 import Vectors from "./vectors";
 import Assembler from "../assembler/assembler";
 import UI from "../../presentation/ui"
-import WorkerThreads from "node:worker_threads";
 
 export default class Simulator
 {
@@ -27,6 +26,11 @@ export default class Simulator
     private static DDR = 0xFE06;
     // machine control register (bit 15 is clock-enable)
     private static MCR = 0xFFFE;
+
+    private static WORKER_PATH = "src/logic/simulator/simWorker.ts";
+
+    // 2^16 words * 2 bytes/word
+    private static MEM_SIZE = (1 << 16) * 2;
 
     // 2^16 words of memory
     private memory: Uint16Array = new Uint16Array(1<<16);
@@ -57,7 +61,7 @@ export default class Simulator
     private osObjFile: Uint16Array;
     private osDissassembly: Map<number, string>;
     // worker thread for running the simulator without freezing rest of app
-    private simWorker: WorkerThreads.Worker | null = null;
+    private simWorker: Worker;
     private workerBusy: boolean = false;
     
 
@@ -72,8 +76,11 @@ export default class Simulator
         this.userObjFile = objectFile;
         this.userDisassembly = sourceCode;
 
-        this.simWorker = new WorkerThreads.Worker("simWorker.ts");
-        this.workerBusy = true;
+        // 2^16 words, 2 bytes per word
+        const memBuff = new SharedArrayBuffer(Simulator.MEM_SIZE);
+        this.memory = new Uint16Array(memBuff)
+
+        this.simWorker = new Worker(Simulator.WORKER_PATH);
 
         // assemble operating system code, load into simulator, then load user's code
         (async ()=>{
@@ -86,6 +93,8 @@ export default class Simulator
 
             UI.appendConsole("Simulator ready.")
         })();
+
+        
     }
 
     private async getOSAsm() : Promise<[Uint16Array, Map<number, string>]>
