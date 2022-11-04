@@ -16,15 +16,6 @@ import Vectors from "./vectors";
 import decodeImmediate from "./decodeImm";
 import decodeRegister from "./decodeReg";
 
-/*
-const Messages = require("./simMessages");
-const Opcodes = require("./opcodes");
-const Vectors = require("./vectors");
-const decodeImmediate = require("./decodeImm");
-const decodeRegister = require("./decodeReg");
-const UI = require("../../presentation/ui");
-*/
-
 class SimWorker
 {
     // Memory address constants:
