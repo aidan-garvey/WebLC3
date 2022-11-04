@@ -55,11 +55,8 @@ class SimWorker
     private static breakPoints: Set<number>;
     // object file for program to run
     private static userObjFile: Uint16Array;
-    // memory addresses mapped to the code which generated the value there
-    private static userDisassembly: Map<number, string>;
     // object file for operating system code
     private static osObjFile: Uint16Array;
-    private static osDissassembly: Map<number, string>;
 
     private static changedMemory: Set<number>;
 
@@ -91,9 +88,7 @@ class SimWorker
                     this.interruptVector = msg.intVector;
                     this.breakPoints = msg.breakPoints;
                     this.userObjFile = msg.userObj;
-                    this.userDisassembly = msg.userDisasm;
                     this.osObjFile = msg.osObj;
-                    this.osDissassembly = msg.osDisasm;
                     break;
                 case Messages.RELOAD:
                     this.reloadProgram();

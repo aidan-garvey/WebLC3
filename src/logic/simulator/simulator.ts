@@ -109,9 +109,7 @@ export default class Simulator
                 intVector: this.interruptVector,
                 breakPoints: this.breakPoints,
                 userObj: objectFile,
-                userDisasm: sourceCode,
-                osObj: this.osObjFile,
-                osDisasm: this.osDissassembly
+                osObj: this.osObjFile
             });
 
             // get this class and the worker to reload the program
