@@ -233,6 +233,15 @@ export default class Simulator
         this.simWorker.postMessage({type: Messages.RANDOMIZE, memory: this.memory});
     }
 
+    public async halt()
+    {
+        if (this.workerBusy)
+        {
+            this.workerBusy = false;
+            this.simWorker.postMessage({type: Messages.HALT});
+        }
+    }
+
     /**
      * Set clock-enable and run until a breakpoint is encountered or the
      * clock-enable bit is cleared (including due to the invokation of the HALT
@@ -247,7 +256,7 @@ export default class Simulator
         }
         else
         {
-            UI.appendConsole("Simulator is already running!");
+            UI.appendConsole("Simulator is already running!\n");
         }
     }
 
@@ -263,7 +272,7 @@ export default class Simulator
         }
         else
         {
-            UI.appendConsole("Simulator is already running!");
+            UI.appendConsole("Simulator is already running!\n");
         }
     }
 
@@ -281,7 +290,7 @@ export default class Simulator
         }
         else
         {
-            UI.appendConsole("Simulator is already running!");
+            UI.appendConsole("Simulator is already running!\n");
         }
     }
 
@@ -299,7 +308,7 @@ export default class Simulator
         }
         else
         {
-            UI.appendConsole("Simulator is already running!");
+            UI.appendConsole("Simulator is already running!\n");
         }
     }
 
