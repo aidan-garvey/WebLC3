@@ -13,6 +13,7 @@ import decodeImmediate from "./decodeImm";
 import Vectors from "./vectors";
 import Assembler from "../assembler/assembler";
 import UI from "../../presentation/ui"
+import WorkerThreads from "node:worker_threads";
 
 export default class Simulator
 {
@@ -55,6 +56,9 @@ export default class Simulator
     // object file for operating system code
     private osObjFile: Uint16Array;
     private osDissassembly: Map<number, string>;
+    // worker thread for running the simulator without freezing rest of app
+    private simWorker: WorkerThreads.Worker | null = null;
+    private workerBusy: boolean = false;
     
 
     /**
@@ -68,17 +72,20 @@ export default class Simulator
         this.userObjFile = objectFile;
         this.userDisassembly = sourceCode;
 
-        ;(async ()=>{
+        this.simWorker = new WorkerThreads.Worker("simWorker.ts");
+        this.workerBusy = true;
+
+        // assemble operating system code, load into simulator, then load user's code
+        (async ()=>{
             const osAsmResult = await this.getOSAsm();
             this.osObjFile = osAsmResult[0];
             this.osDissassembly = osAsmResult[1];
-            // this.osObjFile = await this.getOSObj();
 
             this.loadBuiltInCode();
             this.reloadProgram();
 
-            UI.appendConsole("Simulator class created.")
-        })()
+            UI.appendConsole("Simulator ready.")
+        })();
     }
 
     private async getOSAsm() : Promise<[Uint16Array, Map<number, string>]>
@@ -94,37 +101,6 @@ export default class Simulator
         else
         {
             return asmResult;
-        }
-    }
-
-    /**
-     * Retrieve the object file for the simulator's operating system
-     */
-    private async getOSObj() : Promise<Uint16Array>
-    {
-        let res = await fetch('src/logic/simulator/os/lc3_os_obj.json');
-        const objFile = await res.text();
-
-        let objArray;
-        try
-        {
-            objArray = JSON.parse(objFile);
-        }
-        catch (error)
-        {
-            UI.appendConsole("Error parsing operating system JSON file: " + error);
-            return new Uint16Array([0]);
-        }
-
-        try
-        {
-            const result = new Uint16Array(objArray);
-            return result;
-        }
-        catch (error)
-        {
-            UI.appendConsole("Error converting parsed operating system JSON to Uint16Array: " + error);
-            return new Uint16Array([0]);
         }
     }
 
