@@ -6,8 +6,8 @@
  * messages to the simulator when its data is updated so they stay in sync.
  * 
  * A lot of code and data duplication exists between this class and the
- * simulator, but it lets both classes be independent and reduces the amount
- * of messages passed between them.
+ * simulator, but this greatly reduces the amount of data that would need to be
+ * passed between threads in messages.
  */
 
 import Messages from "./simMessages";
@@ -90,6 +90,15 @@ class SimWorker
                     this.osObjFile = msg.osObj;
                     this.osDissassembly = msg.osDisasm;
                     break;
+                case Messages.RELOAD:
+                    this.reloadProgram();
+                    break;
+                case Messages.RESET:
+                    this.resetMemory();
+                    break;
+                case Messages.RANDOMIZE:
+                    this.memory = msg.memory;
+                    break;
                 case Messages.HALT:
                     this.haltFlag = true;
                     break;
@@ -104,6 +113,34 @@ class SimWorker
                     break;
                 case Messages.STEP_OVER:
                     this.stepOver();
+                    break;
+                case Messages.KBD_INT:
+                    this.interruptSignal = msg.intSignal;
+                    this.interruptPriority = msg.intPriority;
+                    this.interruptVector = msg.intVector;
+                    this.memory[this.KBSR] = msg.kbsr;
+                    this.memory[this.KBDR] = msg.kbdr;
+                    break;
+                case Messages.SET_BREAK:
+                    this.breakPoints.add(msg.addr);
+                    break;
+                case Messages.CLR_BREAK:
+                    this.breakPoints.delete(msg.addr);
+                    break;
+                case Messages.CLR_ALL_BREAKS:
+                    this.breakPoints.clear();
+                    break;
+                case Messages.SET_MEM:
+                    this.memory[msg.addr] = msg.val;
+                    break;
+                case Messages.SET_REG:
+                    this.registers = msg.registers;
+                    break;
+                case Messages.SET_PC:
+                    this.pc = msg.pc;
+                    break;
+                case Messages.SET_PSR:
+                    this.setPSR(msg.psr);
                     break;
             }
         }
@@ -132,6 +169,24 @@ class SimWorker
         return result;
     }
 
+    /**
+     * Set Processor Status Register to defaults, clear interrupt signal, reset
+     * saved USP and SSP
+     */
+    private static restorePSR()
+    {
+        this.userMode = true;
+        this.priorityLevel = 0;
+        this.flagNegative = false;
+        this.flagZero = false;
+        this.flagPositive = false;
+        this.interruptSignal = false;
+        this.interruptPriority = 0;
+        this.interruptVector = 0;
+        this.savedSSP[0] = 0x3000;
+        this.savedUSP[0] = 0;
+    }
+
     private static enableClock()
     {
         this.memory[this.MCR] = 0x8000;
@@ -142,9 +197,11 @@ class SimWorker
         return (this.memory[this.MCR] & 0x8000) != 0;
     }
 
-    /***
-     ---- Simulator 
-     */
+    /**************************************
+     ---- Mass Memory Copies / Setters ----
+     These are faster to do independently
+     than via messages.
+     **************************************/
 
     /**
      * Load code into memory, set PC to start of program, restore Processor
@@ -175,23 +232,24 @@ class SimWorker
     }
 
     /**
-     * Set PC to start of program and set clock-enable, leave rest of memory
-     * and CPU as-is
+     * Set all of memory to zeroes except for operating system code
      */
-    private static restartProgram()
-    {
-        this.pc[0] = this.userObjFile[0];
-    }
-
     private static resetMemory()
     {
-
+        for (let i = 0; i < this.memory.length; i++)
+        {
+            this.memory[i] = 0;
+        }
+        for (let i = 0; i < 8; i++)
+        {
+            this.registers[i] = 0;
+        }
+        this.loadBuiltInCode();
     }
 
-    private static randomizeMemory()
-    {
-
-    }
+    /*****************************
+     ---- Simulator Operation ----
+     *****************************/
 
     /**
      * Set clock-enable and run until a breakpoint is encountered or the

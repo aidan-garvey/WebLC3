@@ -136,6 +136,8 @@ export default class Simulator
      */
     public reloadProgram()
     {
+        this.simWorker.postMessage({type: Messages.RELOAD});
+
         let loc = this.userObjFile[0];
         for (let i = 1; i < this.userObjFile.length; i++)
         {
@@ -165,6 +167,7 @@ export default class Simulator
     public restartProgram()
     {
         this.pc[0] = this.userObjFile[0];
+        this.simWorker.postMessage({type: Messages.SET_PC, pc: this.pc});
     }
 
     /**
@@ -172,6 +175,8 @@ export default class Simulator
      */
     public resetMemory()
     {
+        this.simWorker.postMessage({type: Messages.RESET});
+
         for (let i = 0; i < this.memory.length; i++)
         {
             this.memory[i] = 0;
@@ -197,6 +202,8 @@ export default class Simulator
             this.registers[i] = this.randWord();
         }
         this.loadBuiltInCode();
+
+        this.simWorker.postMessage({type: Messages.RANDOMIZE, memory: this.memory});
     }
 
     /**
@@ -318,6 +325,17 @@ export default class Simulator
             this.interruptPriority = 4;
             this.interruptVector = 0x80;
         }
+
+        this.simWorker.postMessage(
+            {
+                type: Messages.KBD_INT,
+                intSignal: this.interruptSignal,
+                intPriority: this.interruptPriority,
+                intVector: this.interruptVector,
+                kbsr: this.memory[Simulator.KBSR],
+                kndr: this.memory[Simulator.KBDR]
+            }
+        );
     }
 
     /**
@@ -327,6 +345,7 @@ export default class Simulator
     public setBreakpoint(address: number)
     {
         this.breakPoints.add(address);
+        this.simWorker.postMessage({type: Messages.SET_BREAK, addr: address});
     }
 
     /**
@@ -336,6 +355,7 @@ export default class Simulator
     public clearBreakpoint(address: number)
     {
         this.breakPoints.delete(address);
+        this.simWorker.postMessage({type: Messages.CLR_BREAK, addr: address});
     }
 
     /**
@@ -344,6 +364,7 @@ export default class Simulator
     public clearAllBreakpoints()
     {
         this.breakPoints.clear();
+        this.simWorker.postMessage({type: Messages.CLR_ALL_BREAKS});
     }
 
     /**
@@ -410,6 +431,9 @@ export default class Simulator
     public setMemory(address: number, value: number)
     {
         this.memory[address] = value;
+        this.simWorker.postMessage({
+            type: Messages.SET_MEM, addr: address, val: value
+        });
     }
 
     /**
@@ -430,6 +454,7 @@ export default class Simulator
     public setRegister(registerNumber: number, value: number)
     {
         this.registers[registerNumber] = value;
+        this.simWorker.postMessage({type: Messages.SET_REG, registers: this.registers});
     }
 
     /**
@@ -448,6 +473,7 @@ export default class Simulator
     public setPC(value: number)
     {
         this.pc[0] = value;
+        this.simWorker.postMessage({type: Messages.SET_PC, pc: this.pc});
     }
 
     /**
@@ -475,6 +501,8 @@ export default class Simulator
         this.flagNegative = (value & 4) != 0;
         this.priorityLevel = (value >> 8) & 7;
         this.userMode = (value & 0x8000) != 0;
+
+        this.simWorker.postMessage({type: Messages.SET_PSR, psr: this.getPSR()});
     }
 
     /**
