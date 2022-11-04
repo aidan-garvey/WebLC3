@@ -145,7 +145,7 @@ export default class Simulator
         this.savedUSP = msg.savedUSP;
         this.savedSSP = msg.savedSSP;
         this.pc = msg.pc;
-        this.setPSR(msg.psr);
+        this.setPSR(msg.psr, false);
         this.interruptSignal = msg.intSignal;
         this.interruptPriority = msg.intPriority;
         this.interruptVector = msg.intVector;
@@ -492,9 +492,11 @@ export default class Simulator
 
     /**
      * Set the value of the processor status register
-     * @param value 
+     * @param value the 16-bit word to use as the new PSR value
+     * @param updateWorker if true, update the worker's copy of the PSR. Should
+     *      only be false if we know the worker's PSR is up-to-date.
      */
-    public setPSR(value: number)
+    public setPSR(value: number, updateWorker: boolean = true)
     {
         this.flagPositive = (value & 1) != 0;
         this.flagZero = (value & 2) != 0;
@@ -502,7 +504,8 @@ export default class Simulator
         this.priorityLevel = (value >> 8) & 7;
         this.userMode = (value & 0x8000) != 0;
 
-        this.simWorker.postMessage({type: Messages.SET_PSR, psr: this.getPSR()});
+        if (updateWorker)
+            this.simWorker.postMessage({type: Messages.SET_PSR, psr: this.getPSR()});
     }
 
     /**

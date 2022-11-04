@@ -146,6 +146,10 @@ class SimWorker
         };
     }
 
+    /**
+     * Get the main thread to print something to the UI console.
+     * @param msg the string to append to the console
+     */
     private static sendConsoleMessage(msg: string)
     {
         self.postMessage({type: Messages.CONSOLE, message: msg});
