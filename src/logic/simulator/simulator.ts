@@ -7,10 +7,6 @@
  * All functions that run the simulator (and only those functions) are async.
  */
 
-import Opcodes from "./opcodes";
-import decodeRegister from "./decodeReg";
-import decodeImmediate from "./decodeImm";
-import Vectors from "./vectors";
 import Assembler from "../assembler/assembler";
 import UI from "../../presentation/ui"
 import Messages from "./simMessages"
