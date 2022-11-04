@@ -17,4 +17,5 @@ export default class Messages {
     static SET_PC = "set_pc";
     static SET_PSR = "set_psr";
     static CYCLE_UPDATE = "cycle_update";
+    static WORKER_DONE = "worker_done";
 };

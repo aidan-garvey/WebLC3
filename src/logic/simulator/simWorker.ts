@@ -295,6 +295,8 @@ class SimWorker
         {
             let intOrEx = this.instructionCycle();
         }
+
+        self.postMessage({type: Messages.WORKER_DONE});
     }
 
     /**
@@ -305,6 +307,8 @@ class SimWorker
         this.enableClock();
         this.haltFlag = false;
         let intOrEx = this.instructionCycle();
+
+        self.postMessage({type: Messages.WORKER_DONE});
     }
 
     /**
@@ -352,6 +356,8 @@ class SimWorker
                 // if we have an option to toggle breaking on interrupts/exceptions, handle it here
             }
         }
+
+        self.postMessage({type: Messages.WORKER_DONE});
     }
 
     /**
@@ -382,6 +388,8 @@ class SimWorker
             this.stepOut();
             --depth;
         }
+
+        self.postMessage({type: Messages.WORKER_DONE});
     }
 
     /**

@@ -88,30 +88,32 @@ export default class Simulator
 
             // get Web Worker set up with a copy of the data
             this.simWorker = new Worker(Simulator.WORKER_PATH);
+
             this.simWorker.onmessage = (event) => {
                 const msg = event.data;
                 if (msg.type === Messages.CYCLE_UPDATE)
                     this.updateFromWorker(msg);
+                else if (msg.type === Messages.WORKER_DONE)
+                    this.workerBusy = false;
             };
-            this.simWorker.postMessage (
-                {
-                    type: Messages.INIT,
-                    memory: this.memory,
-                    registers: this.registers,
-                    savedUSP: this.savedUSP,
-                    savedSSP: this.savedSSP,
-                    pc: this.pc,
-                    psr: this.getPSR(),
-                    intSignal: this.interruptSignal,
-                    intPriority: this.interruptPriority,
-                    intVector: this.interruptVector,
-                    breakPoints: this.breakPoints,
-                    userObj: objectFile,
-                    userDisasm: sourceCode,
-                    osObj: this.osObjFile,
-                    osDisasm: this.osDissassembly
-                }
-            );
+
+            this.simWorker.postMessage ({
+                type: Messages.INIT,
+                memory: this.memory,
+                registers: this.registers,
+                savedUSP: this.savedUSP,
+                savedSSP: this.savedSSP,
+                pc: this.pc,
+                psr: this.getPSR(),
+                intSignal: this.interruptSignal,
+                intPriority: this.interruptPriority,
+                intVector: this.interruptVector,
+                breakPoints: this.breakPoints,
+                userObj: objectFile,
+                userDisasm: sourceCode,
+                osObj: this.osObjFile,
+                osDisasm: this.osDissassembly
+            });
 
             UI.appendConsole("Simulator ready.");
         })();
