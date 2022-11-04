@@ -15,7 +15,15 @@ import Opcodes from "./opcodes";
 import Vectors from "./vectors";
 import decodeImmediate from "./decodeImm";
 import decodeRegister from "./decodeReg";
-import UI from "../../presentation/ui";
+
+/*
+const Messages = require("./simMessages");
+const Opcodes = require("./opcodes");
+const Vectors = require("./vectors");
+const decodeImmediate = require("./decodeImm");
+const decodeRegister = require("./decodeReg");
+const UI = require("../../presentation/ui");
+*/
 
 class SimWorker
 {
@@ -71,8 +79,12 @@ class SimWorker
     {
         this.haltFlag = false;
 
+        console.log("Hello, thread!");
+
         self.onmessage = (event) => {
             const msg = event.data;
+            console.log("Worker received new message:");
+            console.log(msg);
             switch (msg.type)
             {
                 // save a copy of the simulator's data
@@ -146,6 +158,11 @@ class SimWorker
                     break;
             }
         };
+    }
+
+    private static sendConsoleMessage(msg: string)
+    {
+        self.postMessage({type: Messages.CONSOLE, message: msg});
     }
 
     /**
@@ -493,7 +510,7 @@ class SimWorker
         {
             // print character, set ready bit
             const toPrint = this.memory[this.DDR] & 0x00FF;
-            UI.appendConsole(String.fromCharCode(toPrint));
+            this.sendConsoleMessage(String.fromCharCode(toPrint));
             this.memory[this.DSR] |= 0x8000;
             this.changedMemory.add(this.DSR);
         }

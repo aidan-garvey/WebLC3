@@ -84,17 +84,20 @@ export default class Simulator
             this.osDissassembly = osAsmResult[1];
 
             this.loadBuiltInCode();
-            this.reloadProgram();
 
             // get Web Worker set up with a copy of the data
-            this.simWorker = new Worker(Simulator.WORKER_PATH);
+            this.simWorker = new Worker(Simulator.WORKER_PATH, {type: "module"});
 
             this.simWorker.onmessage = (event) => {
                 const msg = event.data;
+                console.log("Main thread received new message:");
+                console.log(msg);
                 if (msg.type === Messages.CYCLE_UPDATE)
                     this.updateFromWorker(msg);
                 else if (msg.type === Messages.WORKER_DONE)
                     this.workerBusy = false;
+                else if (msg.type === Messages.CONSOLE)
+                    UI.appendConsole(msg.message);
             };
 
             this.simWorker.postMessage ({
@@ -114,6 +117,9 @@ export default class Simulator
                 osObj: this.osObjFile,
                 osDisasm: this.osDissassembly
             });
+
+            // get this class and the worker to reload the program
+            this.reloadProgram();
 
             UI.appendConsole("Simulator ready.");
         })();
