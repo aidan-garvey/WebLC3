@@ -13,6 +13,7 @@ import decodeImmediate from "./decodeImm";
 import Vectors from "./vectors";
 import Assembler from "../assembler/assembler";
 import UI from "../../presentation/ui"
+import Messages from "./simMessages"
 
 export default class Simulator
 {
@@ -76,12 +77,6 @@ export default class Simulator
         this.userObjFile = objectFile;
         this.userDisassembly = sourceCode;
 
-        // 2^16 words, 2 bytes per word
-        const memBuff = new SharedArrayBuffer(Simulator.MEM_SIZE);
-        this.memory = new Uint16Array(memBuff)
-
-        this.simWorker = new Worker(Simulator.WORKER_PATH);
-
         // assemble operating system code, load into simulator, then load user's code
         (async ()=>{
             const osAsmResult = await this.getOSAsm();
@@ -91,7 +86,29 @@ export default class Simulator
             this.loadBuiltInCode();
             this.reloadProgram();
 
-            UI.appendConsole("Simulator ready.")
+            // get Web Worker set up with a copy of the data
+            this.simWorker = new Worker(Simulator.WORKER_PATH);
+            this.simWorker.postMessage (
+                {
+                    type: Messages.INIT,
+                    memory: this.memory,
+                    registers: this.registers,
+                    savedUSP: this.savedUSP,
+                    savedSSP: this.savedSSP,
+                    pc: this.pc,
+                    psr: this.getPSR(),
+                    intSignal: this.interruptSignal,
+                    intPriority: this.interruptPriority,
+                    intVector: this.interruptVector,
+                    breakPoints: this.breakPoints,
+                    userObj: objectFile,
+                    userDisasm: sourceCode,
+                    osObj: this.osObjFile,
+                    osDisasm: this.osDissassembly
+                }
+            );
+
+            UI.appendConsole("Simulator ready.");
         })();
 
         
