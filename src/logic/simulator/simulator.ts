@@ -59,7 +59,10 @@ export default class Simulator
     private osDissassembly: Map<number, string>;
     // worker thread for running the simulator without freezing rest of app
     private simWorker: Worker;
+    // worker is executing code for the simulator
     private workerBusy: boolean = false;
+    // worker should be ignored
+    private ignoreWorker: boolean = true;
     
 
     /**
@@ -80,37 +83,10 @@ export default class Simulator
             this.osDissassembly = osAsmResult[1];
 
             this.loadBuiltInCode();
-
-            // get Web Worker set up with a copy of the data
-            this.simWorker = new Worker(Simulator.WORKER_PATH, {type: "module"});
-
-            this.simWorker.onmessage = (event) => {
-                const msg = event.data;
-                console.log("Main thread received new message:");
-                console.log(msg);
-                if (msg.type === Messages.CYCLE_UPDATE)
-                    this.updateFromWorker(msg);
-                else if (msg.type === Messages.WORKER_DONE)
-                    this.workerBusy = false;
-                else if (msg.type === Messages.CONSOLE)
-                    UI.appendConsole(msg.message);
-            };
-
-            this.simWorker.postMessage ({
-                type: Messages.INIT,
-                memory: this.memory,
-                registers: this.registers,
-                savedUSP: this.savedUSP,
-                savedSSP: this.savedSSP,
-                pc: this.pc,
-                psr: this.getPSR(),
-                intSignal: this.interruptSignal,
-                intPriority: this.interruptPriority,
-                intVector: this.interruptVector,
-                breakPoints: this.breakPoints,
-                userObj: objectFile,
-                osObj: this.osObjFile
-            });
+            
+            this.initWorker();
+            this.ignoreWorker = false;
+            this.workerBusy = false;
 
             // get this class and the worker to reload the program
             this.reloadProgram();
@@ -135,6 +111,10 @@ export default class Simulator
         }
     }
 
+    /**
+     * Handle a cycle update from the worker
+     * @param msg message passed from the worker
+     */
     private updateFromWorker(msg: any)
     {
         for (let [addr, val] of msg.memoryMap)
@@ -149,6 +129,45 @@ export default class Simulator
         this.interruptSignal = msg.intSignal;
         this.interruptPriority = msg.intPriority;
         this.interruptVector = msg.intVector;
+    }
+
+    /**
+     * Send a message to simWorker with the simulator's state
+     */
+    private initWorker()
+    {
+        this.simWorker = new Worker(Simulator.WORKER_PATH, {type: "module"});
+
+        this.simWorker.onmessage = (event) => {
+            const msg = event.data;
+            console.log("Main thread received new message:");
+            console.log(msg);
+
+            if (this.ignoreWorker)
+                console.log("Ignoring");
+            else if (msg.type === Messages.CYCLE_UPDATE)
+                this.updateFromWorker(msg);
+            else if (msg.type === Messages.WORKER_DONE)
+                this.workerBusy = false;
+            else if (msg.type === Messages.CONSOLE)
+                UI.appendConsole(msg.message);
+        };
+
+        this.simWorker.postMessage ({
+            type: Messages.INIT,
+            memory: this.memory,
+            registers: this.registers,
+            savedUSP: this.savedUSP,
+            savedSSP: this.savedSSP,
+            pc: this.pc,
+            psr: this.getPSR(),
+            intSignal: this.interruptSignal,
+            intPriority: this.interruptPriority,
+            intVector: this.interruptVector,
+            breakPoints: this.breakPoints,
+            userObj: this.userObjFile,
+            osObj: this.osObjFile
+        });
     }
 
     /**
@@ -231,8 +250,17 @@ export default class Simulator
     {
         if (this.workerBusy)
         {
+            console.log("Terminating worker");
+            this.ignoreWorker = true;
+            this.simWorker.terminate();
+            console.log("Recreating worker");
+            this.initWorker();
+            this.ignoreWorker = false;
             this.workerBusy = false;
-            this.simWorker.postMessage({type: Messages.HALT});
+        }
+        else
+        {
+            UI.appendConsole("Simulator is not running!\n")
         }
     }
 
