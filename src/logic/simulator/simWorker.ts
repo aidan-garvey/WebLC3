@@ -67,8 +67,6 @@ class SimWorker
     {
         this.haltFlag = false;
 
-        console.log("Hello, thread!");
-
         self.onmessage = (event) => {
             const msg = event.data;
             console.log("Worker received new message:");
