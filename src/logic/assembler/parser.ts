@@ -566,8 +566,8 @@ export default class Parser
 
             case ".fill":
                 // if first character is alphabetical or an underscore, treat operand as a label
-                // (unless the operand matches the pattern for a hex value)
-                if (tokens[1].match(/^[a-zA-Z_]/) != null && tokens[1].match(/^[xX][0-9a-fA-F]+$/) == null)
+                // (unless the operand matches the pattern for a binary or hex value)
+                if (tokens[1].match(/^[a-zA-Z_]/) != null && tokens[1].match(/^[xX][0-9a-fA-F]+$/) == null && tokens[1].match(/^[bB][0-1]+$/) == null)
                 {
                     inc = 1;
                     toFix.set(tokens, pc);
@@ -590,7 +590,7 @@ export default class Parser
                 if (tokens.length == 3)
                 {
                     // if first character is alphabetical or an underscore, treat operand as a label
-                    if (tokens[2].match(/^[a-zA-Z_]/) != null && tokens[2].match(/^[xX][0-9a-fA-F]+$/) == null)
+                    if (tokens[2].match(/^[a-zA-Z_]/) != null && tokens[2].match(/^[xX][0-9a-fA-F]+$/) == null && tokens[2].match(/^[bB][0-1]+$/) == null)
                     {
                         inc = 1;
                         toFix.set(tokens, pc);
