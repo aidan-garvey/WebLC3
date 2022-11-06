@@ -565,8 +565,15 @@ export default class Parser
                 break;
 
             case ".fill":
-                // if the first 1 or 2 characters indicate a numerical value
-                if (tokens[1].match(/^[#bBxX].+$/) != null)
+                // if first character is alphabetical or an underscore, treat operand as a label
+                // (unless the operand matches the pattern for a hex value)
+                if (tokens[1].match(/^[a-zA-Z_]/) != null && tokens[1].match(/^[xX][0-9a-fA-F]+$/) == null)
+                {
+                    inc = 1;
+                    toFix.set(tokens, pc);
+                }
+                // otherwise, attempt to use it as a number
+                else
                 {
                     val = this.parseImmediate(tokens[1], false, lineNum);
                     if (!isNaN(val))
@@ -575,12 +582,6 @@ export default class Parser
                         inc = 1;
                     }
                 }
-                // label being used as address, does not start with digit
-                else if (tokens[1].match(/^\D.*$/) != null)
-                {
-                    inc = 1;
-                    toFix.set(tokens, pc);
-                }
                 break;
 
             case ".blkw":
@@ -588,14 +589,15 @@ export default class Parser
                 val = 0;
                 if (tokens.length == 3)
                 {
-                    if (tokens[2].match(/^[#bBxX].+$/) != null)
-                    {
-                        val = this.parseImmediate(tokens[2], false, lineNum);
-                    }
-                    else if (tokens[2].match(/^\D.*$/) != null)
+                    // if first character is alphabetical or an underscore, treat operand as a label
+                    if (tokens[2].match(/^[a-zA-Z_]/) != null && tokens[2].match(/^[xX][0-9a-fA-F]+$/) == null)
                     {
                         inc = 1;
                         toFix.set(tokens, pc);
+                    }
+                    else
+                    {
+                        val = this.parseImmediate(tokens[2], false, lineNum);
                     }
                 }
                 if (!isNaN(val) && !isNaN(amt))

@@ -129,10 +129,10 @@ export default class ErrorBuilder
      * @param value 
      * @returns 
      */
-    public badMemory(address: number, value: number): string
+    public badMemory(lineNum: number, address: number, value: number): string
     {
-        return "Assembler error: value at address " + address + 
-            " is too large for one word: " + value;
+        return this.formatMessage(lineNum, "Assembler error: value at address " + address + 
+            " is too large for one word: " + value);
     }
 
     /**
@@ -140,9 +140,9 @@ export default class ErrorBuilder
      * @param address 
      * @returns 
      */
-    public nanMemory(address: number): string
+    public nanMemory(lineNum: number, address: number): string
     {
-        return "Assembler error: value at address " + address + "is NaN";
+        return this.formatMessage(lineNum, "Assembler error: value at address " + address + " is NaN");
     }
 
     /**
