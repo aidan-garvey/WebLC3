@@ -62,7 +62,7 @@
 							// numbers
 							[/#?[xX](@hexDigits)/, "hexNumber"],
 							[/#?[bB](@binDigits)/, "binNumber"],
-							[/#(@digits)/, "number"],
+							[/#?-?(@digits)/, "number"],
 
 							// strings
 							[/"([^"])*$/, "invalidString"],
