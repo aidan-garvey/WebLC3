@@ -30,7 +30,7 @@ export default class ErrorBuilder
      */
     private formatMessage(lineNum: number, description: string): string
     {
-        return lineNum + ": " + description + "\n" + this.sourceCode[lineNum];
+        return (lineNum + 1) + ": " + description + "\n" + this.sourceCode[lineNum];
     }
 
     /**
