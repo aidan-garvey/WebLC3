@@ -65,7 +65,7 @@ export default class Assembler
     {
         let hasError = false;
 
-        const srcLines = sourceCode.split(/[\n\r]+/);
+        const srcLines = sourceCode.split(/[\r]?[\n]/);
         if (srcLines.length == 0)
         {
             UI.appendConsole(this.errors.INFILE + "\n");
@@ -286,7 +286,11 @@ export default class Assembler
         for (let i = 0; i < memory.length; i++)
         {
             if (addrToLineNum.has(i))
-                lastLineNum = i;
+            {
+                // @ts-ignore
+                lastLineNum = addrToLineNum.get(i);
+            }
+                
 
             if (memory[i] > 0xFFFF)
             {
