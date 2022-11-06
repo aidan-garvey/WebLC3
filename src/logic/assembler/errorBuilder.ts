@@ -34,6 +34,14 @@ export default class ErrorBuilder
     }
 
     /**
+     * Convert an integer to a hexadecimal string representation
+     */
+    private toHex(n: number): string
+    {
+        return "x" + n.toString(16);
+    }
+
+    /**
      * Wrong number of operands for an instruction or assembler directive
      * @param lineNum 
      * @param tokens 
@@ -131,7 +139,8 @@ export default class ErrorBuilder
      */
     public badMemory(lineNum: number, address: number, value: number): string
     {
-        return this.formatMessage(lineNum, "Assembler error: value at address " + address + 
+        const hexAddr = this.toHex(address);
+        return this.formatMessage(lineNum, "Assembler error: value at address " + hexAddr + 
             " is too large for one word: " + value);
     }
 
@@ -142,7 +151,8 @@ export default class ErrorBuilder
      */
     public nanMemory(lineNum: number, address: number): string
     {
-        return this.formatMessage(lineNum, "Assembler error: value at address " + address + " is NaN");
+        const hexAddr = this.toHex(address);
+        return this.formatMessage(lineNum, "Assembler error: value at address " + hexAddr + " is NaN");
     }
 
     /**
@@ -191,7 +201,8 @@ export default class ErrorBuilder
      */
     public noLineNumForAddr(addr: number): string
     {
-        return "Assembler error: no line number stored for memory address " + addr;
+        const hexAddr = this.toHex(addr);
+        return "Assembler error: no line number stored for memory address " + hexAddr;
     }
 
     /**
