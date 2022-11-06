@@ -64,10 +64,10 @@ export default class Parser
     public static trimLine(line: string) : string
     {
         let res = line;
-        const cmt = line.indexOf(';');
-        if (cmt >= 0)
+        const comment = line.indexOf(';');
+        if (comment >= 0)
         {
-            res = line.substring(0, cmt);
+            res = line.substring(0, comment);
         }
         return res.trim();
     }
@@ -453,7 +453,7 @@ export default class Parser
     {
         let res = Parser.opcodeVals.get(tokens[0]);
         // @ts-ignore
-        return (res | this.parseReg(tokens[1], lineNum)) << 6;
+        return res | (this.parseReg(tokens[1], lineNum) << 6);
     }
 
     /**
