@@ -2,7 +2,11 @@
  * ui.js
  * 
  * Modify UI components
+ * - Console
+ * - SimulatorStatus
  */
+
+import { activeStoplight } from "./stores"
 
 
 function printConsole(msg){
@@ -48,8 +52,24 @@ function modifyConsole(msg, append=false, clear=false){
     }
 }
 
+function setSimulatorNotReady(){
+    activeStoplight.set("sim-status-not-ready")
+}
+
+function setSimulatorReady(){
+    activeStoplight.set("sim-status-ready")
+
+}
+
+function setSimulatorRunning(){
+    activeStoplight.set("sim-status-running")
+}
+
 export default {
     printConsole,
     appendConsole, 
-    clearConsole
+    clearConsole,
+    setSimulatorNotReady,
+    setSimulatorReady,
+    setSimulatorRunning
 }

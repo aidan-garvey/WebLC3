@@ -1,6 +1,7 @@
 <script>
     import Editor from "./Editor.svelte"
     import Console from "./Console.svelte"
+	import SimulatorStatus from "./SimulatorStatus.svelte"
 	import { onMount } from 'svelte'
 	import { openedFile, currentView } from './stores'
 	import Assembler from "../logic/assembler/assembler"
@@ -51,6 +52,7 @@
 		<Console />
 		{#if appLoadComplete}
 			<div id="ev-buttons">
+				<div id="ss-ctr"><SimulatorStatus /></div>
 				<button id="assemble" class="functionBtn" on:click={assembleClick}>
 					<span class="material-symbols-outlined">memory</span>
 					ASSEMBLE
@@ -104,6 +106,10 @@
 		margin-top: 2vh;
 	}
 
+	#ss-ctr{
+		margin-bottom: 3vh;
+	}
+
 	.functionBtn, .switchBtn{
 		width: 100%;
 		padding: 0.8em 0 0.8em 0;
@@ -134,7 +140,12 @@
 
 		#ev-buttons button{
 			width: 30%;
-			margin-left: 4%;
+			margin-left: 3%;
+		}
+
+		#ss-ctr{
+			margin: 4vh 5% 0 0;
+			transform: scale(1.1);
 		}
 	}
 
