@@ -10,8 +10,11 @@
 		currentView.set("simulator")
 	}
 
+	let appLoadComplete = false
 	onMount(() => { 
-		document.getElementById("filename").style.visibility = "visible" 
+		let filename = document.getElementById("filename")
+		filename.style.visibility = "visible"
+		appLoadComplete = true
 	});
 
 	// Manage filename
@@ -46,13 +49,15 @@
 	<section id="ev-right">
 		<div class="filler">filler</div>
 		<Console />
-		<div id="ev-buttons">
-			<button id="assemble" class="functionBtn" on:click={assembleClick}>
-				<span class="material-symbols-outlined">memory</span>
-				 ASSEMBLE
-			</button>
-			<button class="switchBtn" on:click={toSimulator}>Switch to Simulator</button>
-		</div>
+		{#if appLoadComplete}
+			<div id="ev-buttons">
+				<button id="assemble" class="functionBtn" on:click={assembleClick}>
+					<span class="material-symbols-outlined">memory</span>
+					ASSEMBLE
+				</button>
+				<button class="switchBtn" on:click={toSimulator}>Switch to Simulator</button>
+			</div>
+		{/if}
 	</section>
 </div>
 
@@ -69,12 +74,14 @@
 	#filename{
 		font-size: 15px;
 		width: 100%;
+		margin-bottom: 2vh;
 		text-align: center;
 		visibility: hidden;
 	}
 
 	.filler{
 		font-size: 15px;
+		margin-bottom: 2vh;
 		opacity: 0;
 	}
 
@@ -83,7 +90,6 @@
 		min-height: 100%;
 		width: 100%;
 		display: grid;
-		grid-row-gap: 2vh;
 	}
 
 	#ev-left{
@@ -92,6 +98,10 @@
 
 	#ev-right{
 		grid-template-rows: auto 1fr auto;
+	}
+
+	#ev-buttons{
+		margin-top: 2vh;
 	}
 
 	.functionBtn, .switchBtn{
@@ -109,7 +119,6 @@
 		#editor-view{
 			grid-template-columns: 100%;
 			grid-template-rows: 90vh 90vh;
-			grid-row-gap: 0;
 		}
 
 		#ev-right{

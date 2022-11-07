@@ -1,5 +1,11 @@
 <script>
     import UI from "./ui";
+    import { onMount } from "svelte"
+
+    let appLoadComplete = false
+    onMount(() => {
+        appLoadComplete = true
+	});
 
     function clearConsole(){
         UI.clearConsole()
@@ -7,11 +13,13 @@
 </script>
 
 <div id="consoleCtr">
-    <pre id="console-inner" class="empty">console empty</pre>
-    <div id="clear-console" on:click={clearConsole}>
-        <span class="material-symbols-outlined">delete_forever</span>
-         CLEAR
-    </div>
+    {#if appLoadComplete}
+        <pre id="console-inner" class="empty">console empty</pre>
+        <div id="clear-console" on:click={clearConsole}>
+            <span class="material-symbols-outlined">delete_forever</span>
+            CLEAR
+        </div>
+    {/if}
 </div>
 
 <style>

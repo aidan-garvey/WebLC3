@@ -1,14 +1,23 @@
 <script>
-    import Menu from "./Menu.svelte";
-    import ModeSwitch from "./ModeSwitch.svelte";
-    import Title from "./Title.svelte";
+    import Menu from "./Menu.svelte"
+    import ModeSwitch from "./ModeSwitch.svelte"
+    import Title from "./Title.svelte"
+    import { onMount } from "svelte"
+
+    let appLoadComplete = false
+    onMount(() => {
+        appLoadComplete = true
+	});
+
 </script>
 
 <div id="header">
     <div id="header-inner">
         <Title />
-        <Menu />
-        <ModeSwitch />
+        {#if appLoadComplete}
+            <Menu />
+            <ModeSwitch />
+        {/if}
     </div>
 </div>
 
