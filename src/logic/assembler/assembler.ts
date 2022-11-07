@@ -65,7 +65,7 @@ export default class Assembler
     {
         let hasError = false;
 
-        const srcLines = sourceCode.split(/[\n\r]+/);
+        const srcLines = sourceCode.split(/[\r]?[\n]/);
         if (srcLines.length == 0)
         {
             UI.appendConsole(this.errors.INFILE + "\n");
@@ -282,17 +282,25 @@ export default class Assembler
         // load resulting machine code into Uint16Array, return it
         const result = new Uint16Array(memory.length + 1);
         result[0] = startOffset;
+        let lastLineNum: number = 0;
         for (let i = 0; i < memory.length; i++)
         {
+            if (addrToLineNum.has(i))
+            {
+                // @ts-ignore
+                lastLineNum = addrToLineNum.get(i);
+            }
+                
+
             if (memory[i] > 0xFFFF)
             {
-                UI.appendConsole(errorBuilder.badMemory(i, memory[i]) + "\n");
+                UI.appendConsole(errorBuilder.badMemory(lastLineNum, i + startOffset, memory[i]) + "\n");
                 hasError = true;
                 result[i + 1] = 0;
             }
             else if (isNaN(memory[i]))
             {
-                UI.appendConsole(errorBuilder.nanMemory(i) + "\n");
+                UI.appendConsole(errorBuilder.nanMemory(lastLineNum, i + startOffset) + "\n");
             }
             else
             {

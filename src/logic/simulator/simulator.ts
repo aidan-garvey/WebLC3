@@ -7,12 +7,9 @@
  * All functions that run the simulator (and only those functions) are async.
  */
 
-import Opcodes from "./opcodes";
-import decodeRegister from "./decodeReg";
-import decodeImmediate from "./decodeImm";
-import Vectors from "./vectors";
 import Assembler from "../assembler/assembler";
 import UI from "../../presentation/ui"
+import Messages from "./simMessages"
 
 export default class Simulator
 {
@@ -26,6 +23,11 @@ export default class Simulator
     private static DDR = 0xFE06;
     // machine control register (bit 15 is clock-enable)
     private static MCR = 0xFFFE;
+
+    private static WORKER_PATH = "src/logic/simulator/simWorker.ts";
+
+    // 2^16 words * 2 bytes/word
+    private static MEM_SIZE = (1 << 16) * 2;
 
     // 2^16 words of memory
     private memory: Uint16Array = new Uint16Array(1<<16);
@@ -55,6 +57,12 @@ export default class Simulator
     // object file for operating system code
     private osObjFile: Uint16Array;
     private osDissassembly: Map<number, string>;
+    // worker thread for running the simulator without freezing rest of app
+    private simWorker: Worker;
+    // worker is executing code for the simulator
+    private workerBusy: boolean = false;
+    // worker should be ignored
+    private ignoreWorker: boolean = true;
     
 
     /**
@@ -68,17 +76,23 @@ export default class Simulator
         this.userObjFile = objectFile;
         this.userDisassembly = sourceCode;
 
-        ;(async ()=>{
+        // assemble operating system code, load into simulator, then load user's code
+        (async ()=>{
             const osAsmResult = await this.getOSAsm();
             this.osObjFile = osAsmResult[0];
             this.osDissassembly = osAsmResult[1];
-            // this.osObjFile = await this.getOSObj();
 
             this.loadBuiltInCode();
+            
+            this.initWorker();
+            this.ignoreWorker = false;
+            this.workerBusy = false;
+
+            // get this class and the worker to reload the program
             this.reloadProgram();
 
-            UI.appendConsole("Simulator class created.")
-        })()
+            UI.appendConsole("Simulator ready.");
+        })();
     }
 
     private async getOSAsm() : Promise<[Uint16Array, Map<number, string>]>
@@ -98,34 +112,62 @@ export default class Simulator
     }
 
     /**
-     * Retrieve the object file for the simulator's operating system
+     * Handle a cycle update from the worker
+     * @param msg message passed from the worker
      */
-    private async getOSObj() : Promise<Uint16Array>
+    private updateFromWorker(msg: any)
     {
-        let res = await fetch('src/logic/simulator/os/lc3_os_obj.json');
-        const objFile = await res.text();
+        for (let [addr, val] of msg.memoryMap)
+        {
+            this.memory[addr] = val;
+        }
+        this.registers = msg.registers;
+        this.savedUSP = msg.savedUSP;
+        this.savedSSP = msg.savedSSP;
+        this.pc = msg.pc;
+        this.setPSR(msg.psr, false);
+        this.interruptSignal = msg.intSignal;
+        this.interruptPriority = msg.intPriority;
+        this.interruptVector = msg.intVector;
+    }
 
-        let objArray;
-        try
-        {
-            objArray = JSON.parse(objFile);
-        }
-        catch (error)
-        {
-            UI.appendConsole("Error parsing operating system JSON file: " + error);
-            return new Uint16Array([0]);
-        }
+    /**
+     * Send a message to simWorker with the simulator's state
+     */
+    private initWorker()
+    {
+        this.simWorker = new Worker(Simulator.WORKER_PATH, {type: "module"});
 
-        try
-        {
-            const result = new Uint16Array(objArray);
-            return result;
-        }
-        catch (error)
-        {
-            UI.appendConsole("Error converting parsed operating system JSON to Uint16Array: " + error);
-            return new Uint16Array([0]);
-        }
+        this.simWorker.onmessage = (event) => {
+            const msg = event.data;
+            console.log("Main thread received new message:");
+            console.log(msg);
+
+            if (this.ignoreWorker)
+                console.log("Ignoring");
+            else if (msg.type === Messages.CYCLE_UPDATE)
+                this.updateFromWorker(msg);
+            else if (msg.type === Messages.WORKER_DONE)
+                this.workerBusy = false;
+            else if (msg.type === Messages.CONSOLE)
+                UI.appendConsole(msg.message);
+        };
+
+        this.simWorker.postMessage ({
+            type: Messages.INIT,
+            memory: this.memory,
+            registers: this.registers,
+            savedUSP: this.savedUSP,
+            savedSSP: this.savedSSP,
+            pc: this.pc,
+            psr: this.getPSR(),
+            intSignal: this.interruptSignal,
+            intPriority: this.interruptPriority,
+            intVector: this.interruptVector,
+            breakPoints: this.breakPoints,
+            userObj: this.userObjFile,
+            osObj: this.osObjFile
+        });
     }
 
     /**
@@ -134,6 +176,8 @@ export default class Simulator
      */
     public reloadProgram()
     {
+        this.simWorker.postMessage({type: Messages.RELOAD});
+
         let loc = this.userObjFile[0];
         for (let i = 1; i < this.userObjFile.length; i++)
         {
@@ -163,6 +207,7 @@ export default class Simulator
     public restartProgram()
     {
         this.pc[0] = this.userObjFile[0];
+        this.simWorker.postMessage({type: Messages.SET_PC, pc: this.pc});
     }
 
     /**
@@ -170,6 +215,8 @@ export default class Simulator
      */
     public resetMemory()
     {
+        this.simWorker.postMessage({type: Messages.RESET});
+
         for (let i = 0; i < this.memory.length; i++)
         {
             this.memory[i] = 0;
@@ -195,6 +242,26 @@ export default class Simulator
             this.registers[i] = this.randWord();
         }
         this.loadBuiltInCode();
+
+        this.simWorker.postMessage({type: Messages.RANDOMIZE, memory: this.memory});
+    }
+
+    public async halt()
+    {
+        if (this.workerBusy)
+        {
+            console.log("Terminating worker");
+            this.ignoreWorker = true;
+            this.simWorker.terminate();
+            console.log("Recreating worker");
+            this.initWorker();
+            this.ignoreWorker = false;
+            this.workerBusy = false;
+        }
+        else
+        {
+            UI.appendConsole("Simulator is not running!\n")
+        }
     }
 
     /**
@@ -204,12 +271,14 @@ export default class Simulator
      */
     public async run()
     {
-        this.enableClock();
-        let intOrEx = this.instructionCycle();
-
-        while (this.isClockEnabled() && !this.breakPoints.has(this.pc[0]))
+        if (!this.workerBusy)
         {
-            let intOrEx = this.instructionCycle();
+            this.workerBusy = true;
+            this.simWorker.postMessage({type: Messages.RUN});
+        }
+        else
+        {
+            UI.appendConsole("Simulator is already running!\n");
         }
     }
 
@@ -218,8 +287,15 @@ export default class Simulator
      */
     public async stepIn()
     {
-        this.enableClock();
-        let intOrEx = this.instructionCycle();
+        if (!this.workerBusy)
+        {
+            this.workerBusy = true;
+            this.simWorker.postMessage({type: Messages.STEP_IN});
+        }
+        else
+        {
+            UI.appendConsole("Simulator is already running!\n");
+        }
     }
 
     /**
@@ -229,42 +305,14 @@ export default class Simulator
      */
     public async stepOut()
     {
-        let currDepth = 1;
-        this.enableClock();
-
-        // execute first instruction cycle, ignoring breakpoints
-        if (Opcodes.isRETorRTI(this.pc[0]))
+        if (!this.workerBusy)
         {
-            --currDepth;
+            this.workerBusy = true;
+            this.simWorker.postMessage({type: Messages.STEP_OUT});
         }
-        else if (Opcodes.isJSRorJSRR(this.pc[0]) || Opcodes.isTRAP(this.pc[0]))
+        else
         {
-            ++currDepth;
-        }
-        if (this.instructionCycle())
-        {
-            ++currDepth;
-            // if we have an option to toggle breaking on interrupts/exceptions, handle it here
-        }
-
-        // keep executing but don't ignore clock or breakpoints
-        while (currDepth > 0 && this.isClockEnabled() && !this.breakPoints.has(this.pc[0]))
-        {
-            if (Opcodes.isRETorRTI(this.pc[0]))
-            {
-                --currDepth;
-            }
-            else if (Opcodes.isJSRorJSRR(this.pc[0]) || Opcodes.isTRAP(this.pc[0]))
-            {
-                ++currDepth;
-            }
-
-            // execute instruction cycle, increase depth if we're handling an INT/exception
-            if (this.instructionCycle())
-            {
-                ++currDepth;
-                // if we have an option to toggle breaking on interrupts/exceptions, handle it here
-            }
+            UI.appendConsole("Simulator is already running!\n");
         }
     }
 
@@ -275,25 +323,14 @@ export default class Simulator
      */
     public async stepOver()
     {
-        let depth = 0;
-
-        // if we have a jsr/jsrr/trap, we'll need to step out of it
-        if (Opcodes.isJSRorJSRR(this.memory[this.pc[0]]) || Opcodes.isTRAP(this.memory[this.pc[0]]))
+        if (!this.workerBusy)
         {
-            ++depth;
+            this.workerBusy = true;
+            this.simWorker.postMessage({type: Messages.STEP_OVER});
         }
-        // run 1 instruction, if interrupt or exception occurs we'll step out of it
-        this.enableClock();
-        if (this.instructionCycle())
+        else
         {
-            ++depth;
-        }
-
-        // call stepOut() until we're back to depth of 0
-        while (depth > 0 && this.isClockEnabled() && !this.breakPoints.has(this.pc[0]))
-        {
-            this.stepOut();
-            --depth;
+            UI.appendConsole("Simulator is already running!\n");
         }
     }
 
@@ -316,6 +353,17 @@ export default class Simulator
             this.interruptPriority = 4;
             this.interruptVector = 0x80;
         }
+
+        this.simWorker.postMessage(
+            {
+                type: Messages.KBD_INT,
+                intSignal: this.interruptSignal,
+                intPriority: this.interruptPriority,
+                intVector: this.interruptVector,
+                kbsr: this.memory[Simulator.KBSR],
+                kndr: this.memory[Simulator.KBDR]
+            }
+        );
     }
 
     /**
@@ -325,6 +373,7 @@ export default class Simulator
     public setBreakpoint(address: number)
     {
         this.breakPoints.add(address);
+        this.simWorker.postMessage({type: Messages.SET_BREAK, addr: address});
     }
 
     /**
@@ -334,6 +383,7 @@ export default class Simulator
     public clearBreakpoint(address: number)
     {
         this.breakPoints.delete(address);
+        this.simWorker.postMessage({type: Messages.CLR_BREAK, addr: address});
     }
 
     /**
@@ -342,6 +392,7 @@ export default class Simulator
     public clearAllBreakpoints()
     {
         this.breakPoints.clear();
+        this.simWorker.postMessage({type: Messages.CLR_ALL_BREAKS});
     }
 
     /**
@@ -408,6 +459,9 @@ export default class Simulator
     public setMemory(address: number, value: number)
     {
         this.memory[address] = value;
+        this.simWorker.postMessage({
+            type: Messages.SET_MEM, addr: address, val: value
+        });
     }
 
     /**
@@ -428,6 +482,7 @@ export default class Simulator
     public setRegister(registerNumber: number, value: number)
     {
         this.registers[registerNumber] = value;
+        this.simWorker.postMessage({type: Messages.SET_REG, registers: this.registers});
     }
 
     /**
@@ -446,6 +501,7 @@ export default class Simulator
     public setPC(value: number)
     {
         this.pc[0] = value;
+        this.simWorker.postMessage({type: Messages.SET_PC, pc: this.pc});
     }
 
     /**
@@ -464,15 +520,20 @@ export default class Simulator
 
     /**
      * Set the value of the processor status register
-     * @param value 
+     * @param value the 16-bit word to use as the new PSR value
+     * @param updateWorker if true, update the worker's copy of the PSR. Should
+     *      only be false if we know the worker's PSR is up-to-date.
      */
-    public setPSR(value: number)
+    public setPSR(value: number, updateWorker: boolean = true)
     {
         this.flagPositive = (value & 1) != 0;
         this.flagZero = (value & 2) != 0;
         this.flagNegative = (value & 4) != 0;
         this.priorityLevel = (value >> 8) & 7;
         this.userMode = (value & 0x8000) != 0;
+
+        if (updateWorker)
+            this.simWorker.postMessage({type: Messages.SET_PSR, psr: this.getPSR()});
     }
 
     /**
@@ -526,370 +587,5 @@ export default class Simulator
         this.interruptVector = 0;
         this.savedSSP[0] = 0x3000;
         this.savedUSP[0] = 0;
-    }
-
-    /**
-     * Set bit MCR[15] to enable the clock
-     */
-    private enableClock()
-    {
-        this.memory[Simulator.MCR] = 0x8000;
-    }
-
-    /**
-     * @returns true if clock is enabled, false otherwise
-     */
-    private isClockEnabled() : boolean
-    {
-        return (this.memory[Simulator.MCR] & 0x8000) != 0;
-    }
-
-    /**
-     * Execute a single instruction cycle. If an exception or interrupt occurs,
-     * initiate it and return true. If the cycle completed as expected, return
-     * false.
-     * @returns true if an interrupt or exception occured, false otherwise
-     */
-    private instructionCycle() : boolean
-    {
-        /*
-        (1) check for exception (illegal instruction or privilege violation)
-            * if yes, initialize and return true. Otherwise, continue
-        (2) execute the instruction
-            * fetch, increment PC
-            * call subroutine for opcode
-        (3) check if the console ready bit has been cleared. If so, output the
-            character in the console data register to the screen and set the
-            console ready bit
-        (4) if INT asserted, initialize and return true. Else, return false
-        */
-        
-        const instruction = this.memory[this.pc[0]++];
-
-        // (1) check for exception
-        // (a) priviledge mode exception
-        if (this.userMode && Opcodes.isRTI(instruction))
-        {
-            this.initException(Vectors.privilegeViolation());
-            return true;
-        }
-        // (b) illegal opcode exception
-        else if (Opcodes.isIllegal(instruction))
-        {
-            this.initException(Vectors.illegalOpcode());
-            return true;
-        }
-
-        // (2) execute instruction
-        switch ((instruction & 0xF000) >> 12)
-        {
-            case 0b0000:
-                this.execBr(instruction);
-                break;
-            case 0b0001:
-                this.execAdd(instruction);
-                break;
-            case 0b0010:
-                this.execLd(instruction);
-                break;
-            case 0b0011:
-                this.execSt(instruction);
-                break;
-            case 0b0100:
-                this.execJsr(instruction);
-                break;
-            case 0b0101:
-                this.execAnd(instruction);
-                break;
-            case 0b0110:
-                this.execLdr(instruction);
-                break;
-            case 0b0111:
-                this.execStr(instruction);
-                break;
-            case 0b1000:
-                this.execRti(instruction);
-                break;
-            case 0b1001:
-                this.execNot(instruction);
-                break;
-            case 0b1010:
-                this.execLdi(instruction);
-                break;
-            case 0b1011:
-                this.execSti(instruction);
-                break;
-            case 0b1100:
-                this.execJmp(instruction);
-                break;
-            case 0b1101:
-                // illegal (reserved)
-                break;
-            case 0b1110:
-                this.execLea(instruction);
-                break;
-            case 0b1111:
-                this.execTrap(instruction);
-                break;
-            default:
-                break;
-        }
-
-        // (3) console output
-        if ((this.memory[Simulator.DSR] & 0x8000) == 0)
-        {
-            // print character, set ready bit
-            const toPrint = this.memory[Simulator.DDR] & 0x00FF;
-            UI.appendConsole(String.fromCharCode(toPrint));
-            this.memory[Simulator.DSR] |= 0x8000;
-        }
-
-        // (4) handle interrupt
-        if (this.interruptSignal)
-        {
-            this.initInterrupt();
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    /**
-     * Set the condition codes according to the given number
-     * @param result the 16-bit result of an instruction
-     */
-    private setConditions(result: number)
-    {
-        this.flagNegative = (result & 0x8000) != 0;
-        this.flagZero = result == 0;
-        this.flagPositive = (result & 0x8000) == 0 && result > 0;
-    }
-
-    /**
-     * Initialize an exception with the given vector
-     * @param vector 
-     */
-    private initException(vector: number)
-    {
-        // push PSR and PC onto supervisor stack
-        let ssp = this.savedSSP[0];
-        this.memory[--ssp] = this.getPSR();
-        this.memory[--ssp] = this.pc[0];
-        this.savedSSP[0] = ssp;
-
-        // load R6 with supervisor stack if it is not the SSP already
-        if (this.userMode)
-        {
-            this.savedUSP[0] = this.registers[6];
-            this.registers[6] = this.savedSSP[0];
-        }
-
-        // set privilege mode to supervisor (PSR[15] = 0)
-        this.userMode = false;
-        
-        // expand vector to 16 bits, adding 0x0100 to its value
-        vector += 0x0100;
-
-        // set the PC to the value of this expanded vector
-        this.pc[0] = this.memory[vector];
-    }
-
-    /**
-     * Initialize an interrupt
-     */
-    private initInterrupt()
-    {
-        // disable interrupt signal
-        this.interruptSignal = false;
-
-        // push PSR and PC onto supervisor stack
-        let ssp = this.savedSSP[0];
-        this.memory[--ssp] = this.getPSR();
-        this.memory[--ssp] = this.pc[0];
-        this.savedSSP[0] = ssp;
-
-        // load R6 with supervisor stack if it is not the SSP already
-        if (this.userMode)
-        {
-            this.savedUSP[0] = this.registers[6];
-            this.registers[6] = this.savedSSP[0];
-        }
-
-        // set privilege mode to supervisor (PSR[15] = 0)
-        this.userMode = false;
-
-        // set priority level to the one given by the interrupt
-        this.priorityLevel = this.interruptPriority;
-
-        // set the PC to the value of the vector expanded to 16 bits + 0x0100
-        this.pc[0] = this.memory[this.interruptVector + 0x0100];
-    }
-
-    /**
-     * Instruction methods - each executes one instruction.
-     */
-
-    private execAdd(instruction: number)
-    {
-        const destReg = decodeRegister(instruction, 0);
-        const source1 = this.registers[decodeRegister(instruction, 1)];
-        let source2: number;
-        if ((instruction & 0b10_0000) != 0)
-        {
-            source2 = decodeImmediate(instruction, 5);
-        }
-        else
-        {
-            source2 = this.registers[decodeRegister(instruction, 2)];
-        }
-
-        this.registers[destReg] = source1 + source2;
-        this.setConditions(this.registers[destReg]);
-    }
-
-    private execAnd(instruction: number)
-    {
-        const destReg = decodeRegister(instruction, 0);
-        const source1 = this.registers[decodeRegister(instruction, 1)];
-        let source2: number;
-        if ((instruction & 0b10_0000) != 0)
-        {
-            source2 = decodeImmediate(instruction, 5);
-        }
-        else
-        {
-            source2 = this.registers[decodeRegister(instruction, 2)];
-        }
-
-        this.registers[destReg] = source1 & source2;
-        this.setConditions(this.registers[destReg]);
-    }
-
-    private execBr(instruction: number)
-    {
-        if (
-            (this.flagNegative && (instruction & 0x0800))
-            || (this.flagZero && (instruction & 0x0400))
-            || (this.flagPositive && (instruction & 0x0200))
-        )
-        {
-            this.pc[0] += decodeImmediate(instruction, 9);
-        }
-    }
-
-    private execJmp(instruction: number)
-    {
-        this.pc[0] = this.registers[decodeRegister(instruction, 1)];
-    }
-
-    private execJsr(instruction: number)
-    {
-        const savedPC = this.pc[0];
-        if (instruction & 0x800)
-        {
-            this.pc[0] += decodeImmediate(instruction, 11);
-        }
-        else
-        {
-            this.pc[0] = this.registers[decodeRegister(instruction, 1)];
-        }
-        this.registers[7] = savedPC;
-    }
-
-    private execLd(instruction: number)
-    {
-        const destReg = decodeRegister(instruction, 0);
-        const src = (this.pc[0] + decodeImmediate(instruction, 9)) & 0xFFFF;
-        this.registers[destReg] = this.memory[src];
-        this.setConditions(this.registers[destReg]);
-    }
-
-    private execLdi(instruction: number)
-    {
-        const destReg = decodeRegister(instruction, 0);
-        const src = (this.pc[0] + decodeImmediate(instruction, 9)) & 0xFFFF;
-        this.registers[destReg] = this.memory[this.memory[src]];
-        this.setConditions(this.registers[destReg]);
-    }
-
-    private execLdr(instruction: number)
-    {
-        const destReg = decodeRegister(instruction, 0);
-        const srcReg = decodeRegister(instruction, 1);
-        const src = (this.registers[srcReg]
-                + decodeImmediate(instruction, 6)) & 0xFFFF;
-        this.registers[destReg] = this.memory[src];
-        this.setConditions(this.registers[destReg]);
-    }
-
-    private execLea(instruction: number)
-    {
-        const destReg = decodeRegister(instruction, 0);
-        this.registers[destReg] = this.pc[0] + decodeImmediate(instruction, 9);
-        this.setConditions(this.registers[destReg]);
-    }
-
-    private execNot(instruction: number)
-    {
-        const destReg = decodeRegister(instruction, 0);
-        this.registers[destReg] = (~this.registers[decodeRegister(instruction, 1)]) & 0xFFFF;
-        this.setConditions(this.registers[destReg]);
-    }
-
-    /**
-     * Pop the PC and PSR off the stack, if privilege mode changes from
-     * supervisor to user then load the USP into R6.
-     * @param instruction 
-     */
-    private execRti(instruction: number)
-    {
-        let sp = this.savedSSP[0];
-        this.pc[0] = this.memory[sp++];
-        this.setPSR(this.memory[sp++]);
-        this.savedSSP[0] = sp;
-
-        // if we went user -> supervisor, load R6 with USP
-        if (this.userMode)
-        {
-            this.registers[6] = this.savedUSP[0];
-        }
-        // otherwise, load R6 with SSP
-        else
-        {
-            this.registers[6] = this.savedSSP[0];
-        }
-    }
-
-    private execSt(instruction: number)
-    {
-        const dest = (this.pc[0] + decodeImmediate(instruction, 9)) & 0xFFFF;
-        this.memory[dest] = this.registers[decodeRegister(instruction, 0)];
-    }
-
-    private execSti(instruction: number)
-    {
-        const dest = (this.pc[0] + decodeImmediate(instruction, 9)) & 0xFFFF;
-        this.memory[this.memory[dest]] = this.registers[decodeRegister(instruction, 0)];
-    }
-
-    private execStr(instruction: number)
-    {
-        const destReg = decodeRegister(instruction, 1);
-        const srcReg = decodeRegister(instruction, 0);
-        const dest = (this.registers[destReg] + decodeImmediate(instruction, 6)) & 0xFFFF;
-        this.memory[dest] = this.registers[srcReg];
-    }
-
-    /**
-     * Load R7 with the incremented PC, then load PC with the zero-extended
-     * trap vector in the instruction
-     * @param instruction 
-     */
-    private execTrap(instruction: number)
-    {
-        this.registers[7] = this.pc[0];
-        this.pc[0] = this.memory[instruction & 0x00FF];
     }
 }
