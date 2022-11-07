@@ -30,13 +30,19 @@
     }
 
     #workspace-inner{
-        height: 85%;
+        height: 88%;
         width: 90%;
     }
 
+    @media (max-width: 1300px) {
+		#workspace{
+			height: 120vh;
+		}
+	}
+
     @media (max-width: 900px) {
 		#workspace{
-			margin-bottom: 48vh;
+			height: 150vh;
 		}
 	}
     

@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@300;400;500;600&family=Nova+Flat&display=swap');
 
 /*==============
     GLOBAL
@@ -9,16 +10,11 @@ html, body {
   	padding: 0;
   	height: 100vh;
   	width: 100vw;
-	overflow: hidden;
+	overflow-x: hidden;
+	overflow-y: scroll;
 	scroll-behavior: smooth;
 	scrollbar-width: 0.5em;
 	font-family: 'Work Sans', sans-serif;
-}
-
-@media (max-width: 1000px) {
-	body{
-		overflow-y: scroll;
-	}
 }
 
 a, button {
@@ -204,6 +200,10 @@ body.dark{
 	color: var(--d-fadetext);
 }
 
+.dark #jump-input::selection, .dark #filename::selection{
+	color: var(--d-text);
+}
+
 .dark .componame{
 	color: var(--d-dir);
 }
@@ -236,6 +236,23 @@ body.dark{
 
 .dark #jump-buttons div:hover{
 	color: var(--d-loc);
+}
+
+.dark #sim-status-not-ready.stoplight-active{
+	background-color: var(--d-tint);
+}
+
+.dark #sim-status-ready.stoplight-active{
+	background-color: var(--d-comment);
+}
+
+.dark #sim-status-running.stoplight-active{
+	background-color: var(--d-instr);
+}
+
+.dark .stoplight{
+	background-color: var(--d-textarea);
+	border: 1px solid var(--d-border);
 }
 
 /*==============
@@ -273,7 +290,7 @@ body.light{
 	background-color: rgba(0,0,0,0);
 }
 
-#console-inner::selection, #jump-input::selection{
+#console-inner::selection, #jump-input::selection, #filename::selection{
 	background-color: var(--l-select);
 }
 
@@ -353,8 +370,12 @@ body.light{
 	color: var(--l-textarea);
 }
 
-.light #filename, .light .componame, .light #jump-input{
+.light #filename, .light .componame{
 	color: var(--l-fadetext);
+}
+
+.light #jump-input::placeholder{
+	color: darkgrey;
 }
 
 .light #editorCtr, .light #consoleCtr, .light #regCtr, .light #memCtr{
@@ -385,6 +406,23 @@ body.light{
 
 .light #jump-buttons div:hover{
 	color: var(--l-reg);
+}
+
+.light #sim-status-not-ready.stoplight-active{
+	background-color: var(--l-textarea);
+}
+
+.light #sim-status-ready.stoplight-active{
+	background-color: var(--l-select);
+}
+
+.light #sim-status-running.stoplight-active{
+	background-color: var(--l-alt-tint);
+}
+
+.light .stoplight{
+	border: 1px solid var(--l-border);
+	background-color: var(--l-alt-shade);
 }
 
 /*==================

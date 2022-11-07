@@ -256,7 +256,7 @@
         {/if}
     {/each}
 </div>
-<span class="bp-selected ptr-selected"></span>
+<span class="bp-selected ptr-selected state-saver"></span>
 
 <style>
     #memCtr{
@@ -299,5 +299,9 @@
     .ptr:hover, .ptr-selected{
         color: var(--d-loc);
         opacity: 1;
+    }
+
+    .state-saver{
+        display: none;
     }
 </style>

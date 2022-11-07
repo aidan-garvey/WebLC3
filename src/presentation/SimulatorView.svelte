@@ -5,12 +5,14 @@
     import Console from "./Console.svelte";
     import StepControls from "./StepControls.svelte";
     import JumpControls from "./JumpControls.svelte";
-	import { currentView, reloadOverride } from './stores';
+	import SimulatorStatus from './SimulatorStatus.svelte';
+	import { reloadOverride } from './stores';
 
-	function toEditor() {
-		currentView.set("editor")
-	}
+	// function toEditor() {
+	// 	currentView.set("editor")
+	// }
 
+	let orig=""
 	$: pc = 512
 	$: currPtr = -1
 	$: memMap = []
@@ -39,6 +41,7 @@
 	onMount(() => {
 		if(globalThis.simulator){
 			pc = globalThis.simulator.getPC()
+			orig = "x" + pc.toString(16)
 			if(globalThis.lastPtr)
 				currPtr = globalThis.lastPtr
 			else
@@ -175,10 +178,12 @@
         <Console />
 	</section>
 	<section id="sv-right">
-        <div class="workSans componame">Memory</div>
+		<div id="sv-right-top">
+        	<div class="workSans componame">Memory</div>
+			<SimulatorStatus />
+		</div>
 		<Memory extPC={pc} ptr={currPtr} map={memMap} on:updatePC={newPC} />
-        <JumpControls on:jump={jump} />
-        <button class="switchBtn" on:click={toEditor}>Back to Editor</button>
+        <JumpControls orig={orig} on:jump={jump} />
 	</section>
 </div>
 
@@ -195,40 +200,27 @@
 		font-size: 15px;
 		width: 100%;
 		text-align: center;
+		align-self: flex-end;
+		cursor: default;
 	}
 
 	#sv-left, #sv-right{
 		height: 100%;
 		width: 100%;
 		display: grid;
-		grid-row-gap: 1vh;
+		grid-row-gap: 2vh;
 	}
 
 	#sv-left{
-		grid-template-rows: auto auto auto 1fr;
+		grid-template-rows: 2em auto auto 1fr;
 	}
 
 	#sv-right{
-		grid-template-rows: auto auto 1fr 3em;
+		grid-template-rows: 2em auto 1fr;
 	}
 
-	.switchBtn{
-		padding: 0.8em 3em 0.8em 3em;
-		margin-top: 1vh;
-		text-align: center;
-        align-self: flex-end;
-        justify-self: flex-end;
-	}
-
-	@media (max-width: 900px) {
-		.switchBtn{
-			font-size: 14px !important;
-		}
-	}
-
-	@media (max-width: 600px) {
-		.switchBtn{
-			font-size: 12px !important;
-		}
+	#sv-right-top{
+		display: flex;
+		justify-content: space-evenly;
 	}
 </style>

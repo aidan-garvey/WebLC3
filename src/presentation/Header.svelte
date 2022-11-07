@@ -29,4 +29,10 @@
         justify-content: space-between;
         align-items: center;
     }
+
+    @media (max-width: 1200px) {
+	    #header{
+		    height: 20vh;
+	    }
+    }
 </style>

@@ -116,6 +116,8 @@
 
     #switchCtr p{
         font-size: 11px;
+        margin: 10% 0 0 0;
+        cursor: default;
     }
 
     #switch{
@@ -138,13 +140,13 @@
         align-items: center;
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 1300px) {
         #switchCtr{
             width: 4em;
         }
 
         #switchCtr p{
-            font-size: 11px;
+            font-size: 9px;
         }
     }
 </style>

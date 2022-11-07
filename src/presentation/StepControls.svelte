@@ -67,7 +67,14 @@
 		margin-right: 4%;
 	}
 
-    @media (max-width: 900px) {
+    @media (max-width: 1300px) {
+        #step-in, #step-out, #step-over{
+            font-size: 13px;
+            padding-left: 0.8em;
+        }
+    }
+
+    @media (max-width: 1000px) {
         #step-controls{
             grid-template-rows: 4em 4em;
             grid-template-columns: 30% 30% 30%;

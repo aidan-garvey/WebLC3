@@ -101,19 +101,31 @@
 		text-align: center;
 	}
 
-	@media (max-width: 900px) {
+	@media (max-width: 1200px) {
 		.functionBtn{
 			font-size: 18px !important;
 		}
 
-		.switchBtn{
-			font-size: 14px !important;
-		}
-
 		#editor-view{
 			grid-template-columns: 100%;
-			grid-template-rows: 60vh 60vh;
-			grid-row-gap: 4vh;
+			grid-template-rows: 90vh 90vh;
+			grid-row-gap: 0;
+		}
+
+		#ev-right{
+			grid-template-rows: auto 60% 18% 1fr;
+			grid-row-gap: 6vh;
+			margin-bottom: 20vh;
+		}
+
+		#ev-buttons{
+			display: flex;
+			justify-content: flex-end;
+		}
+
+		#ev-buttons button{
+			width: 30%;
+			margin-left: 4%;
 		}
 	}
 
