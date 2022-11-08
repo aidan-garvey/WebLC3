@@ -52,76 +52,35 @@
 
     /* Courtesy of https://cssloaders.github.io/ */
     .loader {
-        transform: rotateZ(45deg);
-        perspective: 1000px;
-        border-radius: 50%;
         width: 75px;
         height: 75px;
-        color: var(--d-fadetext);
+        position: relative;
         margin-bottom: -30vh;
+        animation: rotate 1.5s ease-in infinite alternate;
     }
-    .loader:before,
-    .loader:after {
+    .loader::before {
         content: '';
-        display: block;
         position: absolute;
-        top: 0;
         left: 0;
-        width: inherit;
-        height: inherit;
-        border-radius: 50%;
-        transform: rotateX(70deg);
-        animation: 1s spin linear infinite;
+        bottom: 0;
+        color: var(--d-instr);
+        background: currentColor;
+        width: 64px;
+        height: 32px;
+        border-radius: 0 0 50px 50px;
     }
-    .loader:after {
-        color: var(--l-fadetext);
-        transform: rotateY(70deg);
-        animation-delay: .4s;
+    .loader::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 10%;
+        background: var(--d-dir);
+        width: 8px;
+        height: 64px;
+        animation: rotate 1.2s linear infinite alternate-reverse;
     }
 
     @keyframes rotate {
-        0% {
-            transform: translate(-50%, -50%) rotateZ(0deg);
-        }
-        100% {
-            transform: translate(-50%, -50%) rotateZ(360deg);
-        }
-    }
-
-    @keyframes rotateccw {
-        0% {
-            transform: translate(-50%, -50%) rotate(0deg);
-        }
-        100% {
-            transform: translate(-50%, -50%) rotate(-360deg);
-        }
-    }
-
-    @keyframes spin {
-        0%,
-        100% {
-            box-shadow: .2em 0px 0 0px currentcolor;
-        }
-        12% {
-            box-shadow: .2em .2em 0 0 currentcolor;
-        }
-        25% {
-            box-shadow: 0 .2em 0 0px currentcolor;
-        }
-        37% {
-            box-shadow: -.2em .2em 0 0 currentcolor;
-        }
-        50% {
-            box-shadow: -.2em 0 0 0 currentcolor;
-        }
-        62% {
-            box-shadow: -.2em -.2em 0 0 currentcolor;
-        }
-        75% {
-            box-shadow: 0px -.2em 0 0 currentcolor;
-        }
-        87% {
-            box-shadow: .2em -.2em 0 0 currentcolor;
-        }
+        100% { transform: rotate(360deg)}
     }
 </style>

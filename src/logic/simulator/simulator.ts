@@ -260,6 +260,7 @@ export default class Simulator
             this.initWorker();
             this.ignoreWorker = false;
             this.workerBusy = false;
+            UI.appendConsole("Force stopped simulator, program reset.\n")
             UI.setSimulatorReady();
         }
         else

@@ -121,6 +121,22 @@ body.dark{
 	scrollbar-color: var(--l-comment) var(--l-textarea);
 }
 
+.dark .console-highlighted{
+	border-width: 4px;
+	border-style: double;
+	border-color: var(--d-tint);
+	animation: 1.8s blinkDark cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+
+@keyframes blinkDark{
+	40%,75%{
+		border-color: var(--d-tint);
+	}
+	45%,70%{
+		border-color: var(--l-loc);
+	}
+}
+
 .dark a {
 	color: var(--d-dir);
 }
@@ -292,6 +308,22 @@ body.light{
 
 #console-inner::selection, #jump-input::selection, #filename::selection{
 	background-color: var(--l-select);
+}
+
+.light .console-highlighted{
+	border-width: 4px;
+	border-style: double;
+	border-color: darkgrey;
+	animation: 1.8s blinkLight cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+
+@keyframes blinkLight{
+	40%,75%{
+		border-color: darkgrey;
+	}
+	45%,70%{
+		border-color: var(--l-select);
+	}
 }
 
 .light a {

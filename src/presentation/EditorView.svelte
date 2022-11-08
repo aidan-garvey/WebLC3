@@ -137,7 +137,6 @@
 		#ev-right{
 			width: 100%;
 			grid-template-rows: auto 60vh 18% 1fr;
-			grid-row-gap: 6vh;
 			margin-bottom: 20vh;
 			margin-left: 0;
 		}

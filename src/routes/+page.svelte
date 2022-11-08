@@ -3,24 +3,30 @@
     import Workspace from "../presentation/Workspace.svelte";
     import "../app.css";
     import UI from "../presentation/ui";
+    import { consoleSelected } from "../presentation/stores"
 
-    function handleKeydown(event) {
+    let interruptable = false
+    consoleSelected.subscribe(value => {
+		interruptable = value
+	});
+
+    function handleKeyRelease(event) {
 		let keyCode = event.keyCode
 
-        if(globalThis.simulator){
+        if(globalThis.simulator && interruptable){
             // Tilde (~) as arbitrary key to force stop running simulator
-            if(keyCode == 192){
+            if(keyCode == 126)
                 globalThis.simulator.halt()
-                UI.appendConsole("Force stopped simulator, program reset.\n")
-            }
-            /*else{
+            else
                 globalThis.simulator.keyboardInterrupt(keyCode)
-            }*/
         }
+        UI.deselectConsole()
+        consoleSelected.set(false)
 	}
+
 </script>
 
-<svelte:window on:keydown={handleKeydown}/>
+<svelte:window on:keypress={handleKeyRelease} />
 
 <Header />
 <Workspace />

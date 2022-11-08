@@ -1,16 +1,13 @@
 <script>
-	import { onMount } from 'svelte';
-    import Register from "./Register.svelte";
-    import Memory from "./Memory.svelte";
-    import Console from "./Console.svelte";
-    import StepControls from "./StepControls.svelte";
-    import JumpControls from "./JumpControls.svelte";
-	import SimulatorStatus from './SimulatorStatus.svelte';
-	import { reloadOverride } from './stores';
-
-	// function toEditor() {
-	// 	currentView.set("editor")
-	// }
+	import { onMount } from 'svelte'
+    import Register from "./Register.svelte"
+    import Memory from "./Memory.svelte"
+    import Console from "./Console.svelte"
+    import StepControls from "./StepControls.svelte"
+    import JumpControls from "./JumpControls.svelte"
+	import SimulatorStatus from './SimulatorStatus.svelte'
+	import UI from './ui'
+	import { reloadOverride, consoleSelected } from './stores'
 
 	let orig=""
 	$: pc = 512
@@ -167,15 +164,28 @@
 			}
 		}
 	}
+
+	function focusConsole(event){
+        UI.selectConsole()
+        consoleSelected.set(true)
+        event.stopImmediatePropagation()
+    }
+
+	function blurConsole(){
+		UI.deselectConsole()
+		consoleSelected.set(false)
+    }
 	
 </script>
 
-<div id="sim-view">
+<div id="sim-view" on:click={blurConsole}>
 	<section id="sv-left">
 		<div class="workSans componame">Registers</div>
 		<Register map={regMap} on:updatePC={newPC} />
         <StepControls on:step={step} />
-        <div id="console-ctr"><Console /></div>
+        <div id="c-ctr" on:click={focusConsole}>
+			<Console />
+		</div>
 	</section>
 	<section id="sv-right">
 		<div id="sv-right-top">
@@ -224,12 +234,12 @@
 		justify-content: space-evenly;
 	}
 
-	#console-ctr{
+	#c-ctr{
 		max-height: 25vh;
 	}
 
 	@media (max-width: 1300px) {
-        #console-ctr{
+        #c-ctr{
 			max-height: 50vh;
 		}
 	}

@@ -23,6 +23,16 @@ function clearConsole(){
     modifyConsole("console empty", false, true) 
 }
 
+function selectConsole(){
+    let theConsole = document.getElementById("c-ctr")
+    theConsole.classList.add("console-highlighted")
+}
+
+function deselectConsole(){
+    let theConsole = document.getElementById("c-ctr")
+    theConsole.classList.remove("console-highlighted")
+}
+
 function modifyConsole(msg, append=false, clear=false){
     let consoleInner = document.getElementById("console-inner")
     if(consoleInner){
@@ -71,6 +81,8 @@ export default {
     printConsole,
     appendConsole, 
     clearConsole,
+    selectConsole,
+    deselectConsole,
     setSimulatorNotReady,
     setSimulatorReady,
     setSimulatorRunning

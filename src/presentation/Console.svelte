@@ -1,5 +1,5 @@
 <script>
-    import UI from "./ui";
+    import UI from "./ui"
     import { onMount } from "svelte"
 
     let appLoadComplete = false
@@ -7,8 +7,9 @@
         appLoadComplete = true
 	});
 
-    function clearConsole(){
+    function clearConsole(event){
         UI.clearConsole()
+        event.stopImmediatePropagation()
     }
 </script>
 

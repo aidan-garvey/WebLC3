@@ -4,4 +4,5 @@ export const toggleHelp = writable(false);
 export const openedFile = writable("No file provided");
 export const currentView = writable("editor");
 export const reloadOverride = writable(false);
+export const consoleSelected = writable(false);
 export const activeStoplight = writable("sim-status-not-ready");
