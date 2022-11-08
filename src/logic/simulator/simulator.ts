@@ -38,14 +38,14 @@ export default class Simulator
     private static PSR_DEFAULT = 0x8000;
 
     // 2^16 words of memory
-    private memory: Uint16Array;// = new Uint16Array(1<<16);
+    private memory: Uint16Array;
     // general-purpose registers
-    private registers: Uint16Array;// = new Uint16Array(8);
+    private registers: Uint16Array;
     // internal registers for non-active stack pointer
-    private savedUSP: Uint16Array;// = new Uint16Array(1);
-    private savedSSP: Uint16Array;// = new Uint16Array(1);
+    private savedUSP: Uint16Array;
+    private savedSSP: Uint16Array;
     // program counter
-    private pc: Uint16Array;// = new Uint16Array(1);
+    private pc: Uint16Array;
 
     // Processor Status Register (PSR)
     private psr: Uint16Array;
@@ -69,8 +69,6 @@ export default class Simulator
     private simWorker: Worker;
     // worker is executing code for the simulator
     private workerBusy: boolean = false;
-    // worker should be ignored
-    // private ignoreWorker: boolean = true;
     // shared flag to halt worker
     private workerHalt: Uint8Array;
 
