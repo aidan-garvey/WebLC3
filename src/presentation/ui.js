@@ -47,6 +47,8 @@ function modifyConsole(msg, append=false, clear=false){
         if(clear){ consoleInner.classList.add("empty") }
         else { consoleInner.classList.remove("empty") }
 
+        consoleInner.scrollTop = consoleInner.scrollHeight;
+
     } else {
         console.error("Console component not found in UI.")
     }

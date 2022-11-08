@@ -175,7 +175,7 @@
 		<div class="workSans componame">Registers</div>
 		<Register map={regMap} on:updatePC={newPC} />
         <StepControls on:step={step} />
-        <Console />
+        <div id="console-ctr"><Console /></div>
 	</section>
 	<section id="sv-right">
 		<div id="sv-right-top">
@@ -222,5 +222,15 @@
 	#sv-right-top{
 		display: flex;
 		justify-content: space-evenly;
+	}
+
+	#console-ctr{
+		max-height: 25vh;
+	}
+
+	@media (max-width: 1300px) {
+        #console-ctr{
+			max-height: 50vh;
+		}
 	}
 </style>

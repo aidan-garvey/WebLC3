@@ -6,12 +6,17 @@
 
     function handleKeydown(event) {
 		let keyCode = event.keyCode
-        if(keyCode == 219)
-            UI.setSimulatorNotReady()
-        else if(keyCode == 221)
-            UI.setSimulatorReady()
-        else if(keyCode == 220)
-            UI.setSimulatorRunning()
+
+        if(globalThis.simulator){
+            // Tilde (~) as arbitrary key to force stop running simulator
+            if(keyCode == 192){
+                globalThis.simulator.halt()
+                UI.appendConsole("Force stopped simulator, program reset.\n")
+            }
+            /*else{
+                globalThis.simulator.keyboardInterrupt(keyCode)
+            }*/
+        }
 	}
 </script>
 

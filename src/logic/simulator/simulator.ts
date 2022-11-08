@@ -91,6 +91,7 @@ export default class Simulator
             // get this class and the worker to reload the program
             this.reloadProgram();
 
+            UI.setSimulatorReady();
             UI.appendConsole("Simulator ready.");
         })();
     }
@@ -147,8 +148,10 @@ export default class Simulator
                 console.log("Ignoring");
             else if (msg.type === Messages.CYCLE_UPDATE)
                 this.updateFromWorker(msg);
-            else if (msg.type === Messages.WORKER_DONE)
+            else if (msg.type === Messages.WORKER_DONE){
                 this.workerBusy = false;
+                UI.setSimulatorReady();
+            }
             else if (msg.type === Messages.CONSOLE)
                 UI.appendConsole(msg.message);
         };
@@ -257,6 +260,7 @@ export default class Simulator
             this.initWorker();
             this.ignoreWorker = false;
             this.workerBusy = false;
+            UI.setSimulatorReady();
         }
         else
         {
@@ -275,6 +279,7 @@ export default class Simulator
         {
             this.workerBusy = true;
             this.simWorker.postMessage({type: Messages.RUN});
+            UI.setSimulatorRunning();
         }
         else
         {
@@ -291,6 +296,7 @@ export default class Simulator
         {
             this.workerBusy = true;
             this.simWorker.postMessage({type: Messages.STEP_IN});
+            UI.setSimulatorRunning();
         }
         else
         {
@@ -309,6 +315,7 @@ export default class Simulator
         {
             this.workerBusy = true;
             this.simWorker.postMessage({type: Messages.STEP_OUT});
+            UI.setSimulatorRunning();
         }
         else
         {
@@ -327,6 +334,7 @@ export default class Simulator
         {
             this.workerBusy = true;
             this.simWorker.postMessage({type: Messages.STEP_OVER});
+            UI.setSimulatorRunning();
         }
         else
         {

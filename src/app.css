@@ -243,7 +243,7 @@ body.dark{
 }
 
 .dark #sim-status-ready.stoplight-active{
-	background-color: var(--d-comment);
+	background-color: var(--l-orig);
 }
 
 .dark #sim-status-running.stoplight-active{
@@ -417,7 +417,7 @@ body.light{
 }
 
 .light #sim-status-running.stoplight-active{
-	background-color: var(--l-alt-tint);
+	background-color: var(--d-dir);
 }
 
 .light .stoplight{

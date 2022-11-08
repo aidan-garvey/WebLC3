@@ -47,20 +47,21 @@
 		<div id="filename" class="workSans">{filename}</div>
 		<Editor />
 	</section>
+	{#if appLoadComplete}
 	<section id="ev-right">
 		<div class="filler">filler</div>
-		<Console />
-		{#if appLoadComplete}
-			<div id="ev-buttons">
-				<div id="ss-ctr"><SimulatorStatus /></div>
-				<button id="assemble" class="functionBtn" on:click={assembleClick}>
-					<span class="material-symbols-outlined">memory</span>
-					ASSEMBLE
-				</button>
-				<button class="switchBtn" on:click={toSimulator}>Switch to Simulator</button>
-			</div>
-		{/if}
+		<div id="console-ctr"><Console /></div>
+		<div id="ev-buttons">
+			<div id="ss-ctr"><SimulatorStatus /></div>
+			<button id="assemble" class="functionBtn" on:click={assembleClick}>
+				<span class="material-symbols-outlined">memory</span>
+				ASSEMBLE
+			</button>
+			<button class="switchBtn" on:click={toSimulator}>Switch to Simulator</button>
+		</div>
+		
 	</section>
+	{/if}
 </div>
 
 <style>
@@ -68,9 +69,7 @@
 		height: inherit;
 		min-height: 100%;
 		width: 100%;
-		display: grid;
-		grid-template-columns: 70% 25%;
-		grid-column-gap: 5%;
+		display: flex;
 	}
 
 	#filename{
@@ -96,10 +95,17 @@
 
 	#ev-left{
 		grid-template-rows: auto 1fr;
+		width: 100%;
 	}
 
 	#ev-right{
 		grid-template-rows: auto 1fr auto;
+		width: 25%;
+		margin-left: 5%;
+	}
+
+	#console-ctr{
+		max-height: 45vh;
 	}
 
 	#ev-buttons{
@@ -123,14 +129,21 @@
 		}
 
 		#editor-view{
+			display: grid;
 			grid-template-columns: 100%;
 			grid-template-rows: 90vh 90vh;
 		}
 
 		#ev-right{
-			grid-template-rows: auto 60% 18% 1fr;
+			width: 100%;
+			grid-template-rows: auto 60vh 18% 1fr;
 			grid-row-gap: 6vh;
 			margin-bottom: 20vh;
+			margin-left: 0;
+		}
+
+		#console-ctr{
+			max-height: 100%;
 		}
 
 		#ev-buttons{

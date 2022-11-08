@@ -37,6 +37,7 @@
         width: 85%;
         font-size: 12px;
         white-space: pre-wrap;
+        overflow-y: scroll;
     }
 
     #clear-console{
