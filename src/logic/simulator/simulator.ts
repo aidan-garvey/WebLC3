@@ -28,26 +28,46 @@ export default class Simulator
 
     // 2^16 words * 2 bytes/word
     private static MEM_SIZE = (1 << 16) * 2;
+    // 16 registers * 2 bytes/word
+    private static REGISTERS_SIZE = 2*16;
+
+    // PSR can be AND'ed with these values to get a flag
+    private static MASK_N = 0x4;
+    private static MASK_Z = 0x2;
+    private static MASK_P = 0x1;
+    private static MASK_USER = 0x8000;
+    // user mode enabled, everything else zero
+    private static PSR_DEFAULT = 0x8000;
 
     // 2^16 words of memory
-    private memory: Uint16Array = new Uint16Array(1<<16);
+    private memory: Uint16Array;// = new Uint16Array(1<<16);
     // general-purpose registers
-    private registers: Uint16Array = new Uint16Array(8);
+    private registers: Uint16Array;// = new Uint16Array(8);
     // internal registers for non-active stack pointer
-    private savedUSP: Uint16Array = new Uint16Array(1);
-    private savedSSP: Uint16Array = new Uint16Array(1);
+    private savedUSP: Uint16Array;// = new Uint16Array(1);
+    private savedSSP: Uint16Array;// = new Uint16Array(1);
     // program counter
-    private pc: Uint16Array = new Uint16Array(1);
+    private pc: Uint16Array;// = new Uint16Array(1);
+
+    /*
     // components of the Processor Status Register (PSR)
     private userMode: boolean = true;
     private priorityLevel: number = 0;
     private flagNegative: boolean = false;
     private flagZero: boolean = false;
     private flagPositive: boolean = false;
+    */
+    // Processor Status Register (PSR)
+    private psr: Uint16Array;
+
     // interrupt parameters
-    private interruptSignal: boolean = false;
-    private interruptPriority: number = 0;
-    private interruptVector: number = 0;
+    // private interruptSignal: boolean = false;
+    // private interruptPriority: number = 0;
+    // private interruptVector: number = 0;
+    private interruptSignal: Uint8Array;
+    private interruptPriority: Uint8Array;
+    private interruptVector: Uint16Array;
+
     // addresses of each active breakpoint
     private breakPoints: Set<number> = new Set();
     // object file for program to run
@@ -57,13 +77,15 @@ export default class Simulator
     // object file for operating system code
     private osObjFile: Uint16Array;
     private osDissassembly: Map<number, string>;
+
     // worker thread for running the simulator without freezing rest of app
     private simWorker: Worker;
     // worker is executing code for the simulator
     private workerBusy: boolean = false;
     // worker should be ignored
-    private ignoreWorker: boolean = true;
-    
+    // private ignoreWorker: boolean = true;
+    // shared flag to halt worker
+    private workerHalt: Uint8Array;
 
     /**
      * Initialize the simulator, load the code into memory and set PC to start
@@ -76,6 +98,18 @@ export default class Simulator
         this.userObjFile = objectFile;
         this.userDisassembly = sourceCode;
 
+        this.memory = new Uint16Array(new SharedArrayBuffer(Simulator.MEM_SIZE));
+        this.registers = new Uint16Array(new SharedArrayBuffer(Simulator.REGISTERS_SIZE));
+        this.savedSSP = new Uint16Array(new SharedArrayBuffer(2));
+        this.savedUSP = new Uint16Array(new SharedArrayBuffer(2));
+        this.pc = new Uint16Array(new SharedArrayBuffer(2));
+        this.psr = new Uint16Array(new SharedArrayBuffer(2));
+        this.interruptSignal = new Uint8Array(new SharedArrayBuffer(1));
+        this.interruptPriority = new Uint8Array(new SharedArrayBuffer(1));
+        this.interruptVector = new Uint16Array(new SharedArrayBuffer(2));
+        this.workerHalt = new Uint8Array(new SharedArrayBuffer(1));
+        this.workerHalt[0] = 0;
+
         // assemble operating system code, load into simulator, then load user's code
         (async ()=>{
             const osAsmResult = await this.getOSAsm();
@@ -85,7 +119,7 @@ export default class Simulator
             this.loadBuiltInCode();
             
             this.initWorker();
-            this.ignoreWorker = false;
+            // this.ignoreWorker = false;
             this.workerBusy = false;
 
             // get this class and the worker to reload the program
@@ -116,6 +150,7 @@ export default class Simulator
      * Handle a cycle update from the worker
      * @param msg message passed from the worker
      */
+    /*
     private updateFromWorker(msg: any)
     {
         for (let [addr, val] of msg.memoryMap)
@@ -131,6 +166,7 @@ export default class Simulator
         this.interruptPriority = msg.intPriority;
         this.interruptVector = msg.intVector;
     }
+    */
 
     /**
      * Send a message to simWorker with the simulator's state
@@ -144,12 +180,14 @@ export default class Simulator
             console.log("Main thread received new message:");
             console.log(msg);
 
-            if (this.ignoreWorker)
-                console.log("Ignoring");
-            else if (msg.type === Messages.CYCLE_UPDATE)
-                this.updateFromWorker(msg);
-            else if (msg.type === Messages.WORKER_DONE){
+            // if (this.ignoreWorker)
+                // console.log("Ignoring");
+            // else if (msg.type === Messages.CYCLE_UPDATE)
+                // this.updateFromWorker(msg);
+            // \/ else if \/
+            if (msg.type === Messages.WORKER_DONE){
                 this.workerBusy = false;
+                Atomics.store(this.workerHalt, 0, 0);
                 UI.setSimulatorReady();
             }
             else if (msg.type === Messages.CONSOLE)
@@ -163,13 +201,14 @@ export default class Simulator
             savedUSP: this.savedUSP,
             savedSSP: this.savedSSP,
             pc: this.pc,
-            psr: this.getPSR(),
+            psr: this.psr,
             intSignal: this.interruptSignal,
             intPriority: this.interruptPriority,
             intVector: this.interruptVector,
             breakPoints: this.breakPoints,
             userObj: this.userObjFile,
-            osObj: this.osObjFile
+            osObj: this.osObjFile,
+            halt: this.workerHalt
         });
     }
 
@@ -179,14 +218,19 @@ export default class Simulator
      */
     public reloadProgram()
     {
-        this.simWorker.postMessage({type: Messages.RELOAD});
+        if (this.workerBusy)
+        {
+            this.halt();
+            while (this.workerBusy);
+        }
+        // this.simWorker.postMessage({type: Messages.RELOAD});
 
         let loc = this.userObjFile[0];
         for (let i = 1; i < this.userObjFile.length; i++)
         {
-            this.memory[loc++] = this.userObjFile[i];
+            this.setMemory(loc++, this.userObjFile[i]);
         }
-        this.pc[0] = this.userObjFile[0];
+        Atomics.store(this.pc, 0, this.userObjFile[0]);
 
         this.restorePSR();
     }
@@ -199,7 +243,7 @@ export default class Simulator
         let loc = this.osObjFile[0];
         for (let i = 1; i < this.osObjFile.length; i++)
         {
-            this.memory[loc++] = this.osObjFile[i];
+            this.setMemory(loc++, this.osObjFile[i]);
         }
     }
 
@@ -209,8 +253,13 @@ export default class Simulator
      */
     public restartProgram()
     {
-        this.pc[0] = this.userObjFile[0];
-        this.simWorker.postMessage({type: Messages.SET_PC, pc: this.pc});
+        if (this.workerBusy)
+        {
+            this.halt();
+            while (this.workerBusy);
+        }
+        Atomics.store(this.pc, 0, this.userObjFile[0]);
+        // this.simWorker.postMessage({type: Messages.SET_PC, pc: this.pc});
     }
 
     /**
@@ -218,15 +267,20 @@ export default class Simulator
      */
     public resetMemory()
     {
-        this.simWorker.postMessage({type: Messages.RESET});
+        // this.simWorker.postMessage({type: Messages.RESET});
+        if (this.workerBusy)
+        {
+            this.halt();
+            while (this.workerBusy);
+        }
 
         for (let i = 0; i < this.memory.length; i++)
         {
-            this.memory[i] = 0;
+            this.setMemory(i, 0);
         }
         for (let i = 0; i < 8; i++)
         {
-            this.registers[i] = 0;
+            this.setRegister(i, 0);
         }
         this.loadBuiltInCode();
     }
@@ -236,21 +290,28 @@ export default class Simulator
      */
     public randomizeMemory()
     {
+        if (this.workerBusy)
+        {
+            this.halt();
+            while (this.workerBusy);
+        }
+
         for (let i = 0; i < this.memory.length; i++)
         {
-            this.memory[i] = this.randWord();
+            this.setMemory(i, this.randWord());
         }
         for (let i = 0; i < 8; i++)
         {
-            this.registers[i] = this.randWord();
+            this.setRegister(i, this.randWord());
         }
         this.loadBuiltInCode();
 
-        this.simWorker.postMessage({type: Messages.RANDOMIZE, memory: this.memory});
+        // this.simWorker.postMessage({type: Messages.RANDOMIZE, memory: this.memory});
     }
 
     public async halt()
     {
+        /*
         if (this.workerBusy)
         {
             console.log("Terminating worker");
@@ -262,6 +323,12 @@ export default class Simulator
             this.workerBusy = false;
             UI.appendConsole("Force stopped simulator, program reset.\n")
             UI.setSimulatorReady();
+        }
+        */
+        if (this.workerBusy)
+        {
+            console.log("Simulator halting worker");
+            Atomics.store(this.workerHalt, 0, 1);
         }
         else
         {
@@ -354,15 +421,16 @@ export default class Simulator
      */
     public keyboardInterrupt(asciiCode: number)
     {
-        this.memory[Simulator.KBDR] = asciiCode;
-        this.memory[Simulator.KBSR] |= 0x8000;
-        if (this.priorityLevel < 4 && (this.memory[Simulator.KBSR] & 0x4000) != 0)
+        Atomics.store(this.memory, Simulator.KBDR, asciiCode);
+        const currKBSR = Atomics.or(this.memory, Simulator.KBSR, 0x8000);
+        if (this.priorityLevel() < 4 && (currKBSR & 0x4000) != 0)
         {
-            this.interruptSignal = true;
-            this.interruptPriority = 4;
-            this.interruptVector = 0x80;
+            Atomics.store(this.interruptSignal, 0, 1);
+            Atomics.store(this.interruptPriority, 0, 4);
+            Atomics.store(this.interruptVector, 0, 0x80);
         }
 
+        /*
         this.simWorker.postMessage(
             {
                 type: Messages.KBD_INT,
@@ -373,6 +441,7 @@ export default class Simulator
                 kndr: this.memory[Simulator.KBDR]
             }
         );
+        */
     }
 
     /**
@@ -442,8 +511,8 @@ export default class Simulator
             }
             res.push([
                 "0x" + addr.toString(16),
-                "0x" + this.memory[addr].toString(16),
-                this.memory[addr].toString(10),
+                "0x" + this.getMemory(addr).toString(16),
+                this.getMemory(addr).toString(10),
                 code
             ]);
         }
@@ -457,7 +526,7 @@ export default class Simulator
      */
     public getMemory(address: number) : number
     {
-        return this.memory[address];
+        return Atomics.load(this.memory, address);
     }
 
     /**
@@ -467,10 +536,10 @@ export default class Simulator
      */
     public setMemory(address: number, value: number)
     {
-        this.memory[address] = value;
-        this.simWorker.postMessage({
-            type: Messages.SET_MEM, addr: address, val: value
-        });
+        Atomics.store(this.memory, address, value);
+        // this.simWorker.postMessage({
+        //     type: Messages.SET_MEM, addr: address, val: value
+        // });
     }
 
     /**
@@ -480,7 +549,7 @@ export default class Simulator
      */
     public getRegister(registerNumber: number) : number
     {
-        return this.registers[registerNumber];
+        return Atomics.load(this.registers, registerNumber);
     }
 
     /**
@@ -490,8 +559,8 @@ export default class Simulator
      */
     public setRegister(registerNumber: number, value: number)
     {
-        this.registers[registerNumber] = value;
-        this.simWorker.postMessage({type: Messages.SET_REG, registers: this.registers});
+        Atomics.store(this.registers, registerNumber, value);
+        // this.simWorker.postMessage({type: Messages.SET_REG, registers: this.registers});
     }
 
     /**
@@ -500,7 +569,7 @@ export default class Simulator
      */
     public getPC() : number
     {
-        return this.pc[0];
+        return Atomics.load(this.pc, 0);
     }
 
     /**
@@ -509,8 +578,8 @@ export default class Simulator
      */
     public setPC(value: number)
     {
-        this.pc[0] = value;
-        this.simWorker.postMessage({type: Messages.SET_PC, pc: this.pc});
+        Atomics.store(this.pc, 0, value);
+        // this.simWorker.postMessage({type: Messages.SET_PC, pc: this.pc});
     }
 
     /**
@@ -519,30 +588,62 @@ export default class Simulator
      */
     public getPSR() : number
     {
-        let result = +this.userMode << 15;
-        result |= this.priorityLevel << 8;
-        result |= +this.flagNegative << 2;
-        result |= +this.flagZero << 1;
-        result |= +this.flagPositive;
-        return result;
+        return Atomics.load(this.psr, 0);
     }
 
     /**
      * Set the value of the processor status register
      * @param value the 16-bit word to use as the new PSR value
-     * @param updateWorker if true, update the worker's copy of the PSR. Should
-     *      only be false if we know the worker's PSR is up-to-date.
      */
-    public setPSR(value: number, updateWorker: boolean = true)
+    public setPSR(value: number)
     {
-        this.flagPositive = (value & 1) != 0;
-        this.flagZero = (value & 2) != 0;
-        this.flagNegative = (value & 4) != 0;
-        this.priorityLevel = (value >> 8) & 7;
-        this.userMode = (value & 0x8000) != 0;
+        Atomics.store(this.psr, 0, value);
+    }
 
-        if (updateWorker)
-            this.simWorker.postMessage({type: Messages.SET_PSR, psr: this.getPSR()});
+    /**
+     * Break the value of the PSR into its individual components
+     * @returns 
+     */
+    private getAllPSR(): [
+        boolean, // userMode
+        number,  // priority level
+        boolean, // negative
+        boolean, // zero
+        boolean  // positive
+    ]
+    {
+        const psrVal = this.getPSR();
+        return [
+            (psrVal & Simulator.MASK_USER) != 0,
+            (psrVal >> 8) & 0x7,
+            (psrVal & Simulator.MASK_N) != 0,
+            (psrVal & Simulator.MASK_Z) != 0,
+            (psrVal & Simulator.MASK_P) != 0 
+        ];
+    }
+
+    private flagNegative(): boolean
+    {
+        let psrVal = this.getPSR();
+        return (psrVal & Simulator.MASK_N) != 0;
+    }
+
+    private flagZero(): boolean
+    {
+        let psrVal = this.getPSR();
+        return (psrVal & Simulator.MASK_Z) != 0;
+    }
+
+    private flagPositive(): boolean
+    {
+        let psrVal = this.getPSR();
+        return (psrVal & Simulator.MASK_P) != 0;
+    }
+
+    private priorityLevel(): number
+    {
+        let psrVal = this.getPSR();
+        return (psrVal >> 8) & 0x7;
     }
 
     /**
@@ -554,19 +655,21 @@ export default class Simulator
      */
     public getPSRInfo() : string[]
     {
+        const psrVals = this.getAllPSR();
+
         let flags = "";
-        if (this.flagNegative)
+        if (psrVals[2])
             flags += "N";
-        if (this.flagZero)
+        if (psrVals[3])
             flags += "Z";
-        if (this.flagPositive)
+        if (psrVals[4])
             flags += "P";
         if (!flags)
             flags = "[none]"
 
         return [
-            this.userMode ? "user" : "supervisor",
-            "PL" + this.priorityLevel,
+            psrVals[0] ? "user" : "supervisor",
+            "PL" + psrVals[1],
             flags
         ];
     }
@@ -586,15 +689,20 @@ export default class Simulator
      */
     private restorePSR()
     {
-        this.userMode = true;
-        this.priorityLevel = 0;
-        this.flagNegative = false;
-        this.flagZero = false;
-        this.flagPositive = false;
+        Atomics.store(this.psr, 0, Simulator.PSR_DEFAULT);
+
+        Atomics.store(this.interruptSignal, 0, 0);
+        Atomics.store(this.interruptPriority, 0, 0);
+        Atomics.store(this.interruptVector, 0, 0);
+        Atomics.store(this.savedSSP, 0, 0x3000);
+        Atomics.store(this.savedUSP, 0, 0);
+
+        /*
         this.interruptSignal = false;
         this.interruptPriority = 0;
         this.interruptVector = 0;
         this.savedSSP[0] = 0x3000;
         this.savedUSP[0] = 0;
+        */
     }
 }

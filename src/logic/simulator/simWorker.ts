@@ -29,9 +29,16 @@ class SimWorker
     // machine control register (bit 15 is clock-enable)
     private static MCR = 0xFFFE;
 
-    // if set to true, the worker thread must halt and transfer ownership of
-    // memory back to the main thread as soon as the current instruction is done
-    private static haltFlag: boolean;
+    // PSR can be AND'ed with these values to get a flag, OR'ed to set a flag
+    private static MASK_N = 0x4;
+    private static MASK_Z = 0x2;
+    private static MASK_P = 0x1;
+    private static MASK_USER = 0x8000;
+    // PSR can be AND'ed with these values to clear a flag
+    private static CLEAR_N = 0b1111_1111_1111_1011;
+    private static CLEAR_Z = 0b1111_1111_1111_1101;
+    private static CLEAR_P = 0b1111_1111_1111_1110;
+
     // simulator's memory, transferred from simulator
     private static memory: Uint16Array;
     // general-purpose registers
@@ -41,16 +48,24 @@ class SimWorker
     private static savedSSP: Uint16Array;
     // program counter
     private static pc: Uint16Array;
+    /*
     // components of the Processor Status Register (PSR)
     private static userMode: boolean;
     private static priorityLevel: number;
     private static flagNegative: boolean;
     private static flagZero: boolean;
     private static flagPositive: boolean;
+    */
+    private static psr: Uint16Array;
+
     // interrupt parameters
-    private static interruptSignal: boolean;
-    private static interruptPriority: number;
-    private static interruptVector: number;
+    // private static interruptSignal: boolean;
+    // private static interruptPriority: number;
+    // private static interruptVector: number;
+    private static interruptSignal: Uint8Array;
+    private static interruptPriority: Uint8Array;
+    private static interruptVector: Uint16Array;
+
     // addresses of each active breakpoint
     private static breakPoints: Set<number>;
     // object file for program to run
@@ -58,15 +73,14 @@ class SimWorker
     // object file for operating system code
     private static osObjFile: Uint16Array;
 
-    private static changedMemory: Set<number>;
+    // if set to non-zero, worker must stop executing
+    private static haltFlag: Uint8Array;
 
     /**
      * Initialize message handlers
      */
     public static init()
     {
-        this.haltFlag = false;
-
         self.onmessage = (event) => {
             const msg = event.data;
             console.log("Worker received new message:");
@@ -80,14 +94,16 @@ class SimWorker
                     this.savedUSP = msg.savedUSP;
                     this.savedSSP = msg.savedSSP;
                     this.pc = msg.pc;
-                    this.setPSR(msg.psr);
+                    this.psr = msg.psr;
                     this.interruptSignal = msg.intSignal;
                     this.interruptPriority = msg.intPriority;
                     this.interruptVector = msg.intVector;
                     this.breakPoints = msg.breakPoints;
                     this.userObjFile = msg.userObj;
                     this.osObjFile = msg.osObj;
+                    this.haltFlag = msg.halt;
                     break;
+                /*
                 case Messages.RELOAD:
                     this.reloadProgram();
                     break;
@@ -100,6 +116,7 @@ class SimWorker
                 case Messages.HALT:
                     this.haltFlag = true;
                     break;
+                */
                 case Messages.RUN:
                     this.run();
                     break;
@@ -112,6 +129,7 @@ class SimWorker
                 case Messages.STEP_OVER:
                     this.stepOver();
                     break;
+                /*
                 case Messages.KBD_INT:
                     this.interruptSignal = msg.intSignal;
                     this.interruptPriority = msg.intPriority;
@@ -119,6 +137,7 @@ class SimWorker
                     this.memory[this.KBSR] = msg.kbsr;
                     this.memory[this.KBDR] = msg.kbdr;
                     break;
+                */
                 case Messages.SET_BREAK:
                     this.breakPoints.add(msg.addr);
                     break;
@@ -128,6 +147,7 @@ class SimWorker
                 case Messages.CLR_ALL_BREAKS:
                     this.breakPoints.clear();
                     break;
+                /*
                 case Messages.SET_MEM:
                     this.memory[msg.addr] = msg.val;
                     break;
@@ -140,6 +160,7 @@ class SimWorker
                 case Messages.SET_PSR:
                     this.setPSR(msg.psr);
                     break;
+                */
             }
         };
     }
@@ -157,6 +178,7 @@ class SimWorker
      * Send a message to the main thread after an instruction cycle to update
      * its values.
      */
+    /*
     private static updateMainThread()
     {
         // construct map from changedMemory
@@ -179,6 +201,7 @@ class SimWorker
             intVector: this.interruptVector
         });
     }
+    */
 
     /*****************************
      ---- Getters and Setters ----
@@ -186,99 +209,92 @@ class SimWorker
     
     private static setPSR(value: number)
     {
-        this.flagPositive = (value & 1) != 0;
-        this.flagZero = (value & 2) != 0;
-        this.flagNegative = (value & 4) != 0;
-        this.priorityLevel = (value >> 8) & 7;
-        this.userMode = (value & 0x8000) != 0;
+        Atomics.store(this.psr, 0, value);
     }
 
     private static getPSR(): number
     {
-        let result = +this.userMode << 15;
-        result |= this.priorityLevel << 8;
-        result |= +this.flagNegative << 2;
-        result |= +this.flagZero << 1;
-        result |= +this.flagPositive;
-        return result;
-    }
-
-    /**
-     * Set Processor Status Register to defaults, clear interrupt signal, reset
-     * saved USP and SSP
-     */
-    private static restorePSR()
-    {
-        this.userMode = true;
-        this.priorityLevel = 0;
-        this.flagNegative = false;
-        this.flagZero = false;
-        this.flagPositive = false;
-        this.interruptSignal = false;
-        this.interruptPriority = 0;
-        this.interruptVector = 0;
-        this.savedSSP[0] = 0x3000;
-        this.savedUSP[0] = 0;
+        return Atomics.load(this.psr, 0);
     }
 
     private static enableClock()
     {
-        this.memory[this.MCR] = 0x8000;
+        Atomics.or(this.memory, this.MCR, 0x8000);
     }
 
     private static isClockEnabled(): boolean
     {
-        return (this.memory[this.MCR] & 0x8000) != 0;
+        return (Atomics.load(this.memory, this.MCR) & 0x8000) != 0;
     }
 
-    /**************************************
-     ---- Mass Memory Copies / Setters ----
-     These are faster to do independently
-     than via messages.
-     **************************************/
-
-    /**
-     * Load code into memory, set PC to start of program, restore Processor
-     * Status Register to defaults, set clock-enable
-     */
-    private static reloadProgram()
+    private static haltSet(): boolean
     {
-        let loc = this.userObjFile[0];
-        for (let i = 1; i < this.userObjFile.length; i++)
-        {
-            this.memory[loc++] = this.userObjFile[i];
-        }
-        this.pc[0] = this.userObjFile[0];
-
-        this.restorePSR();
+        return Atomics.load(this.haltFlag, 0) != 0;
     }
 
-    /**
-     * Load operating system code into memory from object file
-     */
-    private static loadBuiltInCode()
+    private static getMemory(addr: number): number
     {
-        let loc = this.osObjFile[0];
-        for (let i = 1; i < this.osObjFile.length; i++)
-        {
-            this.memory[loc++] = this.osObjFile[i];
-        }
+        return Atomics.load(this.memory, addr);
     }
 
-    /**
-     * Set all of memory to zeroes except for operating system code
-     */
-    private static resetMemory()
+    private static setMemory(addr: number, value: number)
     {
-        for (let i = 0; i < this.memory.length; i++)
-        {
-            this.memory[i] = 0;
-        }
-        for (let i = 0; i < 8; i++)
-        {
-            this.registers[i] = 0;
-        }
-        this.loadBuiltInCode();
+        Atomics.store(this.memory, addr, value);
+    }
+
+    private static getPC(): number
+    {
+        return Atomics.load(this.pc, 0);
+    }
+
+    private static setPC(value: number)
+    {
+        Atomics.store(this.pc, 0, value);
+    }
+
+    private static getRegister(index: number): number
+    {
+        return Atomics.load(this.registers, index);
+    }
+
+    private static setRegister(index: number, value: number)
+    {
+        Atomics.store(this.registers, index, value);
+    }
+
+    private static flagNegative(): boolean
+    {
+        let psrVal = this.getPSR();
+        return (psrVal & this.MASK_N) != 0;
+    }
+
+    private static flagZero(): boolean
+    {
+        let psrVal = this.getPSR();
+        return (psrVal & this.MASK_Z) != 0;
+    }
+
+    private static flagPositive(): boolean
+    {
+        let psrVal = this.getPSR();
+        return (psrVal & this.MASK_P) != 0;
+    }
+
+    private static priorityLevel(): number
+    {
+        let psrVal = this.getPSR();
+        return (psrVal >> 8) & 0x7;
+    }
+
+    private static setPriorityLevel(level: number)
+    {
+        Atomics.or(this.psr, 0, (level & 0x7) << 8);
+    }
+
+    private static userMode(): boolean
+    {
+        let psrVal = this.getPSR();
+        return (psrVal & this.MASK_USER) != 0;
     }
 
     /*****************************
@@ -293,10 +309,9 @@ class SimWorker
     private static run()
     {
         this.enableClock();
-        this.haltFlag = false;
         let intOrEx = this.instructionCycle();
 
-        while (!this.haltFlag && this.isClockEnabled() && !this.breakPoints.has(this.pc[0]))
+        while (!this.haltSet() && this.isClockEnabled() && !this.breakPoints.has(this.getPC()))
         {
             let intOrEx = this.instructionCycle();
         }
@@ -310,7 +325,6 @@ class SimWorker
     private static stepIn()
     {
         this.enableClock();
-        this.haltFlag = false;
         let intOrEx = this.instructionCycle();
 
         self.postMessage({type: Messages.WORKER_DONE});
@@ -325,14 +339,13 @@ class SimWorker
     {
         let currDepth = 1;
         this.enableClock();
-        this.haltFlag = false;
 
         // execute first instruction cycle, ignoring breakpoints
-        if (Opcodes.isRETorRTI(this.pc[0]))
+        if (Opcodes.isRETorRTI(this.getPC()))
         {
             --currDepth;
         }
-        else if (Opcodes.isJSRorJSRR(this.pc[0]) || Opcodes.isTRAP(this.pc[0]))
+        else if (Opcodes.isJSRorJSRR(this.getPC()) || Opcodes.isTRAP(this.getPC()))
         {
             ++currDepth;
         }
@@ -343,13 +356,13 @@ class SimWorker
         }
 
         // keep executing but don't ignore clock or breakpoints
-        while (!this.haltFlag && currDepth > 0 && this.isClockEnabled() && !this.breakPoints.has(this.pc[0]))
+        while (!this.haltSet() && currDepth > 0 && this.isClockEnabled() && !this.breakPoints.has(this.getPC()))
         {
-            if (Opcodes.isRETorRTI(this.pc[0]))
+            if (Opcodes.isRETorRTI(this.getPC()))
             {
                 --currDepth;
             }
-            else if (Opcodes.isJSRorJSRR(this.pc[0]) || Opcodes.isTRAP(this.pc[0]))
+            else if (Opcodes.isJSRorJSRR(this.getPC()) || Opcodes.isTRAP(this.getPC()))
             {
                 ++currDepth;
             }
@@ -375,20 +388,19 @@ class SimWorker
         let depth = 0;
 
         // if we have a jsr/jsrr/trap, we'll need to step out of it
-        if (Opcodes.isJSRorJSRR(this.memory[this.pc[0]]) || Opcodes.isTRAP(this.memory[this.pc[0]]))
+        if (Opcodes.isJSRorJSRR(this.getMemory(this.getPC())) || Opcodes.isTRAP(this.getMemory(this.getPC())))
         {
             ++depth;
         }
         // run 1 instruction, if interrupt or exception occurs we'll step out of it
         this.enableClock();
-        this.haltFlag = false;
         if (this.instructionCycle())
         {
             ++depth;
         }
 
         // call stepOut() until we're back to depth of 0
-        while (!this.haltFlag && depth > 0 && this.isClockEnabled() && !this.breakPoints.has(this.pc[0]))
+        while (!this.haltSet() && depth > 0 && this.isClockEnabled() && !this.breakPoints.has(this.getPC()))
         {
             this.stepOut();
             --depth;
@@ -417,24 +429,21 @@ class SimWorker
         (4) if INT asserted, initialize and return true. Else, return false
         */
         
-        const instruction = this.memory[this.pc[0]++];
-
-        // this will track all the memory addresses that get updated
-        this.changedMemory = new Set();
+        const oldPC = this.getPC();
+        const instruction = this.getMemory(oldPC);
+        this.setPC(oldPC + 1);
 
         // (1) check for exception
         // (a) priviledge mode exception
-        if (this.userMode && Opcodes.isRTI(instruction))
+        if (this.userMode() && Opcodes.isRTI(instruction))
         {
             this.initException(Vectors.privilegeViolation());
-            this.updateMainThread();
             return true;
         }
         // (b) illegal opcode exception
         else if (Opcodes.isIllegal(instruction))
         {
             this.initException(Vectors.illegalOpcode());
-            this.updateMainThread();
             return true;
         }
 
@@ -494,25 +503,22 @@ class SimWorker
         }
 
         // (3) console output
-        if ((this.memory[this.DSR] & 0x8000) == 0)
+        if ((this.getMemory(this.DSR) & 0x8000) == 0)
         {
             // print character, set ready bit
-            const toPrint = this.memory[this.DDR] & 0x00FF;
+            const toPrint = this.getMemory(this.DDR) & 0x00FF;
             this.sendConsoleMessage(String.fromCharCode(toPrint));
-            this.memory[this.DSR] |= 0x8000;
-            this.changedMemory.add(this.DSR);
+            Atomics.or(this.memory, this.DSR, 0x8000);
         }
 
         // (4) handle interrupt
-        if (this.interruptSignal)
+        if (Atomics.load(this.interruptSignal, 0) != 0)
         {
             this.initInterrupt();
-            this.updateMainThread();
             return true;
         }
         else
         {
-            this.updateMainThread();
             return false;
         }
     }
@@ -523,9 +529,26 @@ class SimWorker
      */
     private static setConditions(result: number)
     {
-        this.flagNegative = (result & 0x8000) != 0;
-        this.flagZero = result == 0;
-        this.flagPositive = (result & 0x8000) == 0 && result > 0;
+        let psrVal = this.getPSR();
+        if ((result & 0x8000) != 0)
+        {
+            psrVal |= this.MASK_N;
+            psrVal &= this.CLEAR_Z;
+            psrVal &= this.CLEAR_P;
+        }
+        else if (result == 0)
+        {
+            psrVal &= this.CLEAR_N;
+            psrVal |= this.MASK_Z;
+            psrVal &= this.CLEAR_P;
+        }
+        else
+        {
+            psrVal &= this.CLEAR_N;
+            psrVal &= this.CLEAR_Z;
+            psrVal |= this.MASK_P;
+        }
+        this.setPSR(psrVal);
     }
 
     /**
@@ -535,29 +558,24 @@ class SimWorker
     private static initException(vector: number)
     {
         // push PSR and PC onto supervisor stack
-        let ssp = this.savedSSP[0];
-        this.memory[--ssp] = this.getPSR();
-        this.memory[--ssp] = this.pc[0];
-        this.savedSSP[0] = ssp;
-
-        this.changedMemory.add(ssp);
-        this.changedMemory.add(ssp + 1);
+        let ssp = Atomics.load(this.savedSSP, 0);
+        this.setMemory(ssp - 1, this.getPSR());
+        this.setMemory(ssp - 2, this.getPC());
+        Atomics.store(this.savedSSP, 0, ssp - 2);
 
         // load R6 with supervisor stack if it is not the SSP already
-        if (this.userMode)
+        if (this.userMode())
         {
-            this.savedUSP[0] = this.registers[6];
-            this.registers[6] = this.savedSSP[0];
+            Atomics.store(this.savedUSP, 0, this.getRegister(6));
+            this.setRegister(6, Atomics.load(this.savedSSP, 0));
         }
 
         // set privilege mode to supervisor (PSR[15] = 0)
-        this.userMode = false;
-        
-        // expand vector to 16 bits, adding 0x0100 to its value
-        vector += 0x0100;
+        Atomics.or(this.psr, 0, this.MASK_USER);
 
-        // set the PC to the value of this expanded vector
-        this.pc[0] = this.memory[vector];
+        // set PC to memory[vector + 0x0100]
+        vector += 0x0100;
+        this.setPC(this.getMemory(vector));
     }
 
     /**
@@ -566,33 +584,31 @@ class SimWorker
     private static initInterrupt()
     {
         // disable interrupt signal
-        this.interruptSignal = false;
+        Atomics.store(this.interruptSignal, 0, 0);
 
-        // push PSR and PC onto supervisor stack
-        let ssp = this.savedSSP[0];
-        this.memory[--ssp] = this.getPSR();
-        this.memory[--ssp] = this.pc[0];
-        this.savedSSP[0] = ssp;
-
-        this.changedMemory.add(ssp);
-        this.changedMemory.add(ssp + 1);
-        
+        // push PSR and PC onto supervisot stack
+        let ssp = Atomics.load(this.savedSSP, 0);
+        this.setMemory(ssp - 1, this.getPSR());
+        this.setMemory(ssp - 2, this.getPC());
+        Atomics.store(this.savedSSP, 0, ssp - 2);
 
         // load R6 with supervisor stack if it is not the SSP already
-        if (this.userMode)
+        if (this.userMode())
         {
-            this.savedUSP[0] = this.registers[6];
-            this.registers[6] = this.savedSSP[0];
+            Atomics.store(this.savedUSP, 0, this.getRegister(6));
+            this.setRegister(6, Atomics.load(this.savedSSP, 0));
         }
 
         // set privilege mode to supervisor (PSR[15] = 0)
-        this.userMode = false;
+        Atomics.or(this.psr, 0, this.MASK_USER);
 
         // set priority level to the one given by the interrupt
-        this.priorityLevel = this.interruptPriority;
+        this.setPriorityLevel(Atomics.load(this.interruptPriority, 0));
 
-        // set the PC to the value of the vector expanded to 16 bits + 0x0100
-        this.pc[0] = this.memory[this.interruptVector + 0x0100];
+        // set PC to memory[vector + 0x0100]
+        let vector = Atomics.load(this.interruptVector, 0);
+        vector += 0x0100;
+        this.setPC(this.getMemory(vector));
     }
 
     /**
@@ -602,7 +618,7 @@ class SimWorker
     private static execAdd(instruction: number)
     {
         const destReg = decodeRegister(instruction, 0);
-        const source1 = this.registers[decodeRegister(instruction, 1)];
+        const source1 = this.getRegister(decodeRegister(instruction, 1));
         let source2: number;
         if ((instruction & 0b10_0000) != 0)
         {
@@ -610,17 +626,18 @@ class SimWorker
         }
         else
         {
-            source2 = this.registers[decodeRegister(instruction, 2)];
+            source2 = this.getRegister(decodeRegister(instruction, 2));
         }
 
-        this.registers[destReg] = source1 + source2;
-        this.setConditions(this.registers[destReg]);
+        const res = source1 + source2;
+        this.setRegister(destReg, res);
+        this.setConditions(res);
     }
 
     private static execAnd(instruction: number)
     {
         const destReg = decodeRegister(instruction, 0);
-        const source1 = this.registers[decodeRegister(instruction, 1)];
+        const source1 = this.getRegister(decodeRegister(instruction, 1));
         let source2: number;
         if ((instruction & 0b10_0000) != 0)
         {
@@ -628,82 +645,92 @@ class SimWorker
         }
         else
         {
-            source2 = this.registers[decodeRegister(instruction, 2)];
+            source2 = this.getRegister(decodeRegister(instruction, 2));
         }
 
-        this.registers[destReg] = source1 & source2;
-        this.setConditions(this.registers[destReg]);
+        const res = source1 & source2;
+        this.setRegister(destReg, res);
+        this.setConditions(res);
     }
 
     private static execBr(instruction: number)
     {
         if (
-            (this.flagNegative && (instruction & 0x0800))
-            || (this.flagZero && (instruction & 0x0400))
-            || (this.flagPositive && (instruction & 0x0200))
+            (this.flagNegative() && (instruction & 0x0800))
+            || (this.flagZero() && (instruction & 0x0400))
+            || (this.flagPositive() && (instruction & 0x0200))
         )
         {
-            this.pc[0] += decodeImmediate(instruction, 9);
+            Atomics.add(this.pc, 0, decodeImmediate(instruction, 9));
+            // this.pc[0] += decodeImmediate(instruction, 9);
         }
     }
 
     private static execJmp(instruction: number)
     {
-        this.pc[0] = this.registers[decodeRegister(instruction, 1)];
+        // this.pc[0] = this.registers[decodeRegister(instruction, 1)];
+        this.setPC(this.getRegister(decodeRegister(instruction, 1)));
     }
 
     private static execJsr(instruction: number)
     {
-        const savedPC = this.pc[0];
+        const savedPC = this.getPC();
         if (instruction & 0x800)
         {
-            this.pc[0] += decodeImmediate(instruction, 11);
+            Atomics.add(this.pc, 0, decodeImmediate(instruction, 11));
+            // this.pc[0] += decodeImmediate(instruction, 11);
         }
         else
         {
-            this.pc[0] = this.registers[decodeRegister(instruction, 1)];
+            this.setPC(this.getRegister(decodeRegister(instruction, 1)));
+            // this.pc[0] = this.registers[decodeRegister(instruction, 1)];
         }
-        this.registers[7] = savedPC;
+        this.setRegister(7, savedPC);
     }
 
     private static execLd(instruction: number)
     {
         const destReg = decodeRegister(instruction, 0);
-        const src = (this.pc[0] + decodeImmediate(instruction, 9)) & 0xFFFF;
-        this.registers[destReg] = this.memory[src];
-        this.setConditions(this.registers[destReg]);
+        const src = (this.getPC() + decodeImmediate(instruction, 9)) & 0xFFFF;
+        const res = this.getMemory(src);
+        this.setRegister(destReg, res);
+        this.setConditions(res);
     }
 
     private static execLdi(instruction: number)
     {
         const destReg = decodeRegister(instruction, 0);
-        const src = (this.pc[0] + decodeImmediate(instruction, 9)) & 0xFFFF;
-        this.registers[destReg] = this.memory[this.memory[src]];
-        this.setConditions(this.registers[destReg]);
+        const src = (this.getPC() + decodeImmediate(instruction, 9)) & 0xFFFF;
+        const res = this.getMemory(this.getMemory(src));
+        this.setRegister(destReg, res);
+        this.setConditions(res);
     }
 
     private static execLdr(instruction: number)
     {
         const destReg = decodeRegister(instruction, 0);
         const srcReg = decodeRegister(instruction, 1);
-        const src = (this.registers[srcReg]
+        const src = (this.getRegister(srcReg)
                 + decodeImmediate(instruction, 6)) & 0xFFFF;
-        this.registers[destReg] = this.memory[src];
-        this.setConditions(this.registers[destReg]);
+        const res = this.getMemory(src);
+        this.setRegister(destReg, res);
+        this.setConditions(res);
     }
 
     private static execLea(instruction: number)
     {
         const destReg = decodeRegister(instruction, 0);
-        this.registers[destReg] = this.pc[0] + decodeImmediate(instruction, 9);
-        this.setConditions(this.registers[destReg]);
+        const res = this.getPC() + decodeImmediate(instruction, 9);
+        this.setRegister(destReg, res);
+        this.setConditions(res);
     }
 
     private static execNot(instruction: number)
     {
         const destReg = decodeRegister(instruction, 0);
-        this.registers[destReg] = (~this.registers[decodeRegister(instruction, 1)]) & 0xFFFF;
-        this.setConditions(this.registers[destReg]);
+        const res = (~this.getRegister(decodeRegister(instruction, 1))) & 0xFFFF;
+        this.setRegister(destReg, res);
+        this.setConditions(res);
     }
 
     /**
@@ -713,6 +740,23 @@ class SimWorker
      */
     private static execRti(instruction: number)
     {
+        let sp = Atomics.load(this.savedSSP, 0);
+        this.setPC(this.getMemory(sp));
+        this.setPSR(this.getMemory(sp + 1));
+        Atomics.store(this.savedSSP, 0, sp + 2);
+
+        // if we went user -> supervisor, load R6 with USP
+        if (this.userMode())
+        {
+            this.setRegister(6, Atomics.load(this.savedUSP, 0));
+        }
+        // otheewise, load R6 with SPP
+        else
+        {
+            this.setRegister(6, Atomics.load(this.savedSSP, 0));
+        }
+
+        /*
         let sp = this.savedSSP[0];
         this.pc[0] = this.memory[sp++];
         this.setPSR(this.memory[sp++]);
@@ -728,32 +772,27 @@ class SimWorker
         {
             this.registers[6] = this.savedSSP[0];
         }
+        */
     }
 
     private static execSt(instruction: number)
     {
-        const dest = (this.pc[0] + decodeImmediate(instruction, 9)) & 0xFFFF;
-        this.memory[dest] = this.registers[decodeRegister(instruction, 0)];
-
-        this.changedMemory.add(dest);
+        const dest = (this.getPC() + decodeImmediate(instruction, 9)) & 0xFFFF;
+        this.setMemory(dest, this.getRegister(decodeRegister(instruction, 0)));
     }
 
     private static execSti(instruction: number)
     {
-        const dest = (this.pc[0] + decodeImmediate(instruction, 9)) & 0xFFFF;
-        this.memory[this.memory[dest]] = this.registers[decodeRegister(instruction, 0)];
-    
-        this.changedMemory.add(this.memory[dest]);
+        const dest = (this.getPC() + decodeImmediate(instruction, 9)) & 0xFFFF;
+        this.setMemory(this.getMemory(dest), this.getRegister(decodeRegister(instruction, 0)));
     }
 
     private static execStr(instruction: number)
     {
         const destReg = decodeRegister(instruction, 1);
         const srcReg = decodeRegister(instruction, 0);
-        const dest = (this.registers[destReg] + decodeImmediate(instruction, 6)) & 0xFFFF;
-        this.memory[dest] = this.registers[srcReg];
-
-        this.changedMemory.add(dest);
+        const dest = (this.getRegister(destReg) + decodeImmediate(instruction, 6)) & 0xFFFF;
+        this.setMemory(dest, this.getRegister(srcReg));
     }
 
     /**
@@ -763,8 +802,8 @@ class SimWorker
      */
     private static execTrap(instruction: number)
     {
-        this.registers[7] = this.pc[0];
-        this.pc[0] = this.memory[instruction & 0x00FF];
+        this.setRegister(7, this.getPC());
+        this.setPC(this.getMemory(instruction & 0x00FF));
     }
 }
 
