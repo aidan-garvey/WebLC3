@@ -3,8 +3,6 @@
  * 
  * The LC-3 simulator. Each instance keeps track of the machine's state and
  * executes code.
- * 
- * All functions that run the simulator (and only those functions) are async.
  */
 
 import Assembler from "../assembler/assembler";
@@ -49,21 +47,10 @@ export default class Simulator
     // program counter
     private pc: Uint16Array;// = new Uint16Array(1);
 
-    /*
-    // components of the Processor Status Register (PSR)
-    private userMode: boolean = true;
-    private priorityLevel: number = 0;
-    private flagNegative: boolean = false;
-    private flagZero: boolean = false;
-    private flagPositive: boolean = false;
-    */
     // Processor Status Register (PSR)
     private psr: Uint16Array;
 
     // interrupt parameters
-    // private interruptSignal: boolean = false;
-    // private interruptPriority: number = 0;
-    // private interruptVector: number = 0;
     private interruptSignal: Uint8Array;
     private interruptPriority: Uint8Array;
     private interruptVector: Uint16Array;
@@ -108,7 +95,7 @@ export default class Simulator
         this.interruptPriority = new Uint8Array(new SharedArrayBuffer(1));
         this.interruptVector = new Uint16Array(new SharedArrayBuffer(2));
         this.workerHalt = new Uint8Array(new SharedArrayBuffer(1));
-        this.workerHalt[0] = 0;
+        Atomics.store(this.workerHalt, 0, 0);
 
         // assemble operating system code, load into simulator, then load user's code
         (async ()=>{
@@ -119,7 +106,6 @@ export default class Simulator
             this.loadBuiltInCode();
             
             this.initWorker();
-            // this.ignoreWorker = false;
             this.workerBusy = false;
 
             // get this class and the worker to reload the program
@@ -147,28 +133,6 @@ export default class Simulator
     }
 
     /**
-     * Handle a cycle update from the worker
-     * @param msg message passed from the worker
-     */
-    /*
-    private updateFromWorker(msg: any)
-    {
-        for (let [addr, val] of msg.memoryMap)
-        {
-            this.memory[addr] = val;
-        }
-        this.registers = msg.registers;
-        this.savedUSP = msg.savedUSP;
-        this.savedSSP = msg.savedSSP;
-        this.pc = msg.pc;
-        this.setPSR(msg.psr, false);
-        this.interruptSignal = msg.intSignal;
-        this.interruptPriority = msg.intPriority;
-        this.interruptVector = msg.intVector;
-    }
-    */
-
-    /**
      * Send a message to simWorker with the simulator's state
      */
     private initWorker()
@@ -180,11 +144,6 @@ export default class Simulator
             console.log("Main thread received new message:");
             console.log(msg);
 
-            // if (this.ignoreWorker)
-                // console.log("Ignoring");
-            // else if (msg.type === Messages.CYCLE_UPDATE)
-                // this.updateFromWorker(msg);
-            // \/ else if \/
             if (msg.type === Messages.WORKER_DONE){
                 this.workerBusy = false;
                 Atomics.store(this.workerHalt, 0, 0);
@@ -206,8 +165,6 @@ export default class Simulator
             intPriority: this.interruptPriority,
             intVector: this.interruptVector,
             breakPoints: this.breakPoints,
-            userObj: this.userObjFile,
-            osObj: this.osObjFile,
             halt: this.workerHalt
         });
     }
@@ -221,9 +178,7 @@ export default class Simulator
         if (this.workerBusy)
         {
             this.halt();
-            while (this.workerBusy);
         }
-        // this.simWorker.postMessage({type: Messages.RELOAD});
 
         let loc = this.userObjFile[0];
         for (let i = 1; i < this.userObjFile.length; i++)
@@ -256,10 +211,8 @@ export default class Simulator
         if (this.workerBusy)
         {
             this.halt();
-            while (this.workerBusy);
         }
         Atomics.store(this.pc, 0, this.userObjFile[0]);
-        // this.simWorker.postMessage({type: Messages.SET_PC, pc: this.pc});
     }
 
     /**
@@ -267,11 +220,9 @@ export default class Simulator
      */
     public resetMemory()
     {
-        // this.simWorker.postMessage({type: Messages.RESET});
         if (this.workerBusy)
         {
             this.halt();
-            while (this.workerBusy);
         }
 
         for (let i = 0; i < this.memory.length; i++)
@@ -293,7 +244,6 @@ export default class Simulator
         if (this.workerBusy)
         {
             this.halt();
-            while (this.workerBusy);
         }
 
         for (let i = 0; i < this.memory.length; i++)
@@ -305,26 +255,10 @@ export default class Simulator
             this.setRegister(i, this.randWord());
         }
         this.loadBuiltInCode();
-
-        // this.simWorker.postMessage({type: Messages.RANDOMIZE, memory: this.memory});
     }
 
     public async halt()
     {
-        /*
-        if (this.workerBusy)
-        {
-            console.log("Terminating worker");
-            this.ignoreWorker = true;
-            this.simWorker.terminate();
-            console.log("Recreating worker");
-            this.initWorker();
-            this.ignoreWorker = false;
-            this.workerBusy = false;
-            UI.appendConsole("Force stopped simulator, program reset.\n")
-            UI.setSimulatorReady();
-        }
-        */
         if (this.workerBusy)
         {
             console.log("Simulator halting worker");
@@ -429,19 +363,6 @@ export default class Simulator
             Atomics.store(this.interruptPriority, 0, 4);
             Atomics.store(this.interruptVector, 0, 0x80);
         }
-
-        /*
-        this.simWorker.postMessage(
-            {
-                type: Messages.KBD_INT,
-                intSignal: this.interruptSignal,
-                intPriority: this.interruptPriority,
-                intVector: this.interruptVector,
-                kbsr: this.memory[Simulator.KBSR],
-                kndr: this.memory[Simulator.KBDR]
-            }
-        );
-        */
     }
 
     /**
@@ -537,9 +458,6 @@ export default class Simulator
     public setMemory(address: number, value: number)
     {
         Atomics.store(this.memory, address, value);
-        // this.simWorker.postMessage({
-        //     type: Messages.SET_MEM, addr: address, val: value
-        // });
     }
 
     /**
@@ -560,7 +478,6 @@ export default class Simulator
     public setRegister(registerNumber: number, value: number)
     {
         Atomics.store(this.registers, registerNumber, value);
-        // this.simWorker.postMessage({type: Messages.SET_REG, registers: this.registers});
     }
 
     /**
@@ -579,7 +496,6 @@ export default class Simulator
     public setPC(value: number)
     {
         Atomics.store(this.pc, 0, value);
-        // this.simWorker.postMessage({type: Messages.SET_PC, pc: this.pc});
     }
 
     /**
@@ -622,24 +538,6 @@ export default class Simulator
         ];
     }
 
-    private flagNegative(): boolean
-    {
-        let psrVal = this.getPSR();
-        return (psrVal & Simulator.MASK_N) != 0;
-    }
-
-    private flagZero(): boolean
-    {
-        let psrVal = this.getPSR();
-        return (psrVal & Simulator.MASK_Z) != 0;
-    }
-
-    private flagPositive(): boolean
-    {
-        let psrVal = this.getPSR();
-        return (psrVal & Simulator.MASK_P) != 0;
-    }
-
     private priorityLevel(): number
     {
         let psrVal = this.getPSR();
@@ -651,7 +549,6 @@ export default class Simulator
      * following order: (1) if the processor is in user or supervisor mode; (2)
      * the priority level of the currently-executing program; (3) the condition
      * code flags
-     * @returns three strings describing the status of the PSR
      */
     public getPSRInfo() : string[]
     {
@@ -696,13 +593,5 @@ export default class Simulator
         Atomics.store(this.interruptVector, 0, 0);
         Atomics.store(this.savedSSP, 0, 0x3000);
         Atomics.store(this.savedUSP, 0, 0);
-
-        /*
-        this.interruptSignal = false;
-        this.interruptPriority = 0;
-        this.interruptVector = 0;
-        this.savedSSP[0] = 0x3000;
-        this.savedUSP[0] = 0;
-        */
     }
 }

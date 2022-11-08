@@ -48,30 +48,16 @@ class SimWorker
     private static savedSSP: Uint16Array;
     // program counter
     private static pc: Uint16Array;
-    /*
-    // components of the Processor Status Register (PSR)
-    private static userMode: boolean;
-    private static priorityLevel: number;
-    private static flagNegative: boolean;
-    private static flagZero: boolean;
-    private static flagPositive: boolean;
-    */
+    // processor status register
     private static psr: Uint16Array;
 
     // interrupt parameters
-    // private static interruptSignal: boolean;
-    // private static interruptPriority: number;
-    // private static interruptVector: number;
     private static interruptSignal: Uint8Array;
     private static interruptPriority: Uint8Array;
     private static interruptVector: Uint16Array;
 
     // addresses of each active breakpoint
     private static breakPoints: Set<number>;
-    // object file for program to run
-    private static userObjFile: Uint16Array;
-    // object file for operating system code
-    private static osObjFile: Uint16Array;
 
     // if set to non-zero, worker must stop executing
     private static haltFlag: Uint8Array;
@@ -99,24 +85,8 @@ class SimWorker
                     this.interruptPriority = msg.intPriority;
                     this.interruptVector = msg.intVector;
                     this.breakPoints = msg.breakPoints;
-                    this.userObjFile = msg.userObj;
-                    this.osObjFile = msg.osObj;
                     this.haltFlag = msg.halt;
                     break;
-                /*
-                case Messages.RELOAD:
-                    this.reloadProgram();
-                    break;
-                case Messages.RESET:
-                    this.resetMemory();
-                    break;
-                case Messages.RANDOMIZE:
-                    this.memory = msg.memory;
-                    break;
-                case Messages.HALT:
-                    this.haltFlag = true;
-                    break;
-                */
                 case Messages.RUN:
                     this.run();
                     break;
@@ -129,15 +99,6 @@ class SimWorker
                 case Messages.STEP_OVER:
                     this.stepOver();
                     break;
-                /*
-                case Messages.KBD_INT:
-                    this.interruptSignal = msg.intSignal;
-                    this.interruptPriority = msg.intPriority;
-                    this.interruptVector = msg.intVector;
-                    this.memory[this.KBSR] = msg.kbsr;
-                    this.memory[this.KBDR] = msg.kbdr;
-                    break;
-                */
                 case Messages.SET_BREAK:
                     this.breakPoints.add(msg.addr);
                     break;
@@ -147,20 +108,6 @@ class SimWorker
                 case Messages.CLR_ALL_BREAKS:
                     this.breakPoints.clear();
                     break;
-                /*
-                case Messages.SET_MEM:
-                    this.memory[msg.addr] = msg.val;
-                    break;
-                case Messages.SET_REG:
-                    this.registers = msg.registers;
-                    break;
-                case Messages.SET_PC:
-                    this.pc = msg.pc;
-                    break;
-                case Messages.SET_PSR:
-                    this.setPSR(msg.psr);
-                    break;
-                */
             }
         };
     }
@@ -173,35 +120,6 @@ class SimWorker
     {
         self.postMessage({type: Messages.CONSOLE, message: msg});
     }
-
-    /**
-     * Send a message to the main thread after an instruction cycle to update
-     * its values.
-     */
-    /*
-    private static updateMainThread()
-    {
-        // construct map from changedMemory
-        const memUpdates: Map<number, number> = new Map();
-        for (let addr of this.changedMemory)
-        {
-            memUpdates.set(addr, this.memory[addr]);
-        }
-        // send the message
-        self.postMessage({
-            type: Messages.CYCLE_UPDATE,
-            memoryMap: memUpdates,
-            registers: this.registers,
-            savedUSP: this.savedUSP,
-            savedSSP: this.savedSSP,
-            pc: this.pc,
-            psr: this.getPSR(),
-            intSignal: this.interruptSignal,
-            intPriority: this.interruptPriority,
-            intVector: this.interruptVector
-        });
-    }
-    */
 
     /*****************************
      ---- Getters and Setters ----
@@ -278,12 +196,6 @@ class SimWorker
     {
         let psrVal = this.getPSR();
         return (psrVal & this.MASK_P) != 0;
-    }
-
-    private static priorityLevel(): number
-    {
-        let psrVal = this.getPSR();
-        return (psrVal >> 8) & 0x7;
     }
 
     private static setPriorityLevel(level: number)
@@ -662,13 +574,11 @@ class SimWorker
         )
         {
             Atomics.add(this.pc, 0, decodeImmediate(instruction, 9));
-            // this.pc[0] += decodeImmediate(instruction, 9);
         }
     }
 
     private static execJmp(instruction: number)
     {
-        // this.pc[0] = this.registers[decodeRegister(instruction, 1)];
         this.setPC(this.getRegister(decodeRegister(instruction, 1)));
     }
 
@@ -678,12 +588,10 @@ class SimWorker
         if (instruction & 0x800)
         {
             Atomics.add(this.pc, 0, decodeImmediate(instruction, 11));
-            // this.pc[0] += decodeImmediate(instruction, 11);
         }
         else
         {
             this.setPC(this.getRegister(decodeRegister(instruction, 1)));
-            // this.pc[0] = this.registers[decodeRegister(instruction, 1)];
         }
         this.setRegister(7, savedPC);
     }
@@ -755,24 +663,6 @@ class SimWorker
         {
             this.setRegister(6, Atomics.load(this.savedSSP, 0));
         }
-
-        /*
-        let sp = this.savedSSP[0];
-        this.pc[0] = this.memory[sp++];
-        this.setPSR(this.memory[sp++]);
-        this.savedSSP[0] = sp;
-
-        // if we went user -> supervisor, load R6 with USP
-        if (this.userMode)
-        {
-            this.registers[6] = this.savedUSP[0];
-        }
-        // otherwise, load R6 with SSP
-        else
-        {
-            this.registers[6] = this.savedSSP[0];
-        }
-        */
     }
 
     private static execSt(instruction: number)
