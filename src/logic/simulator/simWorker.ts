@@ -38,6 +38,7 @@ class SimWorker
     private static CLEAR_N = 0b1111_1111_1111_1011;
     private static CLEAR_Z = 0b1111_1111_1111_1101;
     private static CLEAR_P = 0b1111_1111_1111_1110;
+    private static CLEAR_USER = 0x7FFF;
 
     // simulator's memory, transferred from simulator
     private static memory: Uint16Array;
@@ -133,26 +134,31 @@ class SimWorker
         return Atomics.load(this.psr, 0);
     }
 
+    // set clock-enable bit in machine control register
     private static enableClock()
     {
         Atomics.or(this.memory, this.MCR, 0x8000);
     }
 
+    // check if clock-enable bit is set in machine control register
     private static isClockEnabled(): boolean
     {
         return (Atomics.load(this.memory, this.MCR) & 0x8000) != 0;
     }
 
+    // check if simWorker's halt flag is set
     private static haltSet(): boolean
     {
         return Atomics.load(this.haltFlag, 0) != 0;
     }
 
+    // get the value at a memory location
     private static getMemory(addr: number): number
     {
         return Atomics.load(this.memory, addr);
     }
 
+    // set a word of memory
     private static setMemory(addr: number, value: number)
     {
         Atomics.store(this.memory, addr, value);
@@ -168,39 +174,46 @@ class SimWorker
         Atomics.store(this.pc, 0, value);
     }
 
+    // get the value of a register
     private static getRegister(index: number): number
     {
         return Atomics.load(this.registers, index);
     }
 
+    // set a register's value
     private static setRegister(index: number, value: number)
     {
         Atomics.store(this.registers, index, value);
     }
 
+    // get status of N flag in PSR
     private static flagNegative(): boolean
     {
         let psrVal = this.getPSR();
         return (psrVal & this.MASK_N) != 0;
     }
 
+    // get status of Z flag in PSR
     private static flagZero(): boolean
     {
         let psrVal = this.getPSR();
         return (psrVal & this.MASK_Z) != 0;
     }
 
+    // get status of P flag in PSR
     private static flagPositive(): boolean
     {
         let psrVal = this.getPSR();
         return (psrVal & this.MASK_P) != 0;
     }
 
+    // set priority level in PSR
     private static setPriorityLevel(level: number)
     {
         Atomics.or(this.psr, 0, (level & 0x7) << 8);
     }
 
+    // check the user mode bit in the PSR, return true if it is set
     private static userMode(): boolean
     {
         let psrVal = this.getPSR();
@@ -481,7 +494,7 @@ class SimWorker
         }
 
         // set privilege mode to supervisor (PSR[15] = 0)
-        Atomics.or(this.psr, 0, this.MASK_USER);
+        Atomics.and(this.psr, 0, this.CLEAR_USER);
 
         // set PC to memory[vector + 0x0100]
         vector += 0x0100;
@@ -510,7 +523,7 @@ class SimWorker
         }
 
         // set privilege mode to supervisor (PSR[15] = 0)
-        Atomics.or(this.psr, 0, this.MASK_USER);
+        Atomics.and(this.psr, 0, this.CLEAR_USER);
 
         // set priority level to the one given by the interrupt
         this.setPriorityLevel(Atomics.load(this.interruptPriority, 0));
