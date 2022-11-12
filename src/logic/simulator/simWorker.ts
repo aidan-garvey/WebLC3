@@ -469,6 +469,9 @@ class SimWorker
      */
     private static setConditions(result: number)
     {
+        // truncate to 16 bits
+        result &= 0xFFFF;
+
         let psrVal = this.getPSR();
         if ((result & 0x8000) != 0)
         {
