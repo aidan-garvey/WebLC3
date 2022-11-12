@@ -139,9 +139,6 @@ export default class Simulator
 
         this.simWorker.onmessage = (event) => {
             const msg = event.data;
-            console.log("Main thread received new message:");
-            console.log(msg);
-
             if (msg.type === Messages.WORKER_DONE){
                 this.workerBusy = false;
                 Atomics.store(this.workerHalt, 0, 0);

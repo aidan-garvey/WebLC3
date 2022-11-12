@@ -69,8 +69,6 @@ class SimWorker
     {
         self.onmessage = (event) => {
             const msg = event.data;
-            console.log("Worker received new message:");
-            console.log(msg);
             switch (msg.type)
             {
                 // save a copy of the simulator's data
