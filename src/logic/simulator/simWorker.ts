@@ -240,6 +240,7 @@ class SimWorker
         }
 
         self.postMessage({type: Messages.WORKER_DONE});
+        console.log("PC: 0x" + this.getPC().toString(16));
     }
 
     /**
@@ -251,6 +252,7 @@ class SimWorker
         let intOrEx = this.instructionCycle();
 
         self.postMessage({type: Messages.WORKER_DONE});
+        console.log("PC: 0x" + this.getPC().toString(16));
     }
 
     /**
@@ -258,17 +260,18 @@ class SimWorker
      * service call is returned from, or any of the conditions for run()
      * stopping are encountered
      */
-    private static stepOut()
+    private static stepOut(quiet = false)
     {
         let currDepth = 1;
+        let nextInstruction = this.getMemory(this.getPC());
         this.enableClock();
 
         // execute first instruction cycle, ignoring breakpoints
-        if (Opcodes.isRETorRTI(this.getPC()))
+        if (Opcodes.isRETorRTI(nextInstruction)) // needs to be memory[pc], not pc
         {
             --currDepth;
         }
-        else if (Opcodes.isJSRorJSRR(this.getPC()) || Opcodes.isTRAP(this.getPC()))
+        else if (Opcodes.isJSRorJSRR(nextInstruction) || Opcodes.isTRAP(nextInstruction))
         {
             ++currDepth;
         }
@@ -281,11 +284,12 @@ class SimWorker
         // keep executing but don't ignore clock or breakpoints
         while (!this.haltSet() && currDepth > 0 && this.isClockEnabled() && !this.breakPoints.has(this.getPC()))
         {
-            if (Opcodes.isRETorRTI(this.getPC()))
+            nextInstruction = this.getMemory(this.getPC());
+            if (Opcodes.isRETorRTI(nextInstruction))
             {
                 --currDepth;
             }
-            else if (Opcodes.isJSRorJSRR(this.getPC()) || Opcodes.isTRAP(this.getPC()))
+            else if (Opcodes.isJSRorJSRR(nextInstruction) || Opcodes.isTRAP(nextInstruction))
             {
                 ++currDepth;
             }
@@ -298,7 +302,9 @@ class SimWorker
             }
         }
 
-        self.postMessage({type: Messages.WORKER_DONE});
+        if (!quiet)
+            self.postMessage({type: Messages.WORKER_DONE});
+        console.log("PC: 0x" + this.getPC().toString(16));
     }
 
     /**
@@ -309,9 +315,10 @@ class SimWorker
     private static stepOver()
     {
         let depth = 0;
+        let nextInstruction = this.getMemory(this.getPC());
 
         // if we have a jsr/jsrr/trap, we'll need to step out of it
-        if (Opcodes.isJSRorJSRR(this.getMemory(this.getPC())) || Opcodes.isTRAP(this.getMemory(this.getPC())))
+        if (Opcodes.isJSRorJSRR(nextInstruction) || Opcodes.isTRAP(nextInstruction))
         {
             ++depth;
         }
@@ -325,11 +332,13 @@ class SimWorker
         // call stepOut() until we're back to depth of 0
         while (!this.haltSet() && depth > 0 && this.isClockEnabled() && !this.breakPoints.has(this.getPC()))
         {
-            this.stepOut();
+            // call with quiet = true so we don't tell the simulator we're done
+            this.stepOut(true);
             --depth;
         }
 
         self.postMessage({type: Messages.WORKER_DONE});
+        console.log("PC: 0x" + this.getPC().toString(16));
     }
 
     /**
