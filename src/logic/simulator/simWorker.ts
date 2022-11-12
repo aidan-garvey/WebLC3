@@ -426,11 +426,19 @@ class SimWorker
         }
 
         // (3) console output
-        if ((this.getMemory(this.DSR) & 0x8000) == 0)
+        if (this.getMemory(this.DDR) != 0)
         {
-            // print character, set ready bit
+            // clear DSR ready bit
+            Atomics.and(this.memory, this.DSR, 0x7FFF);
+            // print character, clear DDR, set DSR ready bit
             const toPrint = this.getMemory(this.DDR) & 0x00FF;
             this.sendConsoleMessage(String.fromCharCode(toPrint));
+            Atomics.store(this.memory, this.DDR, 0);
+            Atomics.or(this.memory, this.DSR, 0x8000);
+        }
+        // ensure console's ready bit is on if it isn't printing something out
+        else
+        {
             Atomics.or(this.memory, this.DSR, 0x8000);
         }
 

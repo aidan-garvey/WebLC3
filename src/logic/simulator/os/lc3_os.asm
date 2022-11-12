@@ -99,11 +99,10 @@ GETC_WAIT:
 ; Write a character in R0[7:0] to the console display.
 ; ----------------------------------------------------
 TRAP_OUT:
-    ; push r0-r2
-    ADD     r6, r6, #-3
+    ; push r0-r1
+    ADD     r6, r6, #-2
     STR     r0, r6, #0
     STR     r1, r6, #1
-    STR     r2, r6, #2
     ; ensure we only write lower byte to console
     LD      r1, BYTE_MASK
     AND     r0, r0, r1
@@ -112,16 +111,12 @@ OUT_WAIT:
     LDI     r1, CON_STATUS
     ; ready bit is MSB so we loop until result is negative
     BRzp    OUT_WAIT
+    ; write character
     STI     r0, CON_DATA
-    ; clear console ready bit
-    LD      r2, MSB_MASK
-    AND     r1, r1, r2
-    STI     r1, CON_STATUS
     ; pop registers and return
     LDR     r0, r6, #0
     LDR     r1, r6, #1
-    LDR     r2, r6, #2
-    ADD     r6, r6, #3
+    ADD     r6, r6, #2
     RET
 
 ; -----------------------------------------------------------------------------
@@ -132,23 +127,19 @@ OUT_WAIT:
 ; occurrence of x0000 in a memory location.
 ; -----------------------------------------------------------------------------
 TRAP_PUTS:
-    ; push r0-r4
-    ADD     r6, r6, #-5
+    ; push r0-r3
+    ADD     r6, r6, #-4
     STR     r0, r6, #0
     STR     r1, r6, #1
     STR     r2, r6, #2
     STR     r3, r6, #3
-    STR     r4, r4, #4
 
     ; r2 will mask ASCII characters
     LD      r2, BYTE_MASK
-    ; r4 will be used to clear the console ready bit
-    LD      r4, MSB_MASK
 PUTS_STRING_LOOP:
     ; load next character into r1
     LDR     r1, r0, #0
-    BRz     PUTS_BREAK  ; break loop if we hit x0000
-    ADD     r0, r0, #1  ; advance to next character
+    BRz     PUTS_BREAK  ; break loop if we hit a null character
     AND     r1, r1, r2  ; mask character
     ; wait for console to be ready
 PUTS_CONSOLE_LOOP:
@@ -156,9 +147,7 @@ PUTS_CONSOLE_LOOP:
     BRzp    PUTS_CONSOLE_LOOP
     ; write character
     STI     r1, CON_DATA
-    ; clear console ready bit
-    AND     r3, r3, r4
-    STI     r3, CON_STATUS
+    ADD     r0, r0, #1  ; advance to next character
     BR      PUTS_STRING_LOOP
 PUTS_BREAK:
     ; pop registers and return
@@ -166,8 +155,7 @@ PUTS_BREAK:
     LDR     r1, r6, #1
     LDR     r2, r6, #2
     LDR     r3, r6, #3
-    LDR     r4, r6, #4
-    ADD     r6, r6, #5
+    ADD     r6, r6, #4
     RET
 
 ; ---------------------------------------------------------------------------
@@ -207,9 +195,6 @@ IN_CON_LOOP:
     LDI     r1, CON_STATUS
     BRzp    IN_CON_LOOP
     STI     r0, CON_DATA
-    ; clear console ready bit
-    AND     r1, r1, r2
-    STI     r1, CON_STATUS
 
     ; pop r1-r2 and return
     LDR     r1, r6, #0
