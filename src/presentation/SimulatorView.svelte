@@ -7,7 +7,7 @@
     import JumpControls from "./JumpControls.svelte"
 	import SimulatorStatus from './SimulatorStatus.svelte'
 	import UI from './ui'
-	import { reloadOverride, consoleSelected } from './stores'
+	import { reloadOverride } from './stores'
 
 	let orig=""
 	$: pc = 512
@@ -167,13 +167,11 @@
 
 	function focusConsole(event){
         UI.selectConsole()
-        consoleSelected.set(true)
         event.stopImmediatePropagation()
     }
 
 	function blurConsole(){
 		UI.deselectConsole()
-		consoleSelected.set(false)
     }
 	
 </script>

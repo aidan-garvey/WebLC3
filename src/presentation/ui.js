@@ -6,7 +6,7 @@
  * - SimulatorStatus
  */
 
-import { activeStoplight } from "./stores"
+import { activeStoplight, consoleSelected } from "./stores"
 
 
 function printConsole(msg){
@@ -26,11 +26,13 @@ function clearConsole(){
 function selectConsole(){
     let theConsole = document.getElementById("c-ctr")
     theConsole.classList.add("console-highlighted")
+    consoleSelected.set(true)
 }
 
 function deselectConsole(){
     let theConsole = document.getElementById("c-ctr")
     theConsole.classList.remove("console-highlighted")
+    consoleSelected.set(false)
 }
 
 function modifyConsole(msg, append=false, clear=false){
