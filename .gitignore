@@ -1,3 +1,6 @@
+# Ambient
+.svelte-kit\ambient.d.ts
+
 # Logs
 logs
 *.log
