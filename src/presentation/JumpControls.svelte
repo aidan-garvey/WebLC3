@@ -28,7 +28,6 @@
     function jumpMemory(){
         let jumpInput = document.getElementById("jump-input")
         let input = jumpInput.value
-        console.log(input)
         if(input == "")
             input = jumpInput.placeholder
         let loc = input.split('x').pop() // remove '0x' or 'x' prefix

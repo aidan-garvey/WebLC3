@@ -55,11 +55,14 @@
 
 	
 	// Detect memory reload override
-    reloadOverride.subscribe(value => {
-		let override = value
-        if(override){
-			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+    reloadOverride.subscribe(override => {
+		if(override[1]){
+			let theOrig = orig.split('x').pop() // remove '0x' or 'x' prefix
+			currPtr = parseInt(theOrig, 16)
+		}
+        if(override[0]){
 			pc = globalThis.simulator.getPC()
+			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
 			updateRegisters()
 		}
 	});
@@ -190,7 +193,7 @@
         	<div class="workSans componame">Memory</div>
 			<SimulatorStatus />
 		</div>
-		<Memory extPC={pc} ptr={currPtr} map={memMap} on:updatePC={newPC} />
+		<Memory pc={pc} ptr={currPtr} map={memMap} on:updatePC={newPC} />
         <JumpControls orig={orig} on:jump={jump} />
 	</section>
 </div>

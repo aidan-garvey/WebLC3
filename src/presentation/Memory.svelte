@@ -9,11 +9,12 @@
     export let rows = 23
 
     // Set PC and pointer on startup
-    export let extPC
+    export let pc
     export let ptr
     export let map
     let currPtr = ptr
-    let pc = extPC
+    let currMap = map
+    let currPC = pc
     
     // Load memory range
     $: data = []
@@ -23,8 +24,8 @@
         for (let n=0; n<rows; n++){
             let finalDec = newPtr+n
             let values = []
-            if(map)
-                values = map[n]
+            if(currMap)
+                values = currMap[n]
             data.push([finalDec].concat(values))
         }
         reloadMemUI()
@@ -33,7 +34,7 @@
     function reloadMemUI(){
         setTimeout(function() {
             clearSets()
-            let pcItem = document.getElementById("ptr-" + pc)
+            let pcItem = document.getElementById("ptr-" + currPC)
             if(pcItem)
                 pcItem.classList.add("ptr-selected")
             for(let bp of breakpoints){
@@ -49,25 +50,30 @@
 	});
 
     // Detect memory reload override
-    reloadOverride.subscribe(value => {
-		let override = value
-        if(override){
+    reloadOverride.subscribe(override => {
+        if(override[0]){
             setTimeout(function() {
                 reloadMemRange(currPtr)
-                reloadOverride.set(false)
+                reloadOverride.set([false, false])
             }, 500);
         }
 	});
 
-    // Detect memory pointer change
+    // Detect and reload on memory pointer change
     $: if (currPtr != ptr) {
         currPtr = ptr
         reloadMemRange(currPtr)
 	}
 
-    // Detect PC change
-    $: if (pc != extPC) {
-        pc = extPC
+    // Detect and reload on memory map change
+    $: if(currMap != map){
+        currMap = map
+        reloadMemRange(currPtr)
+    }
+
+    // Detect and reload on PC change
+    $: if (currPC != pc) {
+        currPC = pc
         reloadMemRange(currPtr)
 	}
 
@@ -92,14 +98,14 @@
 
     // Set PC on click
     function setPC(){
-        pc = parseInt(this.id.split('-').pop())
-        let currPC = document.querySelector(".ptr-selected")
-        if(currPC)
-            currPC.classList.remove("ptr-selected")
+        pcInt = parseInt(this.id.split('-').pop())
+        let thePC = document.querySelector(".ptr-selected")
+        if(thePC)
+            thePC.classList.remove("ptr-selected")
         this.classList.add("ptr-selected")
         if(globalThis.simulator){
-            globalThis.simulator.setPC(pc)
-            updatePC(pc)
+            globalThis.simulator.setPC(pcInt)
+            updatePC(pcInt)
         }
     }
 
@@ -111,9 +117,9 @@
 
     // Clear breakpoints and PC on memory reload
     function clearSets(){
-        let currPC = document.querySelector(".ptr-selected")
-        if(currPC)
-            currPC.classList.remove("ptr-selected")
+        let thePC = document.querySelector(".ptr-selected")
+        if(thePC)
+            thePC.classList.remove("ptr-selected")
         let bps = document.querySelectorAll(".bp-selected")
         for(let bp of bps)
             bp.classList.remove("bp-selected")

@@ -76,21 +76,21 @@
     function reloadClick(){
         if(globalThis.simulator){
             globalThis.simulator.reloadProgram()
-            reloadOverride.set(true)
+            reloadOverride.set([true,true])
         }
     }
 
     function reinitializeClick(){
         if(globalThis.simulator){
             globalThis.simulator.resetMemory()
-            reloadOverride.set(true)
+            reloadOverride.set([true,false])
         }
     }
 
     function randomizeClick(){
         if(globalThis.simulator){
             globalThis.simulator.randomizeMemory()
-            reloadOverride.set(true)
+            reloadOverride.set([true,false])
         }
     }
 
