@@ -1,12 +1,14 @@
 <script>
-    import { onMount } from 'svelte';
-    import { ResizeObserver } from 'resize-observer';
+    import { onMount } from 'svelte'
+    import { ResizeObserver } from 'resize-observer'
 
     let editor
     let monaco
 
     onMount(() => {
+        document.body.style.overflowY = "scroll"
         editor = document.getElementById("editorCtr")
+        editor.style.height = "100%"
         editor.innerText = ""
 		monaco = document.getElementById("container")
         editor.appendChild(monaco)
@@ -42,11 +44,9 @@
 
 <style>
     #editorCtr{
-        height: 100%;
+        height: 65vh;
         width: inherit;
         display: grid;
-        justify-items: center;
-        align-items: center;
         overflow: hidden;
     }
 

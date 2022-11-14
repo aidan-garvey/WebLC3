@@ -98,7 +98,7 @@
 
     // Set PC on click
     function setPC(){
-        pcInt = parseInt(this.id.split('-').pop())
+        let pcInt = parseInt(this.id.split('-').pop())
         let thePC = document.querySelector(".ptr-selected")
         if(thePC)
             thePC.classList.remove("ptr-selected")

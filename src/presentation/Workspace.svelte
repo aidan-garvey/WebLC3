@@ -21,12 +21,11 @@
 
 <style>
     #workspace{
-        margin-top: -1vh;
+        margin-top: 6vh;
         width: 100vw;
-        height: 85vh;
+        height: 80vh;
         display: flex;
         justify-content: center;
-        align-items: center;
     }
 
     #workspace-inner{
