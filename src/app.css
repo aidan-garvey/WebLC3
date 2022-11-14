@@ -230,6 +230,11 @@ body.dark{
 	cursor: text;
 }
 
+.dark #sim-view #consoleCtr:not(console-selected):hover{
+	border-color: var(--l-body);
+	transition: 0.1s;
+}
+
 .dark .regRow, .dark memRow{
 	background-color: var(--d-textarea);
 }
@@ -414,6 +419,11 @@ body.light{
 	background-color: var(--l-textarea);
 	border: 1px solid var(--l-border);
 	cursor: text;
+}
+
+.light #sim-view #consoleCtr:not(console-selected):hover{
+	border-color: var(--d-textarea);
+	transition: 0.1s;
 }
 
 .light .regRow, .light memRow{

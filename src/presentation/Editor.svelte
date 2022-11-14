@@ -9,6 +9,8 @@
         document.body.style.overflowY = "scroll"
         editor = document.getElementById("editorCtr")
         editor.style.height = "100%"
+        editor.style.justifyItems = "flex-start"
+        editor.style.alignItems = "flex-start"
         editor.innerText = ""
 		monaco = document.getElementById("container")
         editor.appendChild(monaco)
@@ -47,6 +49,8 @@
         height: 65vh;
         width: inherit;
         display: grid;
+        justify-items: center;
+        align-items: center;
         overflow: hidden;
     }
 

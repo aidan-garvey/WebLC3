@@ -29,7 +29,7 @@
     }
 
     #workspace-inner{
-        height: 88%;
+        height: 90%;
         width: 90%;
     }
 
