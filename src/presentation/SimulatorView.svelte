@@ -9,23 +9,11 @@
 	import UI from './ui'
 	import { reloadOverride } from './stores'
 
-	let orig=""
+	let orig = 0
 	$: pc = 512
 	$: currPtr = -1
 	$: memMap = []
-	$: regMap = [
-        ["R0", "0x0", "0"],
-        ["R1", "0x0", "0"],
-        ["R2", "0x0", "0"],
-        ["R3", "0x0", "0"],
-        ["R4", "0x0", "0"],
-        ["R5", "0x0", "0"],
-        ["R6", "0x0", "0"],
-        ["R7", "0x0", "0"],
-        ["PSR", "0x2", "2", "CC: Z"],
-        ["PC", "0x2", "512"],
-        ["MCR", "0x0", "0"],
-    ]
+	$: regMap = []
 	let shortJumpOffset = 5
 	let longJumpOffset = 23
 	let numRegisters = 8
@@ -38,14 +26,14 @@
 	onMount(() => {
 		if(globalThis.simulator){
 			pc = globalThis.simulator.getPC()
-			orig = "x" + pc.toString(16)
+			orig = pc
 			if(globalThis.lastPtr)
 				currPtr = globalThis.lastPtr
 			else
 				currPtr = pc
 			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
-			updateRegisters()
 		}
+		updateRegisters()
 
 		// Save last pointer On Destroy
         return () => {
@@ -56,10 +44,9 @@
 	
 	// Detect memory reload override
     reloadOverride.subscribe(override => {
-		if(override[1]){
-			let theOrig = orig.split('x').pop() // remove '0x' or 'x' prefix
-			currPtr = parseInt(theOrig, 16)
-		}
+		if(override[1])
+			currPtr = orig
+		
         if(override[0]){
 			pc = globalThis.simulator.getPC()
 			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
@@ -88,6 +75,21 @@
 			tempRegMap.push(["MCR", "0x0", "0"])
 
 			regMap = tempRegMap
+		} else{
+			// Zeroes map as component filler
+			regMap = regMap = [
+				["R0", "0x0", "0"],
+				["R1", "0x0", "0"],
+				["R2", "0x0", "0"],
+				["R3", "0x0", "0"],
+				["R4", "0x0", "0"],
+				["R5", "0x0", "0"],
+				["R6", "0x0", "0"],
+				["R7", "0x0", "0"],
+				["PSR", "0x2", "2", "CC: Z"],
+				["PC", "0x0", "0"],
+				["MCR", "0x0", "0"],
+			]
 		}
 	}
 
@@ -194,7 +196,7 @@
 			<SimulatorStatus />
 		</div>
 		<Memory pc={pc} ptr={currPtr} map={memMap} on:updatePC={newPC} />
-        <JumpControls orig={orig} on:jump={jump} />
+        <JumpControls orig={"x" + orig.toString(16)} on:jump={jump} />
 	</section>
 </div>
 
