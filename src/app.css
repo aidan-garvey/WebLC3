@@ -260,7 +260,7 @@ body.dark{
 }
 
 .dark #sim-status-not-ready.stoplight-active{
-	background-color: var(--d-tint);
+	background-color: var(--d-textarea);
 }
 
 .dark #sim-status-ready.stoplight-active{
@@ -451,7 +451,7 @@ body.light{
 }
 
 .light #sim-status-not-ready.stoplight-active{
-	background-color: var(--l-textarea);
+	background-color: var(--l-alt-shade);
 }
 
 .light #sim-status-ready.stoplight-active{

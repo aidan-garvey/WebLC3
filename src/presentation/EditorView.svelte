@@ -3,7 +3,7 @@
     import Console from "./Console.svelte"
 	import SimulatorStatus from "./SimulatorStatus.svelte"
 	import { onMount } from 'svelte'
-	import { openedFile, currentView } from './stores'
+	import { openedFile, currentView, assembledFile } from './stores'
 	import Assembler from "../logic/assembler/assembler"
 	import Simulator from "../logic/simulator/simulator";
 
@@ -31,13 +31,25 @@
 			let sourceCode = editor.getValue()
 			let obj = await Assembler.assemble(sourceCode)
 
-			// Save new Simulator class
+			// Save new Simulator class and obj file
 			if(obj){
 				let map = obj.pop()
 				globalThis.simulator = new Simulator(obj[0], map)
 				globalThis.lastPtr = null
+				setObjFilename()
 			}
 		}
+	}
+
+	// Save filename of assembled file
+	function setObjFilename(){
+		if(filename == "No file provided"){
+			filename = "untitled.asm"
+			openedFile.set("untitled.asm")
+			assembledFile.set("untitled.obj")
+		}
+		else
+			assembledFile.set(filename.substring(0,filename.length-4)+".obj")
 	}
 
 </script>
@@ -102,6 +114,7 @@
 		grid-template-rows: auto 1fr auto;
 		width: 25%;
 		margin-left: 5%;
+		max-width: 25%;
 	}
 
 	#console-ctr{
@@ -136,6 +149,7 @@
 
 		#ev-right{
 			width: 100%;
+			max-width: 100%;
 			grid-template-rows: auto 60vh 18% 1fr;
 			margin-bottom: 20vh;
 			margin-left: 0;
