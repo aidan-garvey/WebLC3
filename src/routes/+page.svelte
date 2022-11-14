@@ -1,8 +1,7 @@
 <script>
-    import Header from "../presentation/Header.svelte";
-    import Workspace from "../presentation/Workspace.svelte";
-    import "../app.css";
-    import UI from "../presentation/ui";
+    import Header from "../presentation/Header.svelte"
+    import Workspace from "../presentation/Workspace.svelte"
+    import "../app.css"
     import { consoleSelected } from "../presentation/stores"
 
     let interruptable = false
@@ -20,8 +19,6 @@
             else
                 globalThis.simulator.keyboardInterrupt(keyCode)
         }
-        UI.deselectConsole()
-        consoleSelected.set(false)
 	}
 
 </script>
