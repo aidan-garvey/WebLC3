@@ -230,7 +230,7 @@ body.dark{
 	cursor: text;
 }
 
-.dark #sim-view #consoleCtr:not(console-selected):hover{
+.dark #c-ctr:not(.console-highlighted) #consoleCtr:hover{
 	border-color: var(--l-body);
 	transition: 0.1s;
 }
@@ -421,7 +421,7 @@ body.light{
 	cursor: text;
 }
 
-.light #sim-view #consoleCtr:not(console-selected):hover{
+.light #c-ctr:not(.console-highlighted) #consoleCtr:hover{
 	border-color: var(--d-textarea);
 	transition: 0.1s;
 }
