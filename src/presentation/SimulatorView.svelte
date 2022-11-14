@@ -174,14 +174,10 @@
         UI.selectConsole()
         event.stopImmediatePropagation()
     }
-
-	function blurConsole(){
-		UI.deselectConsole()
-    }
 	
 </script>
 
-<div id="sim-view" on:click={blurConsole}>
+<div id="sim-view">
 	<section id="sv-left">
 		<div class="workSans componame">Registers</div>
 		<Register map={regMap} on:updatePC={newPC} />

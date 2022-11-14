@@ -3,6 +3,7 @@
     import Workspace from "../presentation/Workspace.svelte"
     import "../app.css"
     import { consoleSelected } from "../presentation/stores"
+    import UI from "../presentation/ui"
 
     let interruptable = false
     consoleSelected.subscribe(value => {
@@ -21,9 +22,13 @@
         }
 	}
 
+    function blurConsole(){
+		UI.deselectConsole()
+    }
+
 </script>
 
-<svelte:window on:keypress={handleKeyRelease} />
+<svelte:window on:keypress={handleKeyRelease} on:click={blurConsole} />
 
 <Header />
 <Workspace />
