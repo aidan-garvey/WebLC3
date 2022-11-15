@@ -4,15 +4,40 @@
 
     // Set register table dimensions
     let cols = Array(5)
+    export let registers = 8
 
     // Set register data
     export let map
     let data = map
 
+    let cancelFirstLightup = true
+
     // Detect registerMap change
     $: if (data != map) {
+        try{
+            let newValue = false
+            for(let i=0; i<registers; i++){
+                if(data[i][2] != map[i][2]){
+                    newValue = true
+                    lightUp("regRow-" + i)
+                }
+            }
+            if(newValue)
+                lightUp("registersLbl")
+        } catch {}
         data = map
 	}
+
+    function lightUp(id){
+        if(!cancelFirstLightup){
+            dispatch("lightUp", {
+                text: id
+            })
+        }
+        else{
+            cancelFirstLightup = false
+        }
+    }
 
     // Set new register value via hex
     function editHex(){

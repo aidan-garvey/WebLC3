@@ -266,6 +266,14 @@ body.dark{
 	color: var(--d-tint);
 }
 
+.dark .lightup{
+	color: var(--l-loc);
+}
+
+.dark #regCtr .lightup{
+	color: var(--d-instr);
+}
+
 .dark #editorCtr, .dark #consoleCtr, .dark #regCtr, .dark #memCtr{
 	background-color: var(--d-textarea);
 	border: 2px solid var(--d-border);
@@ -480,6 +488,15 @@ body.light{
 
 .light .componame{
 	color: var(--l-alt-shade);
+}
+
+.light .lightup{
+	color: var(--l-select);
+	font-weight: 800;
+}
+
+.light #regCtr .lightup{
+	color: var(--d-val);
 }
 
 .light #jump-input::placeholder{

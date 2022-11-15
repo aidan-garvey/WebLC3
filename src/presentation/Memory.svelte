@@ -15,6 +15,7 @@
     let currPtr = ptr
     let currMap = map
     let currPC = pc
+    let cancelFirstLightup = true
     
     // Load memory range
     $: data = []
@@ -67,6 +68,10 @@
 
     // Detect and reload on memory map change
     $: if(currMap != map){
+        try{
+            if(currMap[0][1] != map[0][1])
+                lightUp("memoryLbl")
+        } catch {}
         currMap = map
         reloadMemRange(currPtr)
     }
@@ -76,6 +81,17 @@
         currPC = pc
         reloadMemRange(currPtr)
 	}
+
+    function lightUp(id){
+        if(!cancelFirstLightup){
+            dispatch("lightUp", {
+                text: id
+            })
+        }
+        else{
+            cancelFirstLightup = false
+        }
+    }
 
     // Set or unset breakpoint on click
     function setBreakpoint(){

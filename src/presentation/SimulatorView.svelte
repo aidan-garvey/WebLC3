@@ -23,6 +23,16 @@
 		updateRegisters()
 	}
 
+	function lightUpComponent(event){
+		let compo = document.getElementById(event.detail.text)
+		if(compo){
+			compo.classList.add("lightup")
+			setTimeout(function() {
+				compo.classList.remove("lightup")
+			}, 400)
+		}
+	}
+
 	onMount(() => {
 		if(globalThis.simulator){
 			pc = globalThis.simulator.getPC()
@@ -179,8 +189,8 @@
 
 <div id="sim-view">
 	<section id="sv-left">
-		<div class="componame monoton">Registers</div>
-		<Register map={regMap} on:updatePC={newPC} />
+		<div id="registersLbl" class="componame monoton">Registers</div>
+		<Register map={regMap} registers={numRegisters} on:updatePC={newPC} on:lightUp={lightUpComponent} />
         <StepControls on:step={step} />
         <div id="c-ctr" on:click={focusConsole}>
 			<Console />
@@ -188,10 +198,10 @@
 	</section>
 	<section id="sv-right">
 		<div id="sv-right-top">
-        	<div class="componame monoton">Memory</div>
+        	<div id="memoryLbl" class="componame monoton">Memory</div>
 			<SimulatorStatus />
 		</div>
-		<Memory pc={pc} ptr={currPtr} map={memMap} on:updatePC={newPC} />
+		<Memory pc={pc} ptr={currPtr} map={memMap} on:updatePC={newPC} on:lightUp={lightUpComponent} />
         <JumpControls orig={"x" + orig.toString(16)} on:jump={jump} />
 	</section>
 </div>
