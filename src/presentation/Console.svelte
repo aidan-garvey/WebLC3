@@ -26,7 +26,7 @@
 <style>
     #consoleCtr{
         height: 100%;
-        width: inherit;
+        width: 100%;
         display: grid;
         justify-items: center;
         align-items: center;
@@ -38,6 +38,7 @@
         width: 85%;
         font-size: 12px;
         white-space: pre-wrap;
+        word-wrap: break-word;
         overflow-y: scroll;
     }
 
