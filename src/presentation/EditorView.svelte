@@ -41,6 +41,51 @@
 		}
 	}
 
+	// Set new filename
+	function setFilename(){
+		let newInput = createInputBox()
+        this.appendChild(newInput)
+        newInput.focus()
+	}
+
+	// Create input box
+	function createInputBox(){
+        let newInput = document.createElement("input")
+        newInput.placeholder = "Enter new filename"
+        
+        // Close input box
+        newInput.addEventListener("blur", function leave(e) {
+            try {
+                let parent = e.target.parentElement
+				saveInput(e.target.value)
+                parent.removeChild(e.target)
+            } catch {}
+        })
+        newInput.addEventListener("keydown", function leave(e) {
+            if(e.keyCode == 13){
+                try {
+                    let parent = e.target.parentElement
+					saveInput(e.target.value)
+                    parent.removeChild(e.target)
+                } catch {}
+            }
+        })
+
+		function saveInput(newValue){
+			if(newValue.length > 0){
+				newValue = newValue.replace(" ","_")
+    			newValue = encodeURIComponent(newValue)
+      			.replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16)}`)
+      			.replace(/%(7C|60|5E)/g, (str, hex) =>
+        			String.fromCharCode(parseInt(hex, 16))
+				)
+				openedFile.set(newValue + ".asm")
+			}
+		}
+
+        return newInput
+    }
+
 	// Save filename of assembled file
 	function setObjFilename(){
 		if(filename == "No file provided"){
@@ -56,7 +101,7 @@
 
 <div id="editor-view">
 	<section id="ev-left">
-		<div id="filename" class="workSans">{filename}</div>
+		<div id="filename" class="workSans" on:click={setFilename}>{filename}</div>
 		<Editor />
 	</section>
 	{#if appLoadComplete}
@@ -86,7 +131,7 @@
 
 	#filename{
 		font-size: 15px;
-		width: 100%;
+		width: max-content;
 		margin-bottom: 2vh;
 		text-align: center;
 		visibility: hidden;
@@ -107,6 +152,7 @@
 
 	#ev-left{
 		grid-template-rows: auto 1fr;
+		justify-items: center;
 		width: 100%;
 	}
 

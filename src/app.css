@@ -86,7 +86,7 @@ a:hover {
 	cursor: pointer;
 }
 
-.memRow input, .regRow input{
+.memRow input, .regRow input, #filename input{
 	width: 45%;
 	margin-left: 5%;
 }

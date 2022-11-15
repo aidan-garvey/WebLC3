@@ -3,8 +3,13 @@
     import { openedFile, currentView, reloadOverride } from './stores.js';
 
     let currView = "editor"
+    let filename = ""
     currentView.subscribe(value => {
 		currView = value
+	});
+
+    openedFile.subscribe(value => {
+		filename = value
 	});
 
     function newClick(){
@@ -13,6 +18,7 @@
             if(editor){
                 editor.setValue("")
                 updateFilename("untitled.asm")
+                openedFile.set("untitled.asm")
             }
         }
     }
@@ -50,7 +56,7 @@
     function saveClick(){
         let editor = globalThis.editor
         if(editor)
-            download("untitled.asm",editor.getValue())
+            download(filename,editor.getValue())
     }
 
     let download = (fileName, data) => {}
