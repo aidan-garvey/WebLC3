@@ -33,6 +33,7 @@
 
 			// Save new Simulator class and obj file
 			if(obj){
+				globalThis.objFile = obj
 				let map = obj.pop()
 				globalThis.simulator = new Simulator(obj[0], map)
 				globalThis.lastPtr = null

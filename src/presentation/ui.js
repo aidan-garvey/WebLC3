@@ -24,15 +24,21 @@ function clearConsole(){
 }
 
 function selectConsole(){
-    let theConsole = document.getElementById("c-ctr")
-    theConsole.classList.add("console-highlighted")
-    consoleSelected.set(true)
+    try{
+        let theConsole = document.getElementById("c-ctr")
+        theConsole.classList.add("console-highlighted")
+        consoleSelected.set(true)
+    }
+    catch {}
 }
 
 function deselectConsole(){
-    let theConsole = document.getElementById("c-ctr")
-    theConsole.classList.remove("console-highlighted")
-    consoleSelected.set(false)
+    try{
+        let theConsole = document.getElementById("c-ctr")
+        theConsole.classList.remove("console-highlighted")
+        consoleSelected.set(false)
+    }
+    catch {}
 }
 
 function modifyConsole(msg, append=false, clear=false){

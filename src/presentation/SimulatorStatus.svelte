@@ -19,12 +19,31 @@
         assembledFile.subscribe(value => {
             filename = value
         });
+
+        download = (fileName, data) => {
+            var a = document.createElement("a")
+            document.body.appendChild(a)
+            var blob = new Blob([data], { type: "application/octet-stream" })
+            let url = window.URL.createObjectURL(blob);
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            window.URL.revokeObjectURL(url)
+        }
 	});
+
+    function saveObj(){
+        // Uncomment to implement
+        /*if(globalThis.objFile)
+            download(filename,objFile)*/
+    }
+
+    let download = (fileName, data) => {}
 
 </script>
 
 <div id="sim-status">
-    <div class="sim-status-lbl"> {filename} </div>
+    <div class="sim-status-lbl" on:click={saveObj}> {filename} </div>
     <div id="status-array">
         {#if active == "sim-status-not-ready"}
             <div id="sim-status-not-ready" class="stoplight"><div> NOT READY </div></div>
