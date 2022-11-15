@@ -45,7 +45,7 @@
     #clear-console{
         position: absolute;
         z-index: 3;
-        top: 5%;
+        top: 4%;
         right: 5%;
         color: var(--d-comment);
         cursor: pointer;

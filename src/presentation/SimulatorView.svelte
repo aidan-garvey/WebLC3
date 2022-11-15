@@ -179,7 +179,7 @@
 
 <div id="sim-view">
 	<section id="sv-left">
-		<div class="workSans componame">Registers</div>
+		<div class="componame monoton">Registers</div>
 		<Register map={regMap} on:updatePC={newPC} />
         <StepControls on:step={step} />
         <div id="c-ctr" on:click={focusConsole}>
@@ -188,7 +188,7 @@
 	</section>
 	<section id="sv-right">
 		<div id="sv-right-top">
-        	<div class="workSans componame">Memory</div>
+        	<div class="componame monoton">Memory</div>
 			<SimulatorStatus />
 		</div>
 		<Memory pc={pc} ptr={currPtr} map={memMap} on:updatePC={newPC} />
@@ -206,11 +206,12 @@
 	}
 
 	.componame{
-		font-size: 15px;
+		font-size: 39px;
 		width: 100%;
-		text-align: center;
-		align-self: flex-end;
+		margin-left: 1vw;
+		align-self: flex-start;
 		cursor: default;
+		z-index: 0;
 	}
 
 	#sv-left, #sv-right{

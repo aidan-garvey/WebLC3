@@ -37,7 +37,8 @@
 				let map = obj.pop()
 				globalThis.simulator = new Simulator(obj[0], map)
 				globalThis.lastPtr = null
-				setObjFilename()
+				if(globalThis.simulator)
+					setObjFilename()
 			}
 		}
 	}
@@ -135,6 +136,7 @@
 		width: max-content;
 		margin-bottom: 2vh;
 		text-align: center;
+		cursor: pointer;
 		visibility: hidden;
 	}
 

@@ -138,7 +138,7 @@
     #menu{
         height: 80%;
         display: grid;
-        grid-template-columns: 4em 4em 4em;
+        grid-template-columns: 4.5em 4.5em 4.5em;
         grid-column-gap: 0.4em;
     }
 
@@ -159,6 +159,7 @@
     .menu-item p{
         width: 80%;
         text-align: center;
+        letter-spacing: 1px;
         font-size: 9px;
         margin: 0;
     }

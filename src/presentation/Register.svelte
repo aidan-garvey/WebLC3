@@ -187,6 +187,7 @@
         display: flex;
         flex-direction: column;
         font-size: 10px;
+        z-index: 1;
     }
 
     .regRow{

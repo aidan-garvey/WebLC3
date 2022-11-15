@@ -1,6 +1,37 @@
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@300;400;500;600&family=Nova+Flat&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Turret+Road:wght@200;300;400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nova+Flat&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
+
+/*==============
+    FONTS
+  ==============*/
+
+.workSans{
+	font-family: 'Work Sans', sans-serif;
+}
+.sourceCodePro{
+	font-family: 'Source Code Pro', monospace;
+}
+.audiowide{
+	font-family: 'Audiowide', cursive;
+}
+.monoton{
+	font-family: 'Monoton', cursive;
+}
+.turretRoad{
+	font-family: 'Turret Road', cursive;
+}
+.notoSansMono{
+	font-family: 'Noto Sans Mono', monospace;
+}
+.novaFlat{
+	font-family: 'Nova Flat', cursive;
+}
 
 /*==============
     GLOBAL
@@ -26,14 +57,6 @@ a, button {
 
 a:hover {
 	text-decoration: underline;
-}
-
-.workSans{
-	font-family: 'Work Sans', sans-serif;
-}
-
-.sourceCodePro{
-	font-family: 'Source Code Pro', monospace;
 }
 
 ::-webkit-scrollbar {
@@ -89,6 +112,10 @@ a:hover {
 .memRow input, .regRow input, #filename input{
 	width: 45%;
 	margin-left: 5%;
+}
+
+#c-ctr.console-highlighted #consoleCtr{
+	border-style: none;
 }
 
 /*==============
@@ -157,6 +184,7 @@ body.dark{
 .dark .menu-item{
 	border: 1px solid var(--d-border);
 	background-color: var(--d-body);
+	box-shadow: 1px 2px var(--d-highlight);
 	color: var(--d-fadetext);
 }
 
@@ -178,33 +206,47 @@ body.dark{
 	color: var(--d-textarea);
 }
 
+.dark .menu-item p{
+	font-weight: 400;
+}
+
 .dark #switch{
 	background-color: var(--d-body);
+	box-shadow: inset 1px 1px 3px var(--d-border);
 }
 
 .dark #switch section{
 	border: 1px solid var(--d-border);
+	box-shadow: 1px 1px var(--d-border);
 }
 
 .dark button{
 	color: var(--d-fadetext);
-	border: 1px solid var(--d-border);
-	/* padding: 0.6em 2em 0.6em 2em; */
-}
-
-.dark button:hover{
-	transition: 0.3s;
-	filter: brightness(0.9);
+	border: 2px solid var(--d-highlight);
 }
 
 .dark .functionBtn{
 	background-color: var(--d-tint);
 	font-size: 22px;
+	box-shadow: 1px 1px var(--d-border);
+}
+
+.dark .functionBtn:hover{
+	transition: 0.3s;
+	background-color: var(--d-body);
+	filter: brightness(1.1);
 }
 
 .dark .switchBtn{
 	background-color: var(--d-alt);
 	font-size: 16px;
+	box-shadow: 1px 1px var(--d-highlight);
+}
+
+.dark .switchBtn:hover{
+	transition: 0.3s;
+	filter: brightness(1.4);
+	background-color: var(--d-shade);
 }
 
 .dark .functionBtn:active, .dark .switchBtn:active{
@@ -221,12 +263,15 @@ body.dark{
 }
 
 .dark .componame{
-	color: var(--d-dir);
+	color: var(--d-tint);
 }
 
 .dark #editorCtr, .dark #consoleCtr, .dark #regCtr, .dark #memCtr{
 	background-color: var(--d-textarea);
-	border: 1px solid var(--d-border);
+	border: 2px solid var(--d-border);
+	border-top-color: var(--d-tint);
+	border-left-color: var(--d-tint);
+	box-shadow: 1px 2px var(--d-highlight);
 	cursor: text;
 }
 
@@ -255,25 +300,33 @@ body.dark{
 	background-color: var(--d-select);
 }
 
-.dark #jump-buttons div:hover{
+.dark #jump-buttons div:hover, .dark #jump-express:hover{
+	transition: 0.2s;
 	color: var(--d-loc);
 }
 
 .dark #sim-status-not-ready.stoplight-active{
 	background-color: var(--d-textarea);
+	color: var(--d-text);
 }
 
 .dark #sim-status-ready.stoplight-active{
 	background-color: var(--l-orig);
+	color: var(--d-text);
+	box-shadow: none;
 }
 
 .dark #sim-status-running.stoplight-active{
 	background-color: var(--d-instr);
+	color: var(--d-text);
+	box-shadow: none;
 }
 
 .dark .stoplight{
+	color: var(--d-tint);
 	background-color: var(--d-textarea);
 	border: 1px solid var(--d-border);
+	box-shadow: inset 1px 1px var(--d-border);
 }
 
 /*==============
@@ -352,6 +405,7 @@ body.light{
 .light .menu-item{
 	border: 1px solid var(--l-border);
 	background-color: var(--l-tint);
+	box-shadow: 1px 2px var(--l-alt-tint);
 	color: var(--l-text);
 }
 
@@ -373,33 +427,46 @@ body.light{
 	color: var(--l-textarea);
 }
 
+.light .menu-item p{
+	font-weight: 500;
+}
+
 .light #switch{
 	background-color: var(--l-alt-tint);
+	box-shadow: inset -1px 1px 3px var(--l-border);
 }
 
 .light #switch section{
 	border: 1px solid var(--l-border);
-}
-
-.light button{
-	border: 1px solid var(--l-border);
-	/* padding: 0.6em 2em 0.6em 2em; */
-}
-
-.light button:hover{
-	transition: 0.3s;
-	filter: brightness(0.95);
+	box-shadow: inset -1px -2px var(--l-select);
 }
 
 .light .functionBtn{
 	background-color: var(--l-tint);
+	border: 2px solid lightgrey;
+	box-shadow: 1px 1px var(--l-border);
 	color: var(--l-loc);
 	font-size: 22px;
 }
 
+.light .functionBtn:hover{
+	transition: 0.3s;
+	filter: brightness(1.05);
+	background-color: var(--l-body);
+}
+
 .light .switchBtn{
 	background-color: var(--l-alt-shade);
+	border: 2px solid rgb(190, 190, 190);
+	box-shadow: 1px 1px var(--l-border);
 	font-size: 16px;
+}
+
+.light .switchBtn:hover{
+	transition: 0.3s;
+	border: 2px solid grey;
+	filter: brightness(1.4);
+	background-color: var(--l-comment);
 }
 
 .light .functionBtn:active, .light .switchBtn:active{
@@ -407,8 +474,12 @@ body.light{
 	color: var(--l-textarea);
 }
 
-.light #filename, .light .componame{
+.light #filename{
 	color: var(--l-fadetext);
+}
+
+.light .componame{
+	color: var(--l-alt-shade);
 }
 
 .light #jump-input::placeholder{
@@ -417,7 +488,10 @@ body.light{
 
 .light #editorCtr, .light #consoleCtr, .light #regCtr, .light #memCtr{
 	background-color: var(--l-textarea);
-	border: 1px solid var(--l-border);
+	border: 2px solid var(--l-comment);
+	border-top-color: lightgrey;
+	border-left-color: lightgrey;
+	box-shadow: 1px 2px lightgrey;
 	cursor: text;
 }
 
@@ -446,25 +520,33 @@ body.light{
 	background-color: var(--l-select);
 }
 
-.light #jump-buttons div:hover{
+.light #jump-buttons div:hover, .light #jump-express:hover{
+	transition: 0.2s;
 	color: var(--l-reg);
 }
 
 .light #sim-status-not-ready.stoplight-active{
 	background-color: var(--l-alt-shade);
+	color: var(--l-text);
 }
 
 .light #sim-status-ready.stoplight-active{
 	background-color: var(--l-select);
+	color: var(--l-text);
+	box-shadow: none;
 }
 
 .light #sim-status-running.stoplight-active{
 	background-color: var(--d-dir);
+	color: var(--l-text);
+	box-shadow: none;
 }
 
 .light .stoplight{
+	color: darkgrey;
 	border: 1px solid var(--l-border);
 	background-color: var(--l-alt-shade);
+	box-shadow: inset 1px 1px var(--l-comment);
 }
 
 /*==================
