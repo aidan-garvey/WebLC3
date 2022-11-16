@@ -7,7 +7,7 @@
     import "../app.css"
     import Header from "../presentation/Header.svelte"
     import Workspace from "../presentation/Workspace.svelte"
-    import { consoleSelected } from "../presentation/stores"
+    import { consoleSelected, reloadOverride } from "../presentation/stores"
     import UI from "../presentation/ui"
 
     // Allow sending of key interrupts if Simulator console is selected
@@ -25,6 +25,7 @@
             // Else, send key code to the simulator
             else
                 globalThis.simulator.keyboardInterrupt(keyCode)
+            reloadOverride.set([true,false])
         }
 	}
 
