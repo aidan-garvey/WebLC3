@@ -6,8 +6,8 @@
  */
 
 import Assembler from "../assembler/assembler";
-import UI from "../../presentation/ui"
-import Messages from "./simMessages"
+import UI from "../../presentation/ui";
+import Messages from "./simMessages";
 
 export default class Simulator
 {
@@ -513,10 +513,10 @@ export default class Simulator
 
     /**
      * Break the value of the PSR into its individual components
-     * @returns 
+     * @returns [user mode, priority level, negative, zero, positive]
      */
     private getAllPSR(): [
-        boolean, // userMode
+        boolean, // user mode
         number,  // priority level
         boolean, // negative
         boolean, // zero
@@ -540,10 +540,10 @@ export default class Simulator
     }
 
     /**
-     * Get a breakdown of the statuses of the PSR's components. Returns, in the
-     * following order: (1) if the processor is in user or supervisor mode; (2)
-     * the priority level of the currently-executing program; (3) the condition
-     * code flags
+     * Get a breakdown of the statuses of the PSR's components. Returns an
+     * array of strings with the following elements: (1) if the processor is in
+     * user or supervisor mode; (2) the priority level of the currently-
+     * executing program; (3) the condition code flags
      */
     public getPSRInfo() : string[]
     {
