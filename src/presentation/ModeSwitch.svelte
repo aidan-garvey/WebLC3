@@ -1,6 +1,12 @@
+<!-- 
+    ModeSwitch.svelte
+        Switch and transition between dark and light mode styles
+-->
+
 <script>
     import Icon from "./Icon.svelte";
 
+    // Smooth lerp transition for dark-light color styles
     $: isDark=true
     let colorN = 0
     let colorB = 62
@@ -10,20 +16,19 @@
     let idB, stepB = 0
     let idH, stepH = 0
 
+    // Elements for color lerping (values hardcoded)
     let body = {
         id: idB,
         step: stepB,
         dark: 62,
         light: 226
     }
-
     let node = {
         id: idN,
         step: stepN,
         dark: 0,
         light: 252
     }
-
     let head = {
         id: idH,
         step: stepH,
@@ -31,13 +36,14 @@
         light: 244
     }
 
+    // Swap mode
     function swap(){
         isDark = !isDark
-
         if(isDark){
             lerp(node.id, node.step, this.firstChild, colorN, node.dark)
             lerp(body.id, body.step, document.body, colorB, body.dark)
             lerp(head.id, head.step, this.parentElement.parentElement.parentElement, colorH, head.dark)
+            // Mute coloration of other components
             document.getElementById("workspace").style.opacity = "40%"
         }
         else{
@@ -68,7 +74,8 @@
                     document.body.classList.replace("dark","light")
                     document.getElementById("workspace").style.opacity = "100%"
                 }
-            } else {
+            } 
+            else {
                 currColor = Math.floor(currColor - (currColor - destColor)/steps*step)
                 if(destColor == 0) { el.style.left = `${step*2}px` } // hacky
                 el.style.backgroundColor = `rgb(${currColor},${currColor},${currColor})`
@@ -81,7 +88,6 @@
                     document.getElementById("workspace").style.opacity = "100%"
                 }
             }
-            
         }
     }
 </script>

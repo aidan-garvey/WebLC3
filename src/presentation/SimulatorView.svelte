@@ -1,3 +1,10 @@
+<!-- 
+    SimulatorView.svelte
+        This workspace view enables a client to run an assembly program through a built-in application CPU.
+		Comprehensive UI suite allows viewing and override of Register and Memory state contents, printing character outputs through Console,
+		breakpoint setting, PC override, and Step and Jump controls
+-->
+
 <script>
 	import { onMount } from 'svelte'
     import Register from "./Register.svelte"
@@ -9,6 +16,7 @@
 	import UI from './ui'
 	import { reloadOverride } from './stores'
 
+	// Preset data
 	let orig = 0
 	$: pc = 512
 	$: currPtr = -1
@@ -18,22 +26,8 @@
 	let longJumpOffset = 23
 	let numRegisters = 8
 
-	function newPC(event){
-		pc = event.detail.text
-		updateRegisters()
-	}
-
-	function lightUpComponent(event){
-		let compo = document.getElementById(event.detail.text)
-		if(compo){
-			compo.classList.add("lightup")
-			setTimeout(function() {
-				compo.classList.remove("lightup")
-			}, 400)
-		}
-	}
-
 	onMount(() => {
+		// Load preset or saved states
 		if(globalThis.simulator){
 			pc = globalThis.simulator.getPC()
 			orig = pc
@@ -45,18 +39,20 @@
 		}
 		updateRegisters()
 
-		// Save last pointer On Destroy
-        return () => {
-            globalThis.lastPtr = currPtr
-        }
+		// Save last memory pointer on destroy
+        return () => { globalThis.lastPtr = currPtr }
 	});
 
+
+
+	/* DYNAMIC RELOAD */
 	
-	// Detect memory reload override
+	// Update Memory map
     reloadOverride.subscribe(override => {
+		// Set memory range to start at .orig
 		if(override[1])
 			currPtr = orig
-		
+		// Set memory range to start at currPtr
         if(override[0]){
 			pc = globalThis.simulator.getPC()
 			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
@@ -64,8 +60,9 @@
 		}
 	});
 
-	// Update Register Map
+	// Update Register map
 	function updateRegisters(){
+		// Generate register map
 		if(globalThis.simulator){
 			let tempRegMap = []
 			for(let n=0; n<numRegisters; n++){
@@ -74,19 +71,17 @@
 				let regHex = "0x" + regDec.toString(16)
 				tempRegMap.push([regName, regHex, regDec.toString()])
 			}
-
 			let cc = "Z"
 			let psrDec = globalThis.simulator.getPSR()
 			let psrHex = "0x" + psrDec.toString(16)
 			tempRegMap.push(["PSR", psrHex, psrDec])
-
 			tempRegMap.push(["PC", "0x"+pc.toString(16), pc.toString(), "CC:"+cc])
-
 			tempRegMap.push(["MCR", "0x0", "0"])
 
 			regMap = tempRegMap
-		} else{
-			// Zeroes map as component filler
+		} 
+		// Use zeroes map component filler
+		else{
 			regMap = regMap = [
 				["R0", "0x0", "0"],
 				["R1", "0x0", "0"],
@@ -104,7 +99,27 @@
 	}
 
 
-	// Step controls
+
+	/* DISPATCH AND EVENT HANDLERS */
+
+	// Update PC
+	function newPC(event){
+		pc = event.detail.text
+		updateRegisters()
+	}
+
+	// "Light up" a component or table row
+	function lightUpComponent(event){
+		let compo = document.getElementById(event.detail.text)
+		if(compo){
+			compo.classList.add("lightup")
+			setTimeout(function() {
+				compo.classList.remove("lightup")
+			}, 400)
+		}
+	}
+
+	// Execute Step controls
 	function step(event){
 		if(globalThis.simulator){
 			let control = event.detail.text
@@ -132,11 +147,10 @@
 				memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
 			}
 		}
-		
 		updateRegisters()
 	}
 
-	// Jump controls
+	// Execute Jump controls
 	function jump(event){
 		if(globalThis.simulator){
 			let control = event.detail.text
@@ -180,11 +194,11 @@
 		}
 	}
 
+	// Select Console on click
 	function focusConsole(event){
         UI.selectConsole()
         event.stopImmediatePropagation()
     }
-	
 </script>
 
 <div id="sim-view">

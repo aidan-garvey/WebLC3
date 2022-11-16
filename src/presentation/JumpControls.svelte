@@ -1,15 +1,22 @@
+<!-- 
+    JumpControls.svelte
+        Return new memory range; Refreshes Memory simulator UI component
+-->
+
 <script>
+    import { currentView } from './stores';
     import { createEventDispatcher } from 'svelte';
     const dispatch = createEventDispatcher();
-    import { currentView } from './stores';
 
-    export let orig =""
+    // Dispatch clicked control
+    function jump(control){ dispatch("jump", { text: control }) }
 
-	function toEditor() {
+    // Switch to Editor button click
+    function toEditor() {
 		currentView.set("editor")
 	}
 
-    // Control handlers
+    // Jump control handlers
     function pcClick(){ jump("pc") }
     function longJumpBackwardClick(){ jump("ljb") }
     function jumpBackwardClick(){ jump("jb") }
@@ -18,7 +25,8 @@
     function enterMemory(event){
         if(event.keyCode == 13){
             let input = document.getElementById("jump-input").value
-            let loc = input.split('x').pop() // remove '0x' or 'x' prefix
+            // Remove '0x' or 'x' prefix
+            let loc = input.split('x').pop()
 
             // Only jump if memory location exists
             if(isHex(loc)) 
@@ -30,11 +38,12 @@
         let input = jumpInput.value
         if(input == "")
             input = jumpInput.placeholder
-        let loc = input.split('x').pop() // remove '0x' or 'x' prefix
+        let loc = input.split('x').pop()
         if(isHex(loc)) 
             jump(parseInt(loc, 16))
     }
 
+    // Validate hex value
     function isHex(val) {
         let num = parseInt(val,16)
         let valid = (num.toString(16) === val.toLowerCase())
@@ -42,12 +51,8 @@
         return valid && inRange
     }
 
-    // Dispatch control
-    function jump(control){
-        dispatch("jump", {
-            text: control
-        })
-    }
+    // Set jump express to .orig
+    export let orig =""
 </script>
 
 <div id="jump-controls">

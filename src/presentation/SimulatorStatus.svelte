@@ -1,10 +1,19 @@
+<!-- 
+    SimulatorStatus.svelte
+        Reflect current state of Simulator class. Includes 3 stoplights: NOT READY, READY, and RUNNING
+-->
+
 <script>
     import { activeStoplight, assembledFile } from "./stores"
     import { onMount } from "svelte"
 
+    // Active stoplight ID
     let active = "sim-status-not-ready"
+    // Assembled .obj filename
     let filename = ""
+
     onMount(() => { 
+        // Switch active stoplight
         activeStoplight.subscribe(value => {
             active = value
             setTimeout(function() {
@@ -16,10 +25,12 @@
             }, 300)
         });
 
+        // Change to most recently assembled filename
         assembledFile.subscribe(value => {
             filename = value
         });
 
+        // Download .obj file
         download = (fileName, data) => {
             var a = document.createElement("a")
             document.body.appendChild(a)
@@ -32,14 +43,13 @@
         }
 	});
 
+    // Download most recently assembled .obj file
     function saveObj(){
         // Uncomment to implement
         /*if(globalThis.objFile)
             download(filename,objFile)*/
     }
-
     let download = (fileName, data) => {}
-
 </script>
 
 <div id="sim-status">
@@ -91,5 +101,4 @@
     .stoplight div{
         transform: skewX(30deg);
     }
-
 </style>

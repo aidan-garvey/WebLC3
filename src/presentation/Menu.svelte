@@ -1,17 +1,23 @@
+<!-- 
+    Menu.svelte
+        View-specific work controls. Allows filesystem management and CPU machine state reloads
+-->
+
 <script>
     import { onMount } from 'svelte';
     import { openedFile, currentView, reloadOverride } from './stores.js';
 
+    // Set view-specific controls
     let currView = "editor"
+    currentView.subscribe(value => { currView = value });
+    // Current .asm filename
     let filename = ""
-    currentView.subscribe(value => {
-		currView = value
-	});
+    openedFile.subscribe(value => { filename = value });
 
-    openedFile.subscribe(value => {
-		filename = value
-	});
 
+    /* EDITOR MENU CONTROLS */
+    
+    // New: Reset Editor and filename
     function newClick(){
         if (confirm('Are you sure you want to start over?\n\nWARNING: This will clear the editor. Make sure to save your current progress first.')) {
             let editor = globalThis.editor
@@ -23,11 +29,11 @@
         }
     }
 
+    // Open: Open an existing .asm file and load content to Editor
     function openClick(){
         let opener = document.getElementById("opener")
         opener.click()
     }
-
     function openFile(){
         let files = document.getElementById("opener").files
         if (files.length > 0) {
@@ -52,15 +58,15 @@
         }
     }
 
-    // Save file
+    // Save: Save Editor content as .asm file to client's local filesystem
     function saveClick(){
         let editor = globalThis.editor
         if(editor)
             download(filename,editor.getValue())
     }
-
     let download = (fileName, data) => {}
 
+    // Load download function on application load
     onMount(() => {
         download = (fileName, data) => {
             var a = document.createElement("a")
@@ -73,12 +79,14 @@
             window.URL.revokeObjectURL(url)
         }
     });
+    // Update filename reflected in EditorView
+    function updateFilename(fn) { openedFile.set(fn) }
 
-    // Update filename in EditorView
-    function updateFilename(fn) {
-		openedFile.set(fn)
-	}
 
+    
+    /* SIMULATOR MENU CONTROLS */
+
+    // Reload: Load code into memory, set PC to start of program, restore Processor Status Register to defaults, set clock-enable
     function reloadClick(){
         if(globalThis.simulator){
             globalThis.simulator.reloadProgram()
@@ -86,6 +94,7 @@
         }
     }
 
+    // Reinitialize: Set all of memory to zeroes except for operating system code
     function reinitializeClick(){
         if(globalThis.simulator){
             globalThis.simulator.resetMemory()
@@ -93,14 +102,13 @@
         }
     }
 
+    // Randomize: Randomize all of memory except for operating system code
     function randomizeClick(){
         if(globalThis.simulator){
             globalThis.simulator.randomizeMemory()
             reloadOverride.set([true,false])
         }
     }
-
-
 </script>
 
 <div id="menu" class="workSans">

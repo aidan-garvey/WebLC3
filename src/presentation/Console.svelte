@@ -1,14 +1,19 @@
+<!-- 
+    Console.svelte
+        Display Assembler and Simulator state messages, character output, and error messages
+-->
+
 <script>
     import UI from "./ui"
     import { onMount } from "svelte"
 
     let appLoadComplete = false
-    onMount(() => {
-        appLoadComplete = true
-	});
+    onMount(() => { appLoadComplete = true });
 
+    // Clear Console text content
     function clearConsole(event){
         UI.clearConsole()
+        // Avoid deselection if this component is interacted with
         event.stopImmediatePropagation()
     }
 </script>

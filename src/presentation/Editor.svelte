@@ -1,3 +1,9 @@
+<!-- 
+    Editor.svelte
+        Client text editor for writing assembly program.
+        Modified integration of Monaco Editor by Microsoft - https://microsoft.github.io/monaco-editor/
+-->
+
 <script>
     import { onMount } from 'svelte'
     import { ResizeObserver } from 'resize-observer'
@@ -6,7 +12,7 @@
     let monaco
 
     onMount(() => {
-        document.body.style.overflowY = "scroll"
+        // Attach loaded Editor to component
         editor = document.getElementById("editorCtr")
         editor.style.height = "100%"
         editor.style.justifyItems = "flex-start"
@@ -15,18 +21,19 @@
 		monaco = document.getElementById("container")
         editor.appendChild(monaco)
 
-        // Editor resize
+        // Adjust Editor scaling on window resize
         let ro = new ResizeObserver(() => { resize() })
         ro.observe(editor);
         resize()
 
-        // On Destroy
+        // Deattach component; Saves client content on destroy
         return () => {
             let invisCtr = document.getElementById("invisible")
             invisCtr.appendChild(monaco)
         }
 	});
   
+    // Responsive scaling
     function resize(){
         if(editor){
             let targetWidth = editor.clientWidth
@@ -54,7 +61,7 @@
         overflow: hidden;
     }
 
-    /* Courtesy of https://cssloaders.github.io/ */
+    /* Courtesy of https://cssloaders.github.io/ for startup loader */
     .loader {
         width: 75px;
         height: 75px;

@@ -1,3 +1,9 @@
+<!-- 
+    EditorView.svelte
+        This workspace view enables a client to write assembly programs through an Editor, 
+		assemble and generate .obj files for Simulator use, and view assembly status and errors through a Console
+-->
+
 <script>
     import Editor from "./Editor.svelte"
     import Console from "./Console.svelte"
@@ -7,10 +13,6 @@
 	import Assembler from "../logic/assembler/assembler"
 	import Simulator from "../logic/simulator/simulator";
 
-	function toSimulator() {
-		currentView.set("simulator")
-	}
-
 	let appLoadComplete = false
 	onMount(() => { 
 		let filename = document.getElementById("filename")
@@ -18,31 +20,14 @@
 		appLoadComplete = true
 	});
 
-	// Manage filename
+
+	/* EDITOR AND FILE STATE MANAGEMENT */
+
+	// Switch the simulator view on button click
+	function toSimulator() { currentView.set("simulator") }
+	// Reflect current .asm program filename
 	export let filename = "No file provided"
-	openedFile.subscribe(value => {
-		filename = value
-	});
-
-	// Assemble
-	async function assembleClick(){
-		let editor = globalThis.editor
-		if(editor){
-			let sourceCode = editor.getValue()
-			let obj = await Assembler.assemble(sourceCode)
-
-			// Save new Simulator class and obj file
-			if(obj){
-				globalThis.objFile = obj
-				let map = obj.pop()
-				globalThis.simulator = new Simulator(obj[0], map)
-				globalThis.lastPtr = null
-				if(globalThis.simulator)
-					setObjFilename()
-			}
-		}
-	}
-
+	openedFile.subscribe(value => { filename = value });
 	// Set new filename
 	function setFilename(){
 		let newInput = createInputBox()
@@ -50,7 +35,7 @@
         newInput.focus()
 	}
 
-	// Create input box
+	// Create text input box for entering new filename
 	function createInputBox(){
         let newInput = document.createElement("input")
         newInput.placeholder = "Enter new filename"
@@ -73,9 +58,11 @@
             }
         })
 
+		// Commit new filename if validations pass. Else, rollback (old value will not change)
 		function saveInput(newValue){
 			if(newValue.length > 0){
 				newValue = newValue.replace(" ","_")
+				// Make filename utf-8 encoding-friendly 
     			newValue = encodeURIComponent(newValue)
       			.replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16)}`)
       			.replace(/%(7C|60|5E)/g, (str, hex) =>
@@ -85,20 +72,42 @@
 			}
 		}
 
-        return newInput
+        return newInput // Complete text input element
     }
 
-	// Save filename of assembled file
+	// Set filename of assembled .obj file
 	function setObjFilename(){
 		if(filename == "No file provided"){
 			filename = "untitled.asm"
 			openedFile.set("untitled.asm")
 			assembledFile.set("untitled.obj")
 		}
+		// Replace ".asm" extension with ".obj"
 		else
 			assembledFile.set(filename.substring(0,filename.length-4)+".obj")
 	}
 
+
+	/* ASSEMBLY */
+	
+	// Assemble program
+	async function assembleClick(){
+		let editor = globalThis.editor
+		if(editor){
+			let sourceCode = editor.getValue()
+			let obj = await Assembler.assemble(sourceCode)
+
+			// Globally store new Simulator class and .obj file
+			if(obj){
+				globalThis.objFile = obj
+				let map = obj.pop()
+				globalThis.simulator = new Simulator(obj[0], map)
+				globalThis.lastPtr = null
+				if(globalThis.simulator)
+					setObjFilename()
+			}
+		}
+	}
 </script>
 
 <div id="editor-view">
@@ -106,6 +115,8 @@
 		<div id="filename" class="workSans" on:click={setFilename}>{filename}</div>
 		<Editor />
 	</section>
+
+	<!-- Initially hide Editor contents while application loads -->
 	{#if appLoadComplete}
 	<section id="ev-right">
 		<div class="filler">filler</div>
@@ -233,5 +244,4 @@
 			font-size: 12px !important;
 		}
 	}
-
 </style>

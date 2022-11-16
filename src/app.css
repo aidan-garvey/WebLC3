@@ -7,9 +7,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Nova+Flat&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
 
-/*==============
-    FONTS
-  ==============*/
+/*=================
+    FONT classes
+  ================*/
 
 .workSans{
 	font-family: 'Work Sans', sans-serif;
@@ -33,9 +33,9 @@
 	font-family: 'Nova Flat', cursive;
 }
 
-/*==============
-    GLOBAL
-  ==============*/
+/*========================================
+    GLOBAL element and component styles
+  =======================================*/
 html, body {
 	margin: 0;
   	padding: 0;
@@ -118,9 +118,9 @@ a:hover {
 	border-style: none;
 }
 
-/*==============
-    DARK MODE
-  ==============*/
+/*==============================
+    DARK MODE component styles
+  =============================*/
 :root{
 	--d-shade: #000000;
 	--d-border: #000000;
@@ -272,6 +272,7 @@ body.dark{
 
 .dark #regCtr .lightup{
 	color: var(--d-instr);
+	font-weight: 800;
 }
 
 .dark #editorCtr, .dark #consoleCtr, .dark #regCtr, .dark #memCtr{
@@ -337,9 +338,9 @@ body.dark{
 	box-shadow: inset 1px 1px var(--d-border);
 }
 
-/*==============
-    LIGHT MODE
-  ==============*/
+/*================================
+    LIGHT MODE component styles
+  ===============================*/
 :root{
 	--l-shade: #000000;
 	--l-border: #8F878C;
@@ -492,11 +493,11 @@ body.light{
 
 .light .lightup{
 	color: var(--l-select);
-	font-weight: 800;
 }
 
 .light #regCtr .lightup{
 	color: var(--d-val);
+	font-weight: 800;
 }
 
 .light #jump-input::placeholder{
@@ -566,9 +567,9 @@ body.light{
 	box-shadow: inset 1px 1px var(--l-comment);
 }
 
-/*==================
-    MONACO EDITOR
-  ==================*/
+/*==================================
+    MONACO EDITOR style overrides
+  =================================*/
 
 .monaco-editor::selection{
 	background-color: var(--l-select);
@@ -609,8 +610,6 @@ body.light{
 .light .monaco-editor, .light .monaco-editor-background{
 	background-color: var(--l-textarea) !important;
 }
-
-/* LIGHT MODE syntax highlighting */
 
 .light .mtk2{
 	color: var(--l-text);

@@ -1,19 +1,22 @@
+<!-- 
+    StepControls.svelte
+        Trigger Run, Step in, Step out, or Step over controls
+-->
+
 <script>
     import { createEventDispatcher } from 'svelte';
     const dispatch = createEventDispatcher();
 
-    // Control handlers
+    // Dispatch clicked control
+    function step(control){
+        dispatch("step", { text: control })
+    }
+
+    // Step control handlers
     function runClick(){ step("run") }
     function stepInClick(){ step("in") }
     function stepOutClick(){ step("out") }
     function stepOverClick(){ step("over") }
-
-    // Dispatch control
-    function step(control){
-        dispatch("step", {
-            text: control
-        })
-    }
 </script>
 
 <div id="step-controls">

@@ -1,18 +1,24 @@
+<!-- 
+    Title.svelte
+        WebLC3 title component
+-->
+
 <script>
     import { toggleHelp } from './stores.js';
 
     let githubRef = `Source code on <a href="https://github.com/aidan-garvey/WebLC3">Github</a>`
 
+    // Aesthetic animation on hover
     function addJiggle(){
         this.classList.add("jiggle")
         this.parentElement.querySelector("p").innerHTML="Click to read the guide"
     }
-
     function removeJiggle(){
         this.classList.remove("jiggle")
         this.parentElement.querySelector("p").innerHTML=githubRef
     }
 
+    // Open help documentation modal
     function openHelp(){
         toggleHelp.set(true)
     }

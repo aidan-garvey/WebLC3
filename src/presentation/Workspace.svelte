@@ -1,9 +1,16 @@
+<!-- 
+    Workspace.svelte
+        Workspace component including Editor and Simulator views and controls
+-->
+
 <script>
     import EditorView from "./EditorView.svelte";
     import SimulatorView from "./SimulatorView.svelte";
     import { currentView } from '../presentation/stores.js';
 
     let currView = "editor"
+
+    // Switch current view component
     currentView.subscribe(value => {
 		currView = value
 	});
@@ -44,5 +51,4 @@
 			height: 150vh;
 		}
 	}
-    
 </style>

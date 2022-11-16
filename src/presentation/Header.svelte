@@ -1,3 +1,8 @@
+<!-- 
+    Header.svelte
+        Header component on top of page including title, menu items, and mode switch
+-->
+
 <script>
     import Menu from "./Menu.svelte"
     import ModeSwitch from "./ModeSwitch.svelte"
@@ -5,15 +10,14 @@
     import { onMount } from "svelte"
 
     let appLoadComplete = false
-    onMount(() => {
-        appLoadComplete = true
-	});
-
+    onMount(() => { appLoadComplete = true });
 </script>
 
 <div id="header">
     <div id="header-inner">
         <Title />
+
+        <!-- Initially hide Menu while application loads -->
         {#if appLoadComplete}
             <Menu />
             <ModeSwitch />

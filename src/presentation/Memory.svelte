@@ -1,25 +1,79 @@
+<!-- 
+    Memory.svelte
+        Reflect value stored and instruction mapped in CPU memory
+-->
+
 <script>
     import { onMount } from 'svelte'
     import { reloadOverride } from './stores.js';
     import { createEventDispatcher } from 'svelte'
     const dispatch = createEventDispatcher()
 
+    // Dispatch updated PC
+    function updatePC(newPC) {
+		dispatch("updatePC", { text: newPC })
+	}
+
+    // Dispatch component to light up
+    let cancelFirstLightup = true
+    function lightUp(id){
+        if(!cancelFirstLightup)
+            dispatch("lightUp", { text: id })
+        else
+            cancelFirstLightup = false
+    }
+
+
     // Set memory table dimensions
     let cols = Array(5)
     export let rows = 23
-
-    // Set PC and pointer on startup
+    // Set PC, pointer, and map data
     export let pc
     export let ptr
     export let map
     let currPtr = ptr
     let currMap = map
     let currPC = pc
-    let cancelFirstLightup = true
-    
-    // Load memory range
+    // UI reference to data map and breakpoints
     $: data = []
     let breakpoints = []
+
+
+    onMount(() => { reloadMemRange(currPtr) });
+
+
+    /* DYNAMIC RELOAD */
+
+    // Detect memory reload override
+    reloadOverride.subscribe(override => {
+        if(override[0]){
+            setTimeout(function() {
+                reloadMemRange(currPtr)
+                reloadOverride.set([false, false])
+            }, 500);
+        }
+	});
+    // Detect and reload on memory pointer change
+    $: if (currPtr != ptr) {
+        currPtr = ptr
+        reloadMemRange(currPtr)
+	}
+    // Detect and reload on memory map change
+    $: if(currMap != map){
+        try{
+            // Compare range start pointers; "Lightup"/Signal change if unequal
+            if(currMap[0][1] != map[0][1])
+                lightUp("memoryLbl")
+        } catch {}
+        currMap = map
+        reloadMemRange(currPtr)
+    }
+    // Detect and reload on PC change
+    $: if (currPC != pc) {
+        currPC = pc
+        reloadMemRange(currPtr)
+	}
+    // Load memory range
     function reloadMemRange(newPtr){
         data = []
         for (let n=0; n<rows; n++){
@@ -31,7 +85,7 @@
         }
         reloadMemUI()
     }
-
+    // Load PC and breakpoint styling
     function reloadMemUI(){
         setTimeout(function() {
             clearSets()
@@ -46,52 +100,8 @@
         }, 300)
     }
 
-    onMount(() => { 
-		reloadMemRange(currPtr)
-	});
 
-    // Detect memory reload override
-    reloadOverride.subscribe(override => {
-        if(override[0]){
-            setTimeout(function() {
-                reloadMemRange(currPtr)
-                reloadOverride.set([false, false])
-            }, 500);
-        }
-	});
-
-    // Detect and reload on memory pointer change
-    $: if (currPtr != ptr) {
-        currPtr = ptr
-        reloadMemRange(currPtr)
-	}
-
-    // Detect and reload on memory map change
-    $: if(currMap != map){
-        try{
-            if(currMap[0][1] != map[0][1])
-                lightUp("memoryLbl")
-        } catch {}
-        currMap = map
-        reloadMemRange(currPtr)
-    }
-
-    // Detect and reload on PC change
-    $: if (currPC != pc) {
-        currPC = pc
-        reloadMemRange(currPtr)
-	}
-
-    function lightUp(id){
-        if(!cancelFirstLightup){
-            dispatch("lightUp", {
-                text: id
-            })
-        }
-        else{
-            cancelFirstLightup = false
-        }
-    }
+    /* SET-UNSET INTERACTIONS */
 
     // Set or unset breakpoint on click
     function setBreakpoint(){
@@ -125,13 +135,7 @@
         }
     }
 
-    function updatePC(newPC) {
-		dispatch("updatePC", {
-			text: newPC
-		})
-	}
-
-    // Clear breakpoints and PC on memory reload
+    // Clear breakpoints and PC styling on memory reload
     function clearSets(){
         let thePC = document.querySelector(".ptr-selected")
         if(thePC)
@@ -141,14 +145,16 @@
             bp.classList.remove("bp-selected")
     }
 
-    // Set new memory value via hex
+
+    /* VALUE OVERRIDE */
+
+    // Set new memory value via hexadecimal
     function editHex(){
         let currContent = this.innerHTML
         let newInput = createInputBox(currContent, false)
         this.appendChild(newInput)
         newInput.focus()
     } 
-
     // Set new memory value via decimal
     function editDec(){
         let currContent = this.innerHTML
@@ -157,7 +163,7 @@
         newInput.focus()
     } 
 
-    // Create input box in place of value to edit
+    // Append text input to cell
     function createInputBox(content, dec=false){
         let newInput = document.createElement("input")
         newInput.value = content
@@ -180,6 +186,7 @@
             }
         })
 
+        // Commit new value if validations pass. Else, rollback (old value will not change)
         function saveInput(thisCell, newValue){
             let valid = false
             if(dec)
@@ -195,7 +202,6 @@
                 
                 // Update Hexadecimal cell
                 data[rowNum][2] = "0x" + parseInt(newValue).toString(16)
-
                 // Update Decimal cell
                 data[rowNum][3] = newValue
 
@@ -209,7 +215,6 @@
                 
                 // Update Hexadecimal cell
                 data[rowNum][2] = "0x" + newValue
-
                 // Update Decimal cell
                 data[rowNum][3] = parseInt(newValue, 16).toString()
 
@@ -217,31 +222,31 @@
                 let address = parseInt(thisCell.id.split('-').pop())
                 if(globalThis.simulator)
                     globalThis.simulator.setMemory(address, parseInt(newValue, 16))
-            } 
-            
-            // Else, rollback (old value will not change)
+            }
         }
 
-        return newInput
+        return newInput // Complete text input element
     }
 
+    // Validate hexadecimal input
     function isHex(val) {
         let num = parseInt(val,16);
         let valid = (num.toString(16) === val.toLowerCase())
         let inRange = (num >= 0 && num <= 65535)
         return valid && inRange
     }
-
+    // Validate decimal input
     function isDec(val) {
         let num = parseInt(val)
         let valid = (num.toString() === val.toLowerCase())
         let inRange = (num >= 0 && num <= 65535)
         return valid && inRange
     }
-
 </script>
 
 <div id="memCtr" class="sourceCodePro">
+
+    <!-- Map data into UI component -->
     {#each data as row, i}
         {#if i%2==1}
             <div id="memRow-{i}" class="memRow highlighted">

@@ -1,4 +1,10 @@
+<!-- 
+    Icon.svelte
+        Aesthetic sun and moon styles for ModeSwitch
+-->
+
 <script>
+    // Track current mode
     export let type = "moon"
 </script>
 
@@ -80,5 +86,4 @@
             width: 0%;
         }
     }
-
 </style>
