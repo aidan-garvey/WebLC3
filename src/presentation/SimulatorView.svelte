@@ -82,7 +82,7 @@
 		} 
 		// Use zeroes map component filler
 		else{
-			regMap = regMap = [
+			regMap = [
 				["R0", "0x0", "0"],
 				["R1", "0x0", "0"],
 				["R2", "0x0", "0"],
@@ -120,34 +120,38 @@
 	}
 
 	// Execute Step controls
-	function step(event){
+	async function step(event){
 		if(globalThis.simulator){
 			let control = event.detail.text
-		
-			if(control == "in"){
-				globalThis.simulator.stepIn()
-				pc = globalThis.simulator.getPC()
-			}
-			else if(control == "out"){
-				globalThis.simulator.stepOut()
-				pc = globalThis.simulator.getPC()
-			}
-			else if(control == "over"){
-				globalThis.simulator.stepOver()
-				pc = globalThis.simulator.getPC()
-			}
-			else if(control == "run"){
-				globalThis.simulator.run()
-				pc = globalThis.simulator.getPC()
-			}
+			if(control == "in"){ await globalThis.simulator.stepIn() }
+			else if(control == "out"){ await globalThis.simulator.stepOut() }
+			else if(control == "over"){ await globalThis.simulator.stepOver() }
+			else if(control == "run"){ await globalThis.simulator.run()	}
+			updateUI()
+			
+			/*let ready = await stepControl(control)
+			console.log(ready)
+			if(ready)
+				updateUI()
 
-			// Continue tracking PC by going to a different page of memory range
-			if(Math.abs(pc-currPtr) >= longJumpOffset){
-				currPtr = pc
-				memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+			async function stepControl(id){
+				if(id == "in"){ return await globalThis.simulator.stepIn() }
+				else if(id == "out"){ return await globalThis.simulator.stepOut() }
+				else if(id == "over"){ return await globalThis.simulator.stepOver() }
+				else if(id == "run"){ return await globalThis.simulator.run()	}
+			}*/
+
+			// Update components
+			function updateUI(){
+				pc = globalThis.simulator.getPC()
+				// Continue tracking PC by going to a different page of memory range
+				if(Math.abs(pc-currPtr) >= longJumpOffset){
+					currPtr = pc
+					memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+				}
+				updateRegisters()
 			}
 		}
-		updateRegisters()
 	}
 
 	// Execute Jump controls
