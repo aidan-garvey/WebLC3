@@ -56,6 +56,41 @@ export default class Parser
     }
 
     /**
+     * Given a line and an index in that line, return true if the character is
+     * in a string literal
+     * @param line 
+     * @param index 
+     */
+    private static inQuotes(line: string, index: number) : boolean
+    {
+        let quotes = false;
+        let lastQuote = '\0';
+        for (let i = 0; i < line.length; i++)
+        {
+            if (i == index)
+            {
+                return quotes;
+            }
+            else if (line[i] == "'" || line[i] == '"')
+            {
+                // openning a new set of quotes
+                if (!quotes)
+                {
+                    quotes = true;
+                    lastQuote = line[i];
+                }
+                // closing the current set of quotes
+                else if (line[i] == lastQuote)
+                {
+                    quotes = false;
+                }
+                // else: it's a ' within "...", or a " within '...'
+            }
+        }
+        return quotes;
+    }
+
+    /**
      * Trim leading and trailing whitespace and remove any comments
      * from a line of source code, convert to lowercase.
      * @param {string} line 
@@ -64,7 +99,12 @@ export default class Parser
     public static trimLine(line: string) : string
     {
         let res = line;
-        const comment = line.indexOf(';');
+        // comment begins at the first semicolon not within quotes
+        let comment = line.indexOf(';');
+        while (comment >= 0 && this.inQuotes(line, comment))
+        {
+            comment = line.indexOf(';', comment + 1);
+        }
         if (comment >= 0)
         {
             res = line.substring(0, comment);
