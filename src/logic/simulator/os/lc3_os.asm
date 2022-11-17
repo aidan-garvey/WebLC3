@@ -35,7 +35,7 @@
 ; OPERATING SYSTEM (0x0200)
 ; -------------------------
 
-; Register addresses:
+; Device register addresses:
 KBD_STATUS: .FILL xFE00
 KBD_DATA:   .FILL xFE02
 CON_STATUS: .FILL xFE04
@@ -43,8 +43,8 @@ CON_DATA:   .FILL xFE06
 MCR:        .FILL xFFFE
 
 ; Constants (see bottom of code for more strings):
-BYTE_MASK:  .FILL x00FF
-MSB_MASK:   .FILL x7FFF ; used to clear the MSB of a word with AND
+BYTE_MASK:  .FILL x00FF ; to clear the upper byte of a word
+MSB_MASK:   .FILL x7FFF ; to clear the MSB of a word
 NOTRAP_MSG: .STRINGZ "Invalid TRAP excecuted\n"
 BAD_EX_MSG: .STRINGZ "An invalid interrupt or exception has occured\n"
 
@@ -64,7 +64,7 @@ TRAP_UNIMP:
     RTI
 
 ; The descriptions of the following trap implementations are quoted directly
-; from Patel, Introduction to Computer Systems, p. 543
+; from Patel, Introduction to Computer Systems 2nd. Edition, p. 543
 
 ; ----------------------------------------------------------------------------
 ; GETC
@@ -73,7 +73,7 @@ TRAP_UNIMP:
 ; cleared.
 ; ----------------------------------------------------------------------------
 TRAP_GETC:
-    ; push r1-r2/r7
+    ; push r1-r2
     ADD     r6, r6, #-2
     STR     r1, r6, #0
     STR     r2, r6, #1
@@ -90,7 +90,7 @@ GETC_WAIT:
     ; ensure R0[15:8] are clear
     LD      r1, BYTE_MASK
     AND     r0, r0, r1
-    ; pop r1-r2 and return
+    ; pop registers and return
     LDR     r1, r6, #0
     LDR     r2, r6, #1
     ADD     r6, r6, #2
@@ -101,7 +101,7 @@ GETC_WAIT:
 ; Write a character in R0[7:0] to the console display.
 ; ----------------------------------------------------
 TRAP_OUT:
-    ; push r0-r1/r7
+    ; push r0-r1
     ADD     r6, r6, #-2
     STR     r0, r6, #0
     STR     r1, r6, #1
@@ -129,7 +129,7 @@ OUT_WAIT:
 ; occurrence of x0000 in a memory location.
 ; -----------------------------------------------------------------------------
 TRAP_PUTS:
-    ; push r0-r3/r7
+    ; push r0-r3
     ADD     r6, r6, #-4
     STR     r0, r6, #0
     STR     r1, r6, #1
