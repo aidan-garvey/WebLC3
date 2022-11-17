@@ -146,20 +146,18 @@
 
 			function getCode() {
 				return [
-					'; comment',
-					'.ORIG x3000',
-					'LD      R1  NUM2',
-					'ST      r0, num1',
-					'ADD     R0  R1  #0  ; comment',
-					'add     r0, r1, xF',
-					'',
-					'num1: .fill x20',
-					'NUM2: .FILL #30',
-					'NUM3:',
-					'.fill b100010',
-					'num4: .fill #x40',
-					'.stringz "hello\\n"',
-					'.stringz \'hello\\n\''
+				'; comment',
+				'',
+				'.orig x3000',
+				'',
+				'	ld  R6, stack',
+				'	lea R0, hello',
+				'	puts',
+				'	halt',
+				'',
+				'stack .fill xE000',
+				'hello .stringz "Hello World!\\n"',
+				'.end'
 				].join('\n');
 			}
 		</script>
