@@ -74,10 +74,9 @@ TRAP_UNIMP:
 ; ----------------------------------------------------------------------------
 TRAP_GETC:
     ; push r1-r2/r7
-    ADD     r6, r6, #-3
+    ADD     r6, r6, #-2
     STR     r1, r6, #0
     STR     r2, r6, #1
-    STR     r7, r6, #2
 GETC_WAIT:
     ; wait for keyboard to be ready
     LDI     r1, KBD_STATUS
@@ -94,8 +93,7 @@ GETC_WAIT:
     ; pop r1-r2 and return
     LDR     r1, r6, #0
     LDR     r2, r6, #1
-    LDR     r7, r6, #2
-    ADD     r6, r6, #3
+    ADD     r6, r6, #2
     RTI
 
 ; ----------------------------------------------------
@@ -104,10 +102,9 @@ GETC_WAIT:
 ; ----------------------------------------------------
 TRAP_OUT:
     ; push r0-r1/r7
-    ADD     r6, r6, #-3
+    ADD     r6, r6, #-2
     STR     r0, r6, #0
     STR     r1, r6, #1
-    STR     r7, r6, #2
     ; ensure we only write lower byte to console
     LD      r1, BYTE_MASK
     AND     r0, r0, r1
@@ -121,8 +118,7 @@ OUT_WAIT:
     ; pop registers and return
     LDR     r0, r6, #0
     LDR     r1, r6, #1
-    LDR     r7, r6, #2
-    ADD     r6, r6, #3
+    ADD     r6, r6, #2
     RTI
 
 ; -----------------------------------------------------------------------------
@@ -134,12 +130,11 @@ OUT_WAIT:
 ; -----------------------------------------------------------------------------
 TRAP_PUTS:
     ; push r0-r3/r7
-    ADD     r6, r6, #-5
+    ADD     r6, r6, #-4
     STR     r0, r6, #0
     STR     r1, r6, #1
     STR     r2, r6, #2
     STR     r3, r6, #3
-    STR     r7, r6, #4
 
     ; r2 will mask ASCII characters
     LD      r2, BYTE_MASK
@@ -162,8 +157,7 @@ PUTS_BREAK:
     LDR     r1, r6, #1
     LDR     r2, r6, #2
     LDR     r3, r6, #3
-    LDR     r7, r6, #4
-    ADD     r6, r6, #5
+    ADD     r6, r6, #4
     RTI
 
 ; ---------------------------------------------------------------------------
