@@ -1,14 +1,27 @@
+<!-- 
+    Header.svelte
+        Header component on top of page including title, menu items, and mode switch
+-->
+
 <script>
-    import Menu from "./Menu.svelte";
-    import ModeSwitch from "./ModeSwitch.svelte";
-    import Title from "./Title.svelte";
+    import Menu from "./Menu.svelte"
+    import ModeSwitch from "./ModeSwitch.svelte"
+    import Title from "./Title.svelte"
+    import { onMount } from "svelte"
+
+    let appLoadComplete = false
+    onMount(() => { appLoadComplete = true });
 </script>
 
 <div id="header">
     <div id="header-inner">
         <Title />
-        <Menu />
-        <ModeSwitch />
+
+        <!-- Initially hide Menu while application loads -->
+        {#if appLoadComplete}
+            <Menu />
+            <ModeSwitch />
+        {/if}
     </div>
 </div>
 
@@ -28,5 +41,11 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+    }
+
+    @media (max-width: 1200px) {
+	    #header{
+		    height: 20vh;
+	    }
     }
 </style>

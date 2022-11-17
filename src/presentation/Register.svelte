@@ -1,27 +1,64 @@
+<!-- 
+    Register.svelte
+        Reflect value stored in CPU registers, and current PC, PSR, and MCR
+-->
+
 <script>
     import { createEventDispatcher } from 'svelte'
     const dispatch = createEventDispatcher()
 
+    // Dispatch updated PC
+    function updatePC(newPC) {
+		dispatch("updatePC", { text: newPC })
+	}
+
+    // Dispatch component and row to light up
+    let cancelFirstLightup = true
+    function lightUp(id){
+        if(!cancelFirstLightup)
+            dispatch("lightUp", { text: id })
+        else
+            cancelFirstLightup = false
+    }
+
+
     // Set register table dimensions
     let cols = Array(5)
-
+    export let registers = 8
     // Set register data
     export let map
     let data = map
 
+
+    /* DYNAMIC RELOAD */
+
     // Detect registerMap change
     $: if (data != map) {
+        try{
+            let newValue = false
+            // Compare old and new value of registers; "Lightup"/Signal change if unequal
+            for(let i=0; i<registers; i++){
+                if(data[i][2] != map[i][2]){
+                    newValue = true
+                    lightUp("regRow-" + i)
+                }
+            }
+            if(newValue)
+                lightUp("registersLbl")
+        } catch {}
         data = map
 	}
 
-    // Set new register value via hex
+
+    /* VALUE OVERRIDE */
+
+    // Set new register value via hexadecimal
     function editHex(){
         let currContent = this.innerHTML
         let newInput = createInputBox(currContent, false)
         this.appendChild(newInput)
         newInput.focus()
     } 
-
     // Set new register value via decimal
     function editDec(){
         let currContent = this.innerHTML
@@ -30,6 +67,7 @@
         newInput.focus()
     } 
 
+    // Append text input to cell
     function createInputBox(content, dec=false){
         let newInput = document.createElement("input")
         newInput.value = content
@@ -54,8 +92,8 @@
             }
         })
 
+        // Commit new value if validations pass. Else, rollback (old value will not change)
         function saveInput(newValue, rowNum){
-
             let valid = false
             if(dec)
                 valid = isDec(newValue)
@@ -66,7 +104,6 @@
             }
             
             if(valid && dec){
-
                 // Update Hexadecimal cell
                 data[rowNum][1] = "0x" + parseInt(newValue).toString(16)
                 // Update Decimal cell
@@ -93,7 +130,6 @@
                 
             }
             else if(valid){
-
                 // Update Hexadecimal cell
                 data[rowNum][1] = "0x" + newValue
                 // Update Decimal cell
@@ -118,36 +154,30 @@
                     // Set new MCR
                 }
             } 
-            
-            // Else, rollback (old value will not change)
         }
 
-        return newInput
+        return newInput // Complete text input element
     }
 
+    // Validate hexadecimal input
     function isHex(val) {
         let num = parseInt(val,16);
         let valid = (num.toString(16) === val.toLowerCase())
         let inRange = (num >= 0 && num <= 65535)
         return valid && inRange
     }
-
+    // Validate decimal input
     function isDec(val) {
         let num = parseInt(val)
         let valid = (num.toString() === val.toLowerCase())
         let inRange = (num >= 0 && num <= 65535)
         return valid && inRange
     }
-
-    function updatePC(newPC) {
-		dispatch("updatePC", {
-			text: newPC
-		})
-	}
-
 </script>
 
 <div id="regCtr" class="sourceCodePro">
+
+    <!-- Map data into UI component -->
     {#each data as row, i}
         {#if i%2==1}
             <div id="regRow-{i}" class="regRow highlighted">
@@ -187,6 +217,7 @@
         display: flex;
         flex-direction: column;
         font-size: 10px;
+        z-index: 1;
     }
 
     .regRow{
@@ -200,5 +231,4 @@
             grid-template-columns: 20% 30% 25% 25%;
         }
     }
-
 </style>

@@ -1,8 +1,19 @@
+<!-- 
+    +layout.svelte
+        Defines the application layout 
+-->
+
 <script>
+    import { onMount } from 'svelte'
     import { toggleHelp } from '../presentation/stores';
 
-    let openHelpModal = false
+    // Allow window scrolling on application load
+    onMount(() => {
+        document.body.style.overflowY = "scroll"
+	});
 
+    // Open popup with WebLC3 help documentation to overlay on page
+    let openHelpModal = false
 	toggleHelp.subscribe(value => {
 		openHelpModal = value
 	});

@@ -1,71 +1,68 @@
+<!-- 
+    SimulatorView.svelte
+        This workspace view enables a client to run an assembly program through a built-in application CPU.
+		Comprehensive UI suite allows viewing and override of Register and Memory state contents, printing character outputs through Console,
+		breakpoint setting, PC override, and Step and Jump controls
+-->
+
 <script>
-	import { onMount } from 'svelte';
-    import Register from "./Register.svelte";
-    import Memory from "./Memory.svelte";
-    import Console from "./Console.svelte";
-    import StepControls from "./StepControls.svelte";
-    import JumpControls from "./JumpControls.svelte";
-	import { currentView, reloadOverride } from './stores';
+	import { onMount } from 'svelte'
+    import Register from "./Register.svelte"
+    import Memory from "./Memory.svelte"
+    import Console from "./Console.svelte"
+    import StepControls from "./StepControls.svelte"
+    import JumpControls from "./JumpControls.svelte"
+	import SimulatorStatus from './SimulatorStatus.svelte'
+	import UI from './ui'
+	import { reloadOverride } from './stores'
 
-	function toEditor() {
-		currentView.set("editor")
-	}
-
+	// Preset data
+	let orig = 0
 	$: pc = 512
 	$: currPtr = -1
 	$: memMap = []
-	$: regMap = [
-        ["R0", "0x0", "0"],
-        ["R1", "0x0", "0"],
-        ["R2", "0x0", "0"],
-        ["R3", "0x0", "0"],
-        ["R4", "0x0", "0"],
-        ["R5", "0x0", "0"],
-        ["R6", "0x0", "0"],
-        ["R7", "0x0", "0"],
-        ["PSR", "0x2", "2", "CC: Z"],
-        ["PC", "0x2", "512"],
-        ["MCR", "0x0", "0"],
-    ]
+	$: regMap = []
 	let shortJumpOffset = 5
 	let longJumpOffset = 23
 	let numRegisters = 8
 
-	function newPC(event){
-		pc = event.detail.text
-		updateRegisters()
-	}
-
 	onMount(() => {
+		// Load preset or saved states
 		if(globalThis.simulator){
 			pc = globalThis.simulator.getPC()
+			orig = pc
 			if(globalThis.lastPtr)
 				currPtr = globalThis.lastPtr
 			else
 				currPtr = pc
 			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
-			updateRegisters()
 		}
+		updateRegisters()
 
-		// Save last pointer On Destroy
-        return () => {
-            globalThis.lastPtr = currPtr
-        }
+		// Save last memory pointer on destroy
+        return () => { globalThis.lastPtr = currPtr }
 	});
 
+
+
+	/* DYNAMIC RELOAD */
 	
-	// Detect memory reload override
-    reloadOverride.subscribe(value => {
-		let override = value
-        if(override){
-			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+	// Update Memory map
+    reloadOverride.subscribe(override => {
+		// Set memory range to start at .orig
+		if(override[1])
+			currPtr = orig
+		// Set memory range to start at currPtr
+        if(override[0]){
 			pc = globalThis.simulator.getPC()
+			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
 			updateRegisters()
 		}
 	});
 
-	// Update Register Map
+	// Update Register map
 	function updateRegisters(){
+		// Generate register map
 		if(globalThis.simulator){
 			let tempRegMap = []
 			for(let n=0; n<numRegisters; n++){
@@ -74,54 +71,90 @@
 				let regHex = "0x" + regDec.toString(16)
 				tempRegMap.push([regName, regHex, regDec.toString()])
 			}
-
 			let cc = "Z"
 			let psrDec = globalThis.simulator.getPSR()
 			let psrHex = "0x" + psrDec.toString(16)
 			tempRegMap.push(["PSR", psrHex, psrDec])
-
 			tempRegMap.push(["PC", "0x"+pc.toString(16), pc.toString(), "CC:"+cc])
-
 			tempRegMap.push(["MCR", "0x0", "0"])
 
 			regMap = tempRegMap
+		} 
+		// Use zeroes map component filler
+		else{
+			regMap = [
+				["R0", "0x0", "0"],
+				["R1", "0x0", "0"],
+				["R2", "0x0", "0"],
+				["R3", "0x0", "0"],
+				["R4", "0x0", "0"],
+				["R5", "0x0", "0"],
+				["R6", "0x0", "0"],
+				["R7", "0x0", "0"],
+				["PSR", "0x2", "2", "CC: Z"],
+				["PC", "0x0", "0"],
+				["MCR", "0x0", "0"],
+			]
 		}
 	}
 
 
-	// Step controls
-	function step(event){
-		if(globalThis.simulator){
-			let control = event.detail.text
-		
-			if(control == "in"){
-				globalThis.simulator.stepIn()
-				pc = globalThis.simulator.getPC()
-			}
-			else if(control == "out"){
-				globalThis.simulator.stepOut()
-				pc = globalThis.simulator.getPC()
-			}
-			else if(control == "over"){
-				globalThis.simulator.stepOver()
-				pc = globalThis.simulator.getPC()
-			}
-			else if(control == "run"){
-				globalThis.simulator.run()
-				pc = globalThis.simulator.getPC()
-			}
 
-			// Continue tracking PC by going to a different page of memory range
-			if(Math.abs(pc-currPtr) >= longJumpOffset){
-				currPtr = pc
-				memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
-			}
-		}
-		
+	/* DISPATCH AND EVENT HANDLERS */
+
+	// Update PC
+	function newPC(event){
+		pc = event.detail.text
 		updateRegisters()
 	}
 
-	// Jump controls
+	// "Light up" a component or table row
+	function lightUpComponent(event){
+		let compo = document.getElementById(event.detail.text)
+		if(compo){
+			compo.classList.add("lightup")
+			setTimeout(function() {
+				compo.classList.remove("lightup")
+			}, 400)
+		}
+	}
+
+	// Execute Step controls
+	async function step(event){
+		if(globalThis.simulator){
+			let control = event.detail.text
+			if(control == "in"){ await globalThis.simulator.stepIn() }
+			else if(control == "out"){ await globalThis.simulator.stepOut() }
+			else if(control == "over"){ await globalThis.simulator.stepOver() }
+			else if(control == "run"){ await globalThis.simulator.run()	}
+			updateUI()
+			
+			/*let ready = await stepControl(control)
+			console.log(ready)
+			if(ready)
+				updateUI()
+
+			async function stepControl(id){
+				if(id == "in"){ return await globalThis.simulator.stepIn() }
+				else if(id == "out"){ return await globalThis.simulator.stepOut() }
+				else if(id == "over"){ return await globalThis.simulator.stepOver() }
+				else if(id == "run"){ return await globalThis.simulator.run()	}
+			}*/
+
+			// Update components
+			function updateUI(){
+				pc = globalThis.simulator.getPC()
+				// Continue tracking PC by going to a different page of memory range
+				if(Math.abs(pc-currPtr) >= longJumpOffset){
+					currPtr = pc
+					memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+				}
+				updateRegisters()
+			}
+		}
+	}
+
+	// Execute Jump controls
 	function jump(event){
 		if(globalThis.simulator){
 			let control = event.detail.text
@@ -164,21 +197,30 @@
 			}
 		}
 	}
-	
+
+	// Select Console on click
+	function focusConsole(event){
+        UI.selectConsole()
+        event.stopImmediatePropagation()
+    }
 </script>
 
 <div id="sim-view">
 	<section id="sv-left">
-		<div class="workSans componame">Registers</div>
-		<Register map={regMap} on:updatePC={newPC} />
+		<div id="registersLbl" class="componame monoton">Registers</div>
+		<Register map={regMap} registers={numRegisters} on:updatePC={newPC} on:lightUp={lightUpComponent} />
         <StepControls on:step={step} />
-        <Console />
+        <div id="c-ctr" on:click={focusConsole}>
+			<Console />
+		</div>
 	</section>
 	<section id="sv-right">
-        <div class="workSans componame">Memory</div>
-		<Memory extPC={pc} ptr={currPtr} map={memMap} on:updatePC={newPC} />
-        <JumpControls on:jump={jump} />
-        <button class="switchBtn" on:click={toEditor}>Back to Editor</button>
+		<div id="sv-right-top">
+        	<div id="memoryLbl" class="componame monoton">Memory</div>
+			<SimulatorStatus />
+		</div>
+		<Memory pc={pc} ptr={currPtr} map={memMap} on:updatePC={newPC} on:lightUp={lightUpComponent} />
+        <JumpControls orig={"x" + orig.toString(16)} on:jump={jump} />
 	</section>
 </div>
 
@@ -192,43 +234,41 @@
 	}
 
 	.componame{
-		font-size: 15px;
+		font-size: 39px;
 		width: 100%;
-		text-align: center;
+		margin-left: 1vw;
+		align-self: flex-start;
+		cursor: default;
+		z-index: 0;
 	}
 
 	#sv-left, #sv-right{
 		height: 100%;
 		width: 100%;
 		display: grid;
-		grid-row-gap: 1vh;
+		grid-row-gap: 2vh;
 	}
 
 	#sv-left{
-		grid-template-rows: auto auto auto 1fr;
+		grid-template-rows: 2em auto auto 1fr;
 	}
 
 	#sv-right{
-		grid-template-rows: auto auto 1fr 3em;
+		grid-template-rows: 2em auto 1fr;
 	}
 
-	.switchBtn{
-		padding: 0.8em 3em 0.8em 3em;
-		margin-top: 1vh;
-		text-align: center;
-        align-self: flex-end;
-        justify-self: flex-end;
+	#sv-right-top{
+		display: flex;
+		justify-content: space-evenly;
 	}
 
-	@media (max-width: 900px) {
-		.switchBtn{
-			font-size: 14px !important;
-		}
+	#c-ctr{
+		max-height: 25vh;
 	}
 
-	@media (max-width: 600px) {
-		.switchBtn{
-			font-size: 12px !important;
+	@media (max-width: 1300px) {
+        #c-ctr{
+			max-height: 50vh;
 		}
 	}
 </style>

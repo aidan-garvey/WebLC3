@@ -1,4 +1,10 @@
+<!-- 
+    Icon.svelte
+        Aesthetic sun and moon styles for ModeSwitch
+-->
+
 <script>
+    // Track current mode
     export let type = "moon"
 </script>
 
@@ -52,10 +58,11 @@
     }
 
     .sun{
-        background-color: var(--l-alt-shade);
+        background-color: var(--l-body);
         height: 80%;
         width: 80%;
         border-radius: 50%;
+        border: 2px dotted var(--l-text);
     }
 
     .sun div{
@@ -79,5 +86,4 @@
             width: 0%;
         }
     }
-
 </style>

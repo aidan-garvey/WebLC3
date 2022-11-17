@@ -1,24 +1,51 @@
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@300;400;500;600&family=Nova+Flat&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Turret+Road:wght@200;300;400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nova+Flat&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
 
-/*==============
-    GLOBAL
-  ==============*/
+/*=================
+    FONT classes
+  ================*/
+
+.workSans{
+	font-family: 'Work Sans', sans-serif;
+}
+.sourceCodePro{
+	font-family: 'Source Code Pro', monospace;
+}
+.audiowide{
+	font-family: 'Audiowide', cursive;
+}
+.monoton{
+	font-family: 'Monoton', cursive;
+}
+.turretRoad{
+	font-family: 'Turret Road', cursive;
+}
+.notoSansMono{
+	font-family: 'Noto Sans Mono', monospace;
+}
+.novaFlat{
+	font-family: 'Nova Flat', cursive;
+}
+
+/*========================================
+    GLOBAL element and component styles
+  =======================================*/
 html, body {
 	margin: 0;
   	padding: 0;
   	height: 100vh;
   	width: 100vw;
-	overflow: hidden;
+	overflow-x: hidden;
+	overflow-y: hidden;
 	scroll-behavior: smooth;
 	scrollbar-width: 0.5em;
 	font-family: 'Work Sans', sans-serif;
-}
-
-@media (max-width: 1000px) {
-	body{
-		overflow-y: scroll;
-	}
 }
 
 a, button {
@@ -30,14 +57,6 @@ a, button {
 
 a:hover {
 	text-decoration: underline;
-}
-
-.workSans{
-	font-family: 'Work Sans', sans-serif;
-}
-
-.sourceCodePro{
-	font-family: 'Source Code Pro', monospace;
 }
 
 ::-webkit-scrollbar {
@@ -90,14 +109,18 @@ a:hover {
 	cursor: pointer;
 }
 
-.memRow input, .regRow input{
+.memRow input, .regRow input, #filename input{
 	width: 45%;
 	margin-left: 5%;
 }
 
-/*==============
-    DARK MODE
-  ==============*/
+#c-ctr.console-highlighted #consoleCtr{
+	border-style: none;
+}
+
+/*==============================
+    DARK MODE component styles
+  =============================*/
 :root{
 	--d-shade: #000000;
 	--d-border: #000000;
@@ -125,6 +148,22 @@ body.dark{
 	scrollbar-color: var(--l-comment) var(--l-textarea);
 }
 
+.dark .console-highlighted{
+	border-width: 4px;
+	border-style: double;
+	border-color: var(--d-tint);
+	animation: 1.8s blinkDark cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+
+@keyframes blinkDark{
+	40%,75%{
+		border-color: var(--d-tint);
+	}
+	45%,70%{
+		border-color: var(--l-loc);
+	}
+}
+
 .dark a {
 	color: var(--d-dir);
 }
@@ -145,6 +184,7 @@ body.dark{
 .dark .menu-item{
 	border: 1px solid var(--d-border);
 	background-color: var(--d-body);
+	box-shadow: 1px 2px var(--d-highlight);
 	color: var(--d-fadetext);
 }
 
@@ -166,33 +206,47 @@ body.dark{
 	color: var(--d-textarea);
 }
 
+.dark .menu-item p{
+	font-weight: 400;
+}
+
 .dark #switch{
 	background-color: var(--d-body);
+	box-shadow: inset 1px 1px 3px var(--d-border);
 }
 
 .dark #switch section{
 	border: 1px solid var(--d-border);
+	box-shadow: 1px 1px var(--d-border);
 }
 
 .dark button{
 	color: var(--d-fadetext);
-	border: 1px solid var(--d-border);
-	/* padding: 0.6em 2em 0.6em 2em; */
-}
-
-.dark button:hover{
-	transition: 0.3s;
-	filter: brightness(0.9);
+	border: 2px solid var(--d-highlight);
 }
 
 .dark .functionBtn{
 	background-color: var(--d-tint);
 	font-size: 22px;
+	box-shadow: 1px 1px var(--d-border);
+}
+
+.dark .functionBtn:hover{
+	transition: 0.3s;
+	background-color: var(--d-body);
+	filter: brightness(1.1);
 }
 
 .dark .switchBtn{
 	background-color: var(--d-alt);
 	font-size: 16px;
+	box-shadow: 1px 1px var(--d-highlight);
+}
+
+.dark .switchBtn:hover{
+	transition: 0.3s;
+	filter: brightness(1.4);
+	background-color: var(--d-shade);
 }
 
 .dark .functionBtn:active, .dark .switchBtn:active{
@@ -204,14 +258,35 @@ body.dark{
 	color: var(--d-fadetext);
 }
 
+.dark #jump-input::selection, .dark #filename::selection{
+	color: var(--d-text);
+}
+
 .dark .componame{
-	color: var(--d-dir);
+	color: var(--d-tint);
+}
+
+.dark .lightup{
+	color: var(--l-loc);
+}
+
+.dark #regCtr .lightup{
+	color: var(--d-instr);
+	font-weight: 800;
 }
 
 .dark #editorCtr, .dark #consoleCtr, .dark #regCtr, .dark #memCtr{
 	background-color: var(--d-textarea);
-	border: 1px solid var(--d-border);
+	border: 2px solid var(--d-border);
+	border-top-color: var(--d-tint);
+	border-left-color: var(--d-tint);
+	box-shadow: 1px 2px var(--d-highlight);
 	cursor: text;
+}
+
+.dark #c-ctr:not(.console-highlighted) #consoleCtr:hover{
+	border-color: var(--l-body);
+	transition: 0.1s;
 }
 
 .dark .regRow, .dark memRow{
@@ -234,13 +309,38 @@ body.dark{
 	background-color: var(--d-select);
 }
 
-.dark #jump-buttons div:hover{
+.dark #jump-buttons div:hover, .dark #jump-express:hover{
+	transition: 0.2s;
 	color: var(--d-loc);
 }
 
-/*==============
-    LIGHT MODE
-  ==============*/
+.dark #sim-status-not-ready.stoplight-active{
+	background-color: var(--d-textarea);
+	color: var(--d-text);
+}
+
+.dark #sim-status-ready.stoplight-active{
+	background-color: var(--l-orig);
+	color: var(--d-text);
+	box-shadow: none;
+}
+
+.dark #sim-status-running.stoplight-active{
+	background-color: var(--d-instr);
+	color: var(--d-text);
+	box-shadow: none;
+}
+
+.dark .stoplight{
+	color: var(--d-tint);
+	background-color: var(--d-textarea);
+	border: 1px solid var(--d-border);
+	box-shadow: inset 1px 1px var(--d-border);
+}
+
+/*================================
+    LIGHT MODE component styles
+  ===============================*/
 :root{
 	--l-shade: #000000;
 	--l-border: #8F878C;
@@ -273,8 +373,24 @@ body.light{
 	background-color: rgba(0,0,0,0);
 }
 
-#console-inner::selection, #jump-input::selection{
+#console-inner::selection, #jump-input::selection, #filename::selection{
 	background-color: var(--l-select);
+}
+
+.light .console-highlighted{
+	border-width: 4px;
+	border-style: double;
+	border-color: darkgrey;
+	animation: 1.8s blinkLight cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+
+@keyframes blinkLight{
+	40%,75%{
+		border-color: darkgrey;
+	}
+	45%,70%{
+		border-color: var(--l-select);
+	}
 }
 
 .light a {
@@ -298,6 +414,7 @@ body.light{
 .light .menu-item{
 	border: 1px solid var(--l-border);
 	background-color: var(--l-tint);
+	box-shadow: 1px 2px var(--l-alt-tint);
 	color: var(--l-text);
 }
 
@@ -319,33 +436,46 @@ body.light{
 	color: var(--l-textarea);
 }
 
+.light .menu-item p{
+	font-weight: 500;
+}
+
 .light #switch{
 	background-color: var(--l-alt-tint);
+	box-shadow: inset -1px 1px 3px var(--l-border);
 }
 
 .light #switch section{
 	border: 1px solid var(--l-border);
-}
-
-.light button{
-	border: 1px solid var(--l-border);
-	/* padding: 0.6em 2em 0.6em 2em; */
-}
-
-.light button:hover{
-	transition: 0.3s;
-	filter: brightness(0.95);
+	box-shadow: inset -1px -2px var(--l-select);
 }
 
 .light .functionBtn{
 	background-color: var(--l-tint);
+	border: 2px solid lightgrey;
+	box-shadow: 1px 1px var(--l-border);
 	color: var(--l-loc);
 	font-size: 22px;
 }
 
+.light .functionBtn:hover{
+	transition: 0.3s;
+	filter: brightness(1.05);
+	background-color: var(--l-body);
+}
+
 .light .switchBtn{
 	background-color: var(--l-alt-shade);
+	border: 2px solid rgb(190, 190, 190);
+	box-shadow: 1px 1px var(--l-border);
 	font-size: 16px;
+}
+
+.light .switchBtn:hover{
+	transition: 0.3s;
+	border: 2px solid grey;
+	filter: brightness(1.4);
+	background-color: var(--l-comment);
 }
 
 .light .functionBtn:active, .light .switchBtn:active{
@@ -353,14 +483,39 @@ body.light{
 	color: var(--l-textarea);
 }
 
-.light #filename, .light .componame, .light #jump-input{
+.light #filename{
 	color: var(--l-fadetext);
+}
+
+.light .componame{
+	color: var(--l-alt-shade);
+}
+
+.light .lightup{
+	color: var(--l-select);
+}
+
+.light #regCtr .lightup{
+	color: var(--d-val);
+	font-weight: 800;
+}
+
+.light #jump-input::placeholder{
+	color: darkgrey;
 }
 
 .light #editorCtr, .light #consoleCtr, .light #regCtr, .light #memCtr{
 	background-color: var(--l-textarea);
-	border: 1px solid var(--l-border);
+	border: 2px solid var(--l-comment);
+	border-top-color: lightgrey;
+	border-left-color: lightgrey;
+	box-shadow: 1px 2px lightgrey;
 	cursor: text;
+}
+
+.light #c-ctr:not(.console-highlighted) #consoleCtr:hover{
+	border-color: var(--d-textarea);
+	transition: 0.1s;
 }
 
 .light .regRow, .light memRow{
@@ -383,13 +538,38 @@ body.light{
 	background-color: var(--l-select);
 }
 
-.light #jump-buttons div:hover{
+.light #jump-buttons div:hover, .light #jump-express:hover{
+	transition: 0.2s;
 	color: var(--l-reg);
 }
 
-/*==================
-    MONACO EDITOR
-  ==================*/
+.light #sim-status-not-ready.stoplight-active{
+	background-color: var(--l-alt-shade);
+	color: var(--l-text);
+}
+
+.light #sim-status-ready.stoplight-active{
+	background-color: var(--l-select);
+	color: var(--l-text);
+	box-shadow: none;
+}
+
+.light #sim-status-running.stoplight-active{
+	background-color: var(--d-dir);
+	color: var(--l-text);
+	box-shadow: none;
+}
+
+.light .stoplight{
+	color: darkgrey;
+	border: 1px solid var(--l-border);
+	background-color: var(--l-alt-shade);
+	box-shadow: inset 1px 1px var(--l-comment);
+}
+
+/*==================================
+    MONACO EDITOR style overrides
+  =================================*/
 
 .monaco-editor::selection{
 	background-color: var(--l-select);
@@ -430,8 +610,6 @@ body.light{
 .light .monaco-editor, .light .monaco-editor-background{
 	background-color: var(--l-textarea) !important;
 }
-
-/* LIGHT MODE syntax highlighting */
 
 .light .mtk2{
 	color: var(--l-text);

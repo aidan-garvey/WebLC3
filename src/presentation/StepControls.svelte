@@ -1,19 +1,22 @@
+<!-- 
+    StepControls.svelte
+        Trigger Run, Step in, Step out, or Step over controls
+-->
+
 <script>
     import { createEventDispatcher } from 'svelte';
     const dispatch = createEventDispatcher();
 
-    // Control handlers
+    // Dispatch clicked control
+    function step(control){
+        dispatch("step", { text: control })
+    }
+
+    // Step control handlers
     function runClick(){ step("run") }
     function stepInClick(){ step("in") }
     function stepOutClick(){ step("out") }
     function stepOverClick(){ step("over") }
-
-    // Dispatch control
-    function step(control){
-        dispatch("step", {
-            text: control
-        })
-    }
 </script>
 
 <div id="step-controls">
@@ -67,7 +70,14 @@
 		margin-right: 4%;
 	}
 
-    @media (max-width: 900px) {
+    @media (max-width: 1300px) {
+        #step-in, #step-out, #step-over{
+            font-size: 13px;
+            padding-left: 0.8em;
+        }
+    }
+
+    @media (max-width: 1000px) {
         #step-controls{
             grid-template-rows: 4em 4em;
             grid-template-columns: 30% 30% 30%;

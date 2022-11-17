@@ -1,3 +1,6 @@
+# Ambient
+.svelte-kit/ambient.d.ts
+
 # Logs
 logs
 *.log
@@ -102,3 +105,4 @@ dist
 
 # TernJS port file
 .tern-port
+
