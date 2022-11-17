@@ -150,13 +150,11 @@
 				'',
 				'.orig x3000',
 				'',
-				'	ld  R6, stack',
 				'	lea R0, hello',
 				'	puts',
 				'	halt',
 				'',
-				'stack .fill xE000',
-				'hello .stringz "Hello World!\\n"',
+				'hello: .stringz "Hello World!\\n"',
 				'.end'
 				].join('\n');
 			}
