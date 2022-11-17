@@ -14,7 +14,7 @@
     import JumpControls from "./JumpControls.svelte"
 	import SimulatorStatus from './SimulatorStatus.svelte'
 	import UI from './ui'
-	import { reloadOverride } from './stores'
+	import { reloadOverride, UIReady } from './stores'
 
 	// Preset data
 	let orig = 0
@@ -47,6 +47,14 @@
 
 	/* DYNAMIC RELOAD */
 	
+	// Update UI components
+	UIReady.subscribe(ready => {
+            if(ready){
+				updateUI()
+				UIReady.set(false)
+			}
+        });
+
 	// Update Memory map
     reloadOverride.subscribe(override => {
 		// Set memory range to start at .orig
@@ -98,6 +106,16 @@
 		}
 	}
 
+	// Update components
+	function updateUI(){
+		pc = globalThis.simulator.getPC()
+		// Continue tracking PC by going to a different page of memory range
+		if(Math.abs(pc-currPtr) >= longJumpOffset){
+			currPtr = pc
+			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+		}
+		updateRegisters()
+	}
 
 
 	/* DISPATCH AND EVENT HANDLERS */
@@ -127,30 +145,6 @@
 			else if(control == "out"){ await globalThis.simulator.stepOut() }
 			else if(control == "over"){ await globalThis.simulator.stepOver() }
 			else if(control == "run"){ await globalThis.simulator.run()	}
-			updateUI()
-			
-			/*let ready = await stepControl(control)
-			console.log(ready)
-			if(ready)
-				updateUI()
-
-			async function stepControl(id){
-				if(id == "in"){ return await globalThis.simulator.stepIn() }
-				else if(id == "out"){ return await globalThis.simulator.stepOut() }
-				else if(id == "over"){ return await globalThis.simulator.stepOver() }
-				else if(id == "run"){ return await globalThis.simulator.run()	}
-			}*/
-
-			// Update components
-			function updateUI(){
-				pc = globalThis.simulator.getPC()
-				// Continue tracking PC by going to a different page of memory range
-				if(Math.abs(pc-currPtr) >= longJumpOffset){
-					currPtr = pc
-					memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
-				}
-				updateRegisters()
-			}
 		}
 	}
 

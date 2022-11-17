@@ -143,6 +143,7 @@ export default class Simulator
                 this.workerBusy = false;
                 Atomics.store(this.workerHalt, 0, 0);
                 UI.setSimulatorReady();
+                UI.updateUI();
             }
             else if (msg.type === Messages.CONSOLE)
                 UI.appendConsole(msg.message);

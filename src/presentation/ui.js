@@ -6,7 +6,12 @@
  *      - SimulatorStatus.svelte
  */
 
-import { activeStoplight, consoleSelected } from "./stores"
+import { activeStoplight, consoleSelected, UIReady } from "./stores"
+
+// Signal that UI is ready to update
+function updateUI(){
+    UIReady.set(true)
+}
 
 
 // Replace all contents of Console with given string
@@ -108,6 +113,7 @@ function setSimulatorRunning(){
 
 
 export default {
+    updateUI,
     printConsole,
     appendConsole, 
     clearConsole,
