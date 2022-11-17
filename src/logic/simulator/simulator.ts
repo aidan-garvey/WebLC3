@@ -34,8 +34,10 @@ export default class Simulator
     private static MASK_Z = 0x2;
     private static MASK_P = 0x1;
     private static MASK_USER = 0x8000;
-    // user mode enabled, everything else zero
-    private static PSR_DEFAULT = 0x8000;
+    // user mode enabled, condition code N, everything else zero
+    private static PSR_DEFAULT = 0x8002;
+    // initial value for supervisor stack pointer
+    private static SSP_DEFAULT = 0x3000;
 
     // 2^16 words of memory
     private memory: Uint16Array;
@@ -94,6 +96,7 @@ export default class Simulator
         this.interruptVector = new Uint16Array(new SharedArrayBuffer(2));
         this.workerHalt = new Uint8Array(new SharedArrayBuffer(1));
         Atomics.store(this.workerHalt, 0, 0);
+        Atomics.store(this.savedSSP, 0, Simulator.SSP_DEFAULT);
 
         // assemble operating system code, load into simulator, then load user's code
         (async ()=>{
@@ -139,7 +142,8 @@ export default class Simulator
 
         this.simWorker.onmessage = (event) => {
             const msg = event.data;
-            if (msg.type === Messages.WORKER_DONE){
+            if (msg.type === Messages.WORKER_DONE)
+            {
                 this.workerBusy = false;
                 Atomics.store(this.workerHalt, 0, 0);
                 UI.setSimulatorReady();
@@ -587,7 +591,7 @@ export default class Simulator
         Atomics.store(this.interruptSignal, 0, 0);
         Atomics.store(this.interruptPriority, 0, 0);
         Atomics.store(this.interruptVector, 0, 0);
-        Atomics.store(this.savedSSP, 0, 0x3000);
+        Atomics.store(this.savedSSP, 0, Simulator.SSP_DEFAULT);
         Atomics.store(this.savedUSP, 0, 0);
     }
 }

@@ -555,6 +555,32 @@ class SimWorker
     }
 
     /**
+     * Initialize a trap with the given vector
+     * @param vector 
+     */
+    private static initTrap(vector: number)
+    {
+        // push PSR and PC onto supervisor stack
+        let ssp = Atomics.load(this.savedSSP, 0);
+        this.setMemory(ssp - 1, this.getPSR());
+        this.setMemory(ssp - 2, this.getPC());
+        Atomics.store(this.savedSSP, 0, ssp - 2);
+
+        // load R6 with supervisor stack if it is not the SSP already
+        if (this.userMode())
+        {
+            Atomics.store(this.savedUSP, 0, this.getRegister(6));
+            this.setRegister(6, Atomics.load(this.savedSSP, 0));
+        }
+
+        // set privilege mode to supervisor (PSR[15] = 0)
+        Atomics.and(this.psr, 0, this.CLEAR_USER);
+
+        // set PC to memory[vector]
+        this.setPC(this.getMemory(vector));
+    }
+
+    /**
      * Instruction methods - each executes one instruction.
      */
 
@@ -717,14 +743,12 @@ class SimWorker
     }
 
     /**
-     * Load R7 with the incremented PC, then load PC with the zero-extended
-     * trap vector in the instruction
+     * Call initTrap with the last 8 bits of the instruction as the vector
      * @param instruction 
      */
     private static execTrap(instruction: number)
     {
-        this.setRegister(7, this.getPC());
-        this.setPC(this.getMemory(instruction & 0x00FF));
+        this.initTrap(instruction & 0x00FF);
     }
 }
 

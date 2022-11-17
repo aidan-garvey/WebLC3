@@ -61,7 +61,7 @@ TRAP_UNIMP:
     LDR     r0, r6, #0
     LDR     r7, r6, #1
     ADD     r6, r6, #2
-    RET
+    RTI
 
 ; The descriptions of the following trap implementations are quoted directly
 ; from Patel, Introduction to Computer Systems, p. 543
@@ -96,7 +96,7 @@ GETC_WAIT:
     LDR     r2, r6, #1
     LDR     r7, r6, #2
     ADD     r6, r6, #3
-    RET
+    RTI
 
 ; ----------------------------------------------------
 ; OUT
@@ -123,7 +123,7 @@ OUT_WAIT:
     LDR     r1, r6, #1
     LDR     r7, r6, #2
     ADD     r6, r6, #3
-    RET
+    RTI
 
 ; -----------------------------------------------------------------------------
 ; PUTS
@@ -164,7 +164,7 @@ PUTS_BREAK:
     LDR     r3, r6, #3
     LDR     r7, r6, #4
     ADD     r6, r6, #5
-    RET
+    RTI
 
 ; ---------------------------------------------------------------------------
 ; IN
@@ -210,7 +210,7 @@ IN_CON_LOOP:
     LDR     r2, r6, #1
     LDR     r7, r6, #2
     ADD     r6, r6, #3
-    RET
+    RTI
 
 ; -----------------------------------------------------------------------------
 ; PUTSP
@@ -275,7 +275,7 @@ PUTSP_BREAK:
     LDR     r3, r6, #3
     LDR     r7, r6, #4
     ADD     r6, r6, #5
-    RET
+    RTI
 
 ; --------------------------------------------------
 ; HALT
@@ -303,7 +303,7 @@ TRAP_HALT:
     LDR     r1, r6, #1
     LDR     r7, r6, #2
     ADD     r6, r6, #3
-    RET
+    RTI
 
 ; ------------------------------------------------------
 ; Unimplemented Interrupts / Exceptions
