@@ -24,8 +24,8 @@ export const consoleSelected = writable(false)
 // String: ID of active stoplight in SimulatorStatus
 export const activeStoplight = writable("sim-status-not-ready")
 
+// Boolean: Simulator UI is ready to update
 export const UIReady = writable(false)
-
 
 /* [Boolean, Boolean]:
  *  [0] - Enable Simulator Memory component reload

@@ -9,7 +9,7 @@
 import { activeStoplight, consoleSelected, UIReady } from "./stores"
 
 // Signal that UI is ready to update
-function updateUI(){
+function update(){
     UIReady.set(true)
 }
 
@@ -113,7 +113,7 @@ function setSimulatorRunning(){
 
 
 export default {
-    updateUI,
+    update,
     printConsole,
     appendConsole, 
     clearConsole,
