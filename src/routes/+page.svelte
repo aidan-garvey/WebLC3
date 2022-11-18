@@ -24,7 +24,7 @@
                 globalThis.simulator.halt()
             // Else, send key code to the simulator
             else
-                globalThis.simulator.keyboardInterrupt(KeyCodes.getAscii(event))
+                globalThis.simulator.keyboardInterrupt(KeyCodes.getAscii(event.key))
             reloadOverride.set([true,false])
         }
 	}
