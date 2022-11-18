@@ -595,8 +595,8 @@ body.light{
 	background-color: var(--d-textarea) !important;
 }
 
-.dark .minimap-decorations-layer{
-	background-color: rgba(42,42,42,0.85) !important;
+.light .minimap canvas{
+	filter: invert(1) brightness(1.18) hue-rotate(120deg);
 }
 
 .light .monaco-editor .margin{

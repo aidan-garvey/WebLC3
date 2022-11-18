@@ -29,7 +29,7 @@
                 if (typeof(keyCode) != 'undefined')
                     globalThis.simulator.keyboardInterrupt(keyCode)
             }
-                
+            
             reloadOverride.set([true,false])
         }
 	}

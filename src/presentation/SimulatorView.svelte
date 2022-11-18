@@ -49,11 +49,11 @@
 	
 	// Update UI components
 	UIReady.subscribe(ready => {
-            if(ready){
-				updateUI()
-				UIReady.set(false)
-			}
-        });
+		if(ready){
+			updateUI()
+			UIReady.set(false)
+		}
+	});
 
 	// Update Memory map
     reloadOverride.subscribe(override => {
