@@ -24,7 +24,12 @@
                 globalThis.simulator.halt()
             // Else, send key code to the simulator
             else
-                globalThis.simulator.keyboardInterrupt(KeyCodes.getAscii(event.key))
+            {
+                const keyCode = KeyCodes.getAscii(event.key)
+                if (typeof(keyCode) != 'undefined')
+                    globalThis.simulator.keyboardInterrupt(keyCode)
+            }
+                
             reloadOverride.set([true,false])
         }
 	}
