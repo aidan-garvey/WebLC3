@@ -82,7 +82,7 @@
             } catch {}
         })
         newInput.addEventListener("keydown", function leave(e) {
-            if(e.keyCode == 13){
+            if(e.key == "Enter"){
                 try {
                     let parent = e.target.parentElement
                     let row = parseInt(parent.parentElement.id.split('-').pop())

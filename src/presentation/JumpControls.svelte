@@ -23,7 +23,7 @@
     function jumpForwardClick(){ jump("jf") }
     function longJumpForwardClick(){ jump("ljf") }
     function enterMemory(event){
-        if(event.keyCode == 13){
+        if(event.key == "Enter"){
             let input = document.getElementById("jump-input").value
             // Remove '0x' or 'x' prefix
             let loc = input.split('x').pop()

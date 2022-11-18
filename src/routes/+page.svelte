@@ -9,6 +9,7 @@
     import Workspace from "../presentation/Workspace.svelte"
     import { consoleSelected, reloadOverride } from "../presentation/stores"
     import UI from "../presentation/ui"
+    import KeyCodes from "../logic/keycodes/keyCodes"
 
     // Allow sending of key interrupts if Simulator console is selected
     let interruptable = false
@@ -17,12 +18,18 @@
 	});
 
     function keyRelease(event) {
-		let keyCode = event.keyCode
         if(globalThis.simulator && interruptable){
-            globalThis.simulator.keyboardInterrupt(keyCode)
             // Tilde (~) is used as the interrupt key to force stop a running simulator
-            if(keyCode == 126)
+            if(event.key == '~')
                 globalThis.simulator.halt()
+            // Else, send key code to the simulator
+            else
+            {
+                const keyCode = KeyCodes.getAscii(event.key)
+                if (typeof(keyCode) != 'undefined')
+                    globalThis.simulator.keyboardInterrupt(keyCode)
+            }
+            
             reloadOverride.set([true,false])
         }
 	}
