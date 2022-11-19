@@ -65,13 +65,18 @@ class SimWorker
 
     // buffer for console output so we don't spam main thread too much
     private static consoleBuffer = "";
-    private static CON_BUFF_LEN = 1024;
+    private static CON_BUFF_LEN = 1024; // maximum length before flushing
+    private static lastFlush: number; // time that console was last flushed
+    // maximum amount of time between console buffer flushes while running (ms)
+    private static CON_BUFF_TIME = 100;
 
     /**
      * Initialize message handlers
      */
     public static init()
     {
+        this.lastFlush = Date.now();
+
         self.onmessage = (event) => {
             const msg = event.data;
             switch (msg.type)
@@ -128,6 +133,9 @@ class SimWorker
         }
     }
 
+    /**
+     * Send the contents of the console buffer to the main thread to be printed
+     */
     private static flushConsoleBuffer()
     {
         if (this.consoleBuffer)
@@ -135,6 +143,8 @@ class SimWorker
             self.postMessage({type: Messages.CONSOLE, message: this.consoleBuffer});
         }
         this.consoleBuffer = "";
+        this.lastFlush = Date.now();
+        console.log("Flushing console buffer");
     }
 
     /*****************************
@@ -254,6 +264,9 @@ class SimWorker
         while (!this.haltSet() && this.isClockEnabled() && !this.breakPoints.has(this.getPC()))
         {
             let intOrEx = this.instructionCycle();
+
+            if (Date.now() - this.lastFlush > this.CON_BUFF_TIME)
+                this.flushConsoleBuffer();
         }
 
         self.postMessage({type: Messages.WORKER_DONE});
@@ -318,6 +331,9 @@ class SimWorker
                 ++currDepth;
                 // if we have an option to toggle breaking on interrupts/exceptions, handle it here
             }
+
+            if (Date.now() - this.lastFlush > this.CON_BUFF_TIME)
+                this.flushConsoleBuffer();
         }
 
         if (!quiet)
