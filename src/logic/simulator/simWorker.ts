@@ -63,6 +63,10 @@ class SimWorker
     // if set to non-zero, worker must stop executing
     private static haltFlag: Uint8Array;
 
+    // buffer for console output so we don't spam main thread too much
+    private static consoleBuffer = "";
+    private static CON_BUFF_LEN = 1024;
+
     /**
      * Initialize message handlers
      */
@@ -117,7 +121,20 @@ class SimWorker
      */
     private static sendConsoleMessage(msg: string)
     {
-        self.postMessage({type: Messages.CONSOLE, message: msg});
+        this.consoleBuffer += msg;
+        if (this.consoleBuffer.length >= this.CON_BUFF_LEN)
+        {
+            this.flushConsoleBuffer();
+        }
+    }
+
+    private static flushConsoleBuffer()
+    {
+        if (this.consoleBuffer)
+        {
+            self.postMessage({type: Messages.CONSOLE, message: this.consoleBuffer});
+        }
+        this.consoleBuffer = "";
     }
 
     /*****************************
@@ -240,7 +257,7 @@ class SimWorker
         }
 
         self.postMessage({type: Messages.WORKER_DONE});
-        console.log("PC: 0x" + this.getPC().toString(16));
+        this.flushConsoleBuffer();
     }
 
     /**
@@ -252,13 +269,14 @@ class SimWorker
         let intOrEx = this.instructionCycle();
 
         self.postMessage({type: Messages.WORKER_DONE});
-        console.log("PC: 0x" + this.getPC().toString(16));
+        this.flushConsoleBuffer();
     }
 
     /**
      * Set clock-enable and run until the currently executing subroutine or
      * service call is returned from, or any of the conditions for run()
      * stopping are encountered
+     * @param quiet if true, do not send a WORKER_DONE message when finished
      */
     private static stepOut(quiet = false)
     {
@@ -303,8 +321,10 @@ class SimWorker
         }
 
         if (!quiet)
+        {
             self.postMessage({type: Messages.WORKER_DONE});
-        console.log("PC: 0x" + this.getPC().toString(16));
+            this.flushConsoleBuffer();
+        }
     }
 
     /**
@@ -338,7 +358,7 @@ class SimWorker
         }
 
         self.postMessage({type: Messages.WORKER_DONE});
-        console.log("PC: 0x" + this.getPC().toString(16));
+        this.flushConsoleBuffer();
     }
 
     /**
