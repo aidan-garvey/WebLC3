@@ -506,12 +506,13 @@ class SimWorker
         this.setMemory(ssp - 2, this.getPC());
         Atomics.store(this.savedSSP, 0, ssp - 2);
 
-        // load R6 with supervisor stack if it is not the SSP already
+        // if we were in user mode, save R6 to savedUSP
         if (this.userMode())
         {
             Atomics.store(this.savedUSP, 0, this.getRegister(6));
-            this.setRegister(6, Atomics.load(this.savedSSP, 0));
         }
+        // in either case, set R6 to the value of the SSP
+        this.setRegister(6, Atomics.load(this.savedSSP, 0));
 
         // set privilege mode to supervisor (PSR[15] = 0)
         Atomics.and(this.psr, 0, this.CLEAR_USER);
@@ -535,12 +536,13 @@ class SimWorker
         this.setMemory(ssp - 2, this.getPC());
         Atomics.store(this.savedSSP, 0, ssp - 2);
 
-        // load R6 with supervisor stack if it is not the SSP already
+        // if we were in user mode, save R6 to savedUSP
         if (this.userMode())
         {
             Atomics.store(this.savedUSP, 0, this.getRegister(6));
-            this.setRegister(6, Atomics.load(this.savedSSP, 0));
         }
+        // in either case, set R6 to the value of the SSP
+        this.setRegister(6, Atomics.load(this.savedSSP, 0));
 
         // set privilege mode to supervisor (PSR[15] = 0)
         Atomics.and(this.psr, 0, this.CLEAR_USER);
@@ -566,12 +568,13 @@ class SimWorker
         this.setMemory(ssp - 2, this.getPC());
         Atomics.store(this.savedSSP, 0, ssp - 2);
 
-        // load R6 with supervisor stack if it is not the SSP already
+        // if we were in user mode, save R6 to savedUSP
         if (this.userMode())
         {
             Atomics.store(this.savedUSP, 0, this.getRegister(6));
-            this.setRegister(6, Atomics.load(this.savedSSP, 0));
         }
+        // in either case, set R6 to the value of the SSP
+        this.setRegister(6, Atomics.load(this.savedSSP, 0));
 
         // set privilege mode to supervisor (PSR[15] = 0)
         Atomics.and(this.psr, 0, this.CLEAR_USER);
@@ -715,7 +718,7 @@ class SimWorker
         {
             this.setRegister(6, Atomics.load(this.savedUSP, 0));
         }
-        // otheewise, load R6 with SPP
+        // otherwise, load R6 with SPP
         else
         {
             this.setRegister(6, Atomics.load(this.savedSSP, 0));

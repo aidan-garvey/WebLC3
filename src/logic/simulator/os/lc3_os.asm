@@ -282,6 +282,7 @@ TRAP_HALT:
     STR     r1, r6, #1
     STR     r7, r6, #2
 
+HALT_LOOP:
     ; print message
     LEA     r0, HALT_MSG
     PUTS
@@ -289,10 +290,11 @@ TRAP_HALT:
     LD      r1, MSB_MASK
     LDI     r0, MCR
     AND     r0, r0, r1
-    STI     r0, MCR
-    ; excecution stops here
+    STI     r0, MCR     ; excecution stops here
+    
+    ; if clock is manually re-enabled, halt the computer again
+    BR      HALT_LOOP
 
-    ; in case the clock is manually re-enabled, return as normal
     LDR     r0, r6, #0
     LDR     r1, r6, #1
     LDR     r7, r6, #2
