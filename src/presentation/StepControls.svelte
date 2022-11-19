@@ -4,8 +4,9 @@
 -->
 
 <script>
-    import { createEventDispatcher } from 'svelte';
-    const dispatch = createEventDispatcher();
+    import { updateMainButton } from './stores.js';
+    import { createEventDispatcher } from 'svelte'
+    const dispatch = createEventDispatcher()
 
     // Dispatch clicked control
     function step(control){
@@ -13,15 +14,32 @@
     }
 
     // Step control handlers
-    function runClick(){ step("run") }
+    function runClick(){
+        if (mainButton == 1) { step("pause") }
+        else if (mainButton == 2) { step("reload") }
+        else { step("run") } 
+    }
     function stepInClick(){ step("in") }
     function stepOutClick(){ step("out") }
     function stepOverClick(){ step("over") }
+
+    // Change main button text based on simulator activity    
+    let mainButtonText = "▶ RUN"
+    let mainButton = 0
+    updateMainButton.subscribe(value => { mainButton = value })
+
+    $: if (mainButton == 1)
+        mainButtonText = `<span class="material-symbols-outlined">pause</span> PAUSE`
+    else if (mainButton == 2)
+        mainButtonText = `↻ RELOAD`
+    else
+        mainButtonText = `▶ RUN`
+    
 </script>
 
 <div id="step-controls">
     <button id="run" class="functionBtn" on:click={runClick}>
-        ▶ RUN
+        {@html mainButtonText}
     </button>
     <button id="step-in" class="functionBtn" on:click={stepInClick}>
         <span class="material-symbols-outlined">subdirectory_arrow_right</span>

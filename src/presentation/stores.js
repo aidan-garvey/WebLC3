@@ -27,6 +27,9 @@ export const activeStoplight = writable("sim-status-not-ready")
 // Boolean: Simulator UI is ready to update
 export const UIReady = writable(false)
 
+// Integer: Change text in main step control button
+export const updateMainButton = writable(0)
+
 /* [Boolean, Boolean]:
  *  [0] - Enable Simulator Memory component reload
  *  [1] - Reset Memory pointer to .orig

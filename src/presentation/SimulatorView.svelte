@@ -14,7 +14,7 @@
     import JumpControls from "./JumpControls.svelte"
 	import SimulatorStatus from './SimulatorStatus.svelte'
 	import UI from './ui'
-	import { reloadOverride, UIReady } from './stores'
+	import { reloadOverride, UIReady, updateMainButton } from './stores'
 
 	// Preset data
 	let orig = 0
@@ -145,6 +145,16 @@
 			else if(control == "out"){ await globalThis.simulator.stepOut() }
 			else if(control == "over"){ await globalThis.simulator.stepOver() }
 			else if(control == "run"){ await globalThis.simulator.run()	}
+			else if(control == "pause"){ globalThis.simulator.halt() }
+			else if(control == "reload"){ 
+				// Reload procedure
+				globalThis.simulator.reloadProgram()
+            	currPtr = orig
+				pc = globalThis.simulator.getPC()
+				memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
+				updateRegisters()
+				updateMainButton.set(0)
+			}
 		}
 	}
 

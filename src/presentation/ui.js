@@ -2,17 +2,18 @@
  * ui.js
  * 
  *  Functions to modify states for the following UI components
- *      - Console.svelte 
+ *      - Console.svelte
+ *      - SimulatorView.svelte 
  *      - SimulatorStatus.svelte
+ *      - StepControls.svelte
  */
 
-import { activeStoplight, consoleSelected, UIReady } from "./stores"
+import { activeStoplight, consoleSelected, UIReady, updateMainButton } from "./stores"
 
 // Signal that UI is ready to update
 function update(){
     UIReady.set(true)
 }
-
 
 // Replace all contents of Console with given string
 function printConsole(msg){
@@ -93,7 +94,6 @@ function modifyConsole(msg, append=false, clear=false){
         console.error("Console component not found in UI.")
 }
 
-
 // Set NOT READY on SimulatorStatus
 function setSimulatorNotReady(){
     activeStoplight.set("sim-status-not-ready")
@@ -103,14 +103,20 @@ function setSimulatorNotReady(){
 // Set READY on SimulatorStatus
 function setSimulatorReady(){
     activeStoplight.set("sim-status-ready")
+    updateMainButton.set(0)
 }
 
 
 // Set RUNNING on SimulatorStatus
 function setSimulatorRunning(){
     activeStoplight.set("sim-status-running")
+    updateMainButton.set(1)
 }
 
+// End Simulator
+function haltSimulator(){
+    updateMainButton.set(2)
+}
 
 export default {
     update,
@@ -121,5 +127,6 @@ export default {
     deselectConsole,
     setSimulatorNotReady,
     setSimulatorReady,
-    setSimulatorRunning
+    setSimulatorRunning,
+    haltSimulator
 }
