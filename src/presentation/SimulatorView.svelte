@@ -149,7 +149,7 @@
 			else if(control == "reload"){ 
 				// Reload procedure
 				globalThis.simulator.reloadProgram()
-            	currPtr = orig
+				currPtr = orig
 				pc = globalThis.simulator.getPC()
 				memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
 				updateRegisters()
@@ -267,12 +267,12 @@
 	}
 
 	#c-ctr{
-		max-height: 25vh;
+		height: 25vh;
 	}
 
 	@media (max-width: 1300px) {
         #c-ctr{
-			max-height: 50vh;
+			height: 50vh;
 		}
 	}
 </style>
