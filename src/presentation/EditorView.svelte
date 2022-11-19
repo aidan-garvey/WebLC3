@@ -178,7 +178,7 @@
 	}
 
 	#console-ctr{
-		max-height: 45vh;
+		max-height: 41vh;
 	}
 
 	#ev-buttons{
@@ -196,7 +196,7 @@
 		text-align: center;
 	}
 
-	@media (max-width: 1200px) {
+	@media (max-width: 1300px) {
 		.functionBtn{
 			font-size: 18px !important;
 		}
@@ -204,7 +204,7 @@
 		#editor-view{
 			display: grid;
 			grid-template-columns: 100%;
-			grid-template-rows: 90vh 90vh;
+			grid-template-rows: 90vh 85vh;
 		}
 
 		#ev-right{
@@ -216,7 +216,7 @@
 		}
 
 		#console-ctr{
-			max-height: 100%;
+			max-height: 95%;
 		}
 
 		#ev-buttons{
@@ -230,8 +230,9 @@
 		}
 
 		#ss-ctr{
-			margin: 4vh 5% 0 0;
+			margin: 2vh 5% 0 0;
 			transform: scale(1.1);
+			width: 25%;
 		}
 	}
 

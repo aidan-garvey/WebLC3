@@ -28,7 +28,7 @@
 
 <style>
     #workspace{
-        margin-top: 6vh;
+        margin-top: 5vh;
         width: 100vw;
         height: 80vh;
         display: flex;
@@ -42,7 +42,7 @@
 
     @media (max-width: 1300px) {
 		#workspace{
-			height: 120vh;
+			height: 125vh;
 		}
 	}
 

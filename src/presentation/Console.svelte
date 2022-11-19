@@ -61,6 +61,12 @@
         opacity: 0.4;
     }
 
+    @media (max-width: 1250px) {
+		#console-inner{
+            height: 80%;
+        }
+	}
+
     @media (max-width: 600px) {
 		#clear-console{
             font-size: 11px;
