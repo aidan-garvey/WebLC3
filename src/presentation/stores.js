@@ -21,6 +21,9 @@ export const currentView = writable("editor")
 // Boolean: Select Console (window is key interruptable)
 export const consoleSelected = writable(false)
 
+// String: Editor content of latest save
+export const latestSnapshot = writable("")
+
 // String: ID of active stoplight in SimulatorStatus
 export const activeStoplight = writable("sim-status-not-ready")
 

@@ -7,7 +7,7 @@
     import "../app.css"
     import Header from "../presentation/Header.svelte"
     import Workspace from "../presentation/Workspace.svelte"
-    import { consoleSelected, reloadOverride, currentView } from "../presentation/stores"
+    import { consoleSelected, reloadOverride, latestSnapshot } from "../presentation/stores"
     import UI from "../presentation/ui"
     import KeyCodes from "../logic/keycodes/keyCodes"
 
@@ -17,15 +17,12 @@
 		interruptable = value
 	});
 
-    // Check if current view is Editor
-    let isEditor = false
-    currentView.subscribe(view => {
-        isEditor = (view == "editor")
-	});
-
-    // Allow page to know if user has unsaved changes
+    // Allow page to know contents of latest startup or save
     let hasUnsaved = false
-    let editorContent = ""
+    let snapshot = ""
+    latestSnapshot.subscribe(value => {
+        snapshot = value
+	});
 
 
     /* Send non-printing keycodes generated in conjunction with CTRL
@@ -34,11 +31,11 @@
      * Unicode Reference: https://www.physics.udel.edu/~watson/scen103/ascii.html
      */
     function keyDown(event){
+        // Prevent firing of browser shortcuts
         if(event.ctrlKey && interruptable){
-            // Prevent firing of browser shortcuts
             event.preventDefault()
 
-            // Send modified keycode
+            // Send modified keycode with CTRL
             if(globalThis.simulator){
                 const keyCode = KeyCodes.getAscii(event.key)
                 if (typeof(keyCode) != 'undefined')
@@ -53,10 +50,6 @@
      * Unicode Reference: https://www.physics.udel.edu/~watson/scen103/ascii.html
      */
     function keyRelease(event) {
-        if(isEditor && globalThis.editor){
-            editorContent = globalThis.editor.getValue()
-        }
-
         if(globalThis.simulator && interruptable){
             const keyCode = KeyCodes.getAscii(event.key)
             if (typeof(keyCode) != 'undefined')
@@ -66,17 +59,32 @@
         }
 	}
 
+    // Check editor content against latest snapshot
+    function checkDirty(){
+        let content = globalThis.editor.getValue()
+        return content != snapshot
+    }
+
     // Deselect when user clicks on any surface other than Console
     function blurConsole(){
 		UI.deselectConsole()
     }
 
-    // TODO: Prompt before closing window if there are unsaved Editor contents
+    // Prompt before closing window if there are unsaved Editor contents
     function exitPrompt(event){
+        hasUnsaved = checkDirty()
+
         if(hasUnsaved){
-            event.preventDefault();
-		    // Chrome requires returnValue to be set
-		    event.returnValue = "";
+            event.preventDefault()
+            let leaveMsg = "WARNING: You have unsaved changes on your Editor. Make sure to save your current progress first.\n\nWould you like to proceed?"
+            event.returnValue = leaveMsg
+            return ""
+        }
+        else if (interruptable){
+            // Avoid unintended exit on CTRL+W while sending key interrupts
+            event.preventDefault()
+            event.returnValue = ""
+            return ""
         }
     }
 </script>
