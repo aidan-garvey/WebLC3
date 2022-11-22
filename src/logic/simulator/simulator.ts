@@ -121,7 +121,7 @@ export default class Simulator
     {
         const res = await fetch('src/logic/simulator/os/lc3_os.asm');
         const src = await res.text();
-        const asmResult = await Assembler.assemble(src);
+        const asmResult = await Assembler.assemble(src, false);
         if (asmResult === null)
         {
             UI.appendConsole("Operating system assembly unsuccessful.");
