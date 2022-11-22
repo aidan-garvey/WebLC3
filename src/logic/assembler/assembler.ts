@@ -375,16 +375,21 @@ export default class Assembler
         // convert numbers to base-16 strings, add leading zeroes
         for (let i = 0; i < obj.length; i++)
         {
-            if (i != 0 && i % 8 == 0)
-                objStr += '\n';
-
             let curr = obj[i].toString(16);
             while (curr.length < 4)
                 curr = "0" + curr;
-            objStr += curr + " ";
+            
+            if (i % 8 == 7)
+            {
+                curr += '\n';
+            }
+            else
+            {
+                curr += ' ';
+            }
+            objStr += curr;
         }
-        this.lastObj = new Blob(Array.from(objStr.trim()), {type:"text/plain"});
-        console.log(await this.lastObj.text());
+        this.lastObj = new Blob(Array.from(objStr.trim() + '\n'), {type:"text/plain"});
     }
 
     /**
@@ -402,9 +407,7 @@ export default class Assembler
             let addr = (pair[1] + startOffset).toString(16);
             table += label + " = " + addr + "\n";
         }
-        // @ts-ignore
         this.lastSym = new Blob(Array.from(table), {type:"text/plain"});
-        console.log(await this.lastSym.text());
     }
 
     /**
