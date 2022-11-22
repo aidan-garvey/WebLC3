@@ -191,6 +191,7 @@ export default class Assembler
                     else
                     {
                         memory[pc] = 0;
+                        hasError = true;
                     }
                     ++pc;
                 }

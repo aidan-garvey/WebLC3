@@ -374,6 +374,7 @@ export default class Parser
     {
         if (tokens[0].startsWith("br"))
             return this.asmBrJsr(lineNum, tokens, pc, labels, toFix);
+        
         switch (tokens[0])
         {
             case "add":
@@ -420,12 +421,19 @@ export default class Parser
     private asmAluOp(lineNum: number, tokens: string[]) : number
     {
         let res = Parser.opcodeVals.get(tokens[0]);
+
         // destination register
+        const destReg = this.parseReg(tokens[1], lineNum);
+        if (isNaN(destReg))
+            return NaN;
+        
+        // source register 1
+        const source1 = this.parseReg(tokens[2], lineNum);
+        if (isNaN(source1))
+            return NaN;
+        
         // @ts-ignore
-        res |= this.parseReg(tokens[1], lineNum) << 9;
-        // source reg 1
-        // @ts-ignore
-        res |= this.parseReg(tokens[2], lineNum) << 6;
+        res |= (destReg << 9) | (source1 << 6);
 
         // if doing NOT, we only need 2 registers
         if (tokens[0] != "not")
@@ -469,11 +477,16 @@ export default class Parser
     private asmBrJsr(lineNum: number, tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
     {
         let res = Parser.opcodeVals.get(tokens[0]);
-        let bits = Parser.immBitCounts.get(tokens[0]);
+        const bits = Parser.immBitCounts.get(tokens[0]);
         if (labels.has(tokens[1]))
         {
             // @ts-ignore
-            return res | this.calcLabelOffset(tokens[1], pc, labels, bits, lineNum);
+            const offset = this.calcLabelOffset(tokens[1], pc, labels, bits, lineNum);
+            if (isNaN(offset))
+                return NaN;
+            
+            // @ts-ignore
+            return res | offset;
         }
         else
         {
@@ -492,8 +505,11 @@ export default class Parser
     private asmRegJump(lineNum: number, tokens: string[]) : number
     {
         let res = Parser.opcodeVals.get(tokens[0]);
+        const reg = this.parseReg(tokens[1], lineNum);
+        if (isNaN(reg))
+            return NaN;
         // @ts-ignore
-        return res | (this.parseReg(tokens[1], lineNum) << 6);
+        return res | (reg << 6);
     }
 
     /**
@@ -508,12 +524,22 @@ export default class Parser
     private asmPcLoadStore(lineNum: number, tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
     {
         let res = Parser.opcodeVals.get(tokens[0]);
+        const reg = this.parseReg(tokens[1], lineNum);
+        if (isNaN(reg))
+            return NaN;
+        
         // @ts-ignore
-        res |= this.parseReg(tokens[1], lineNum) << 9;
+        res |= reg << 9;
+
         if (labels.has(tokens[2]))
         {
             // @ts-ignore
-            return res | this.calcLabelOffset(tokens[2], pc, labels, Parser.immBitCounts.get(tokens[0]), lineNum);
+            const offset = this.calcLabelOffset(tokens[2], pc, labels, Parser.immBitCounts.get(tokens[0]), lineNum);
+            if (isNaN(offset))
+                return NaN;
+            
+            // @ts-ignore
+            return res | offset;
         }
         else
         {
@@ -532,17 +558,19 @@ export default class Parser
     private asmRegLoadStore(lineNum: number, tokens: string[]) : number
     {
         let res = Parser.opcodeVals.get(tokens[0]);
-        // @ts-ignore
-        res |= this.parseReg(tokens[1], lineNum) << 9;
-        // @ts-ignore
-        res |= this.parseReg(tokens[2], lineNum) << 6;
-        // @ts-ignore
-        let imm = this.parseImmediate(tokens[3], true, lineNum, Parser.immBitCounts.get(tokens[0]));
-        if (isNaN(imm))
+        const destReg = this.parseReg(tokens[1], lineNum);
+        const srcReg = this.parseReg(tokens[2], lineNum);
+        const imm = this.parseImmediate(tokens[3], true, lineNum, Parser.immBitCounts.get(tokens[0]));
+
+        if (isNaN(destReg) || isNaN(srcReg) || isNaN(imm))
             return NaN;
-        else
-            // @ts-ignore
-            return res | imm;
+
+        // @ts-ignore
+        res |= destReg << 9;
+        // @ts-ignore
+        res |= srcReg << 6;
+        // @ts-ignore
+        return res | imm;
     }
 
     /**
