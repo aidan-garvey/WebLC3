@@ -18,11 +18,10 @@
 	});
 
     // Allow page to know contents of latest startup or save
-    let hasUnsaved = false
     let snapshot = ""
     latestSnapshot.subscribe(value => {
         snapshot = value
-	});
+    });
 
 
     /* Send non-printing keycodes generated in conjunction with CTRL
@@ -72,9 +71,7 @@
 
     // Prompt before closing window if there are unsaved Editor contents
     function exitPrompt(event){
-        hasUnsaved = checkDirty()
-
-        if(hasUnsaved){
+        if(checkDirty()){
             event.preventDefault()
             let leaveMsg = "WARNING: You have unsaved changes on your Editor. Make sure to save your current progress first.\n\nWould you like to proceed?"
             event.returnValue = leaveMsg

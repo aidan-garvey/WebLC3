@@ -97,14 +97,18 @@
 			let sourceCode = editor.getValue()
 			let obj = await Assembler.assemble(sourceCode)
 
-			// Globally store new Simulator class and .obj file
 			if(obj){
-				globalThis.objFile = obj
+				// Create globally-available Simulator class				
 				let map = obj.pop()
 				globalThis.simulator = new Simulator(obj[0], map)
 				globalThis.lastPtr = null
-				if(globalThis.simulator)
+				
+				// Globally store .obj file, and symbol table file blobs
+				if(globalThis.simulator){
 					setObjFilename()
+					globalThis.objFile = Assembler.getObjectFileBlob()
+					globalThis.symbolTable = Assembler.getSymbolTableBlob()
+				}
 			}
 		}
 	}
@@ -172,9 +176,8 @@
 
 	#ev-right{
 		grid-template-rows: auto 1fr auto;
-		width: 25%;
+		width: 28%;
 		margin-left: 5%;
-		max-width: 25%;
 	}
 
 	#console-ctr{
@@ -187,6 +190,8 @@
 
 	#ss-ctr{
 		margin-bottom: 3vh;
+		overflow: visible;
+		max-width: 18vw;
 	}
 
 	.functionBtn, .switchBtn{
@@ -204,12 +209,11 @@
 		#editor-view{
 			display: grid;
 			grid-template-columns: 100%;
-			grid-template-rows: 90vh 85vh;
+			grid-template-rows: 90vh 100vh;
 		}
 
 		#ev-right{
 			width: 100%;
-			max-width: 100%;
 			grid-template-rows: auto 60vh 18% 1fr;
 			margin-bottom: 20vh;
 			margin-left: 0;
@@ -220,19 +224,23 @@
 		}
 
 		#ev-buttons{
-			display: flex;
-			justify-content: flex-end;
+			display: grid;
+			width: 100%;
+			grid-template-columns: auto 40vw;
+			grid-template-rows: auto 6.5em;
+			justify-items: flex-end;
 		}
 
 		#ev-buttons button{
-			width: 30%;
-			margin-left: 3%;
+			width: 90%;
 		}
 
 		#ss-ctr{
-			margin: 2vh 5% 0 0;
+			margin: 1vh 5% 4vh 0;
 			transform: scale(1.1);
 			width: 25%;
+			grid-column: 1/3;
+			justify-self: center;
 		}
 	}
 

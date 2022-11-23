@@ -11,6 +11,8 @@
     let active = "sim-status-not-ready"
     // Assembled .obj filename
     let filename = ""
+    // Text to show by stoplights
+    $: showText = filename
 
     onMount(() => { 
         // Switch active stoplight
@@ -31,10 +33,9 @@
         });
 
         // Download .obj file
-        download = (fileName, data) => {
+        download = (fileName, blob) => {
             var a = document.createElement("a")
             document.body.appendChild(a)
-            var blob = new Blob([data], { type: "application/octet-stream" })
             let url = window.URL.createObjectURL(blob);
             a.href = url;
             a.download = fileName;
@@ -43,17 +44,29 @@
         }
 	});
 
+    // Change text on hover to cue that .obj file can be downloaded
+    function showDownload(){
+        showText = "Download .obj file"
+    }
+
+    // Swap back text to .obj filename
+    function showFilename(){
+        showText = filename
+    }
+
     // Download most recently assembled .obj file
     function saveObj(){
-        // Uncomment to implement
-        /*if(globalThis.objFile)
-            download(filename,objFile)*/
+        if(globalThis.objFile){
+            download(filename,globalThis.objFile)
+        }
     }
     let download = (fileName, data) => {}
 </script>
 
 <div id="sim-status">
-    <div class="sim-status-lbl" on:click={saveObj}> {filename} </div>
+    <div class="sim-status-lbl" on:mouseenter={showDownload} on:mouseleave={showFilename} on:click={saveObj} > 
+        {showText} 
+    </div>
     <div id="status-array">
         {#if active == "sim-status-not-ready"}
             <div id="sim-status-not-ready" class="stoplight"><div> NOT READY </div></div>
@@ -69,14 +82,17 @@
         display: flex;
         align-items: center;
         font-size: 11px;
-        justify-content: flex-start;
+        justify-content: space-between;
         cursor: default;
-        width: 95%;
+        width: 100%;
+        min-width: max-content;
+        max-width: 18vw;
         transform: translateY(1vh);
     }
 
     .sim-status-lbl{
         font-family: 'Source Code Pro', monospace;
+        cursor: pointer;
     }
 
     #status-array{
@@ -100,5 +116,11 @@
 
     .stoplight div{
         transform: skewX(30deg);
+    }
+
+    @media (max-width: 1300px) {
+		#sim-status{
+            min-width: 30vw;
+        }
     }
 </style>
