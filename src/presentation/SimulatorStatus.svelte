@@ -82,7 +82,7 @@
             download(fn, globalThis.symbolTable)
         }
     }
-    
+
     let download = (fileName, data) => {}
 </script>
 
@@ -132,6 +132,8 @@
     .sim-status-lbl{
         font-family: 'Source Code Pro', monospace;
         cursor: pointer;
+        max-width: 30vw;
+        overflow: hidden;
     }
 
     #status-array{

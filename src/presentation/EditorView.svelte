@@ -25,23 +25,50 @@
 
 	// Switch the simulator view on button click
 	function toSimulator() { currentView.set("simulator") }
-	// Reflect current .asm program filename
-	export let filename = "No file provided"
+	// Current .asm program filename
+	export let filename = "untitled.asm"
 	openedFile.subscribe(value => { filename = value });
+	// Text to show on filename component
+    $: showText = filename
+	// Stifle other functions from firing if input is open
+	let inputOpen = false
+
+	// Change text on hover to cue that filename can be set
+    function showRename(){
+		if(!inputOpen)
+        	showText = "Rename workspace"
+    }
+
+    // Swap back text to .asm filename
+    function showFilename(){
+		if(!inputOpen)
+        	showText = filename
+    }
+
 	// Set new filename
 	function setFilename(){
-		let newInput = createInputBox()
-        this.appendChild(newInput)
-        newInput.focus()
+		if(!inputOpen){
+			showText = ""
+			let newInput = createInputBox()
+			this.appendChild(newInput)
+			newInput.focus()
+			inputOpen = true
+		}
 	}
 
 	// Create text input box for entering new filename
 	function createInputBox(){
         let newInput = document.createElement("input")
-        newInput.placeholder = "Enter new filename"
+		newInput.style.border = "none"
+		newInput.style.outline = "none"
+		newInput.style.background = "none"
+		newInput.style.borderBottom = "1px solid #5B5B5B"
+        newInput.value = filename.substring(0,filename.length-4)
         
         // Close input box
         newInput.addEventListener("blur", function leave(e) {
+			showText = filename
+			inputOpen = false
             try {
                 let parent = e.target.parentElement
 				saveInput(e.target.value)
@@ -50,18 +77,21 @@
         })
         newInput.addEventListener("keydown", function leave(e) {
             if(e.key == "Enter"){
+				showText = filename
+				inputOpen = false
                 try {
                     let parent = e.target.parentElement
 					saveInput(e.target.value)
                     parent.removeChild(e.target)
                 } catch {}
             }
+			e.stopImmediatePropagation()
         })
 
 		// Commit new filename if validations pass. Else, rollback (old value will not change)
 		function saveInput(newValue){
 			if(newValue.length > 0){
-				newValue = newValue.replace(" ","_")
+				newValue = newValue.replaceAll(" ","_")
 				// Make filename utf-8 encoding-friendly 
     			newValue = encodeURIComponent(newValue)
       			.replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16)}`)
@@ -75,16 +105,9 @@
         return newInput // Complete text input element
     }
 
-	// Set filename of assembled .obj file
+	// Set filename of assembled .obj file, replacing .asm extension
 	function setObjFilename(){
-		if(filename == "No file provided"){
-			filename = "untitled.asm"
-			openedFile.set("untitled.asm")
-			assembledFile.set("untitled.obj")
-		}
-		// Replace ".asm" extension with ".obj"
-		else
-			assembledFile.set(filename.substring(0,filename.length-4)+".obj")
+		assembledFile.set(filename.substring(0,filename.length-4)+".obj")
 	}
 
 
@@ -116,7 +139,9 @@
 
 <div id="editor-view">
 	<section id="ev-left">
-		<div id="filename" class="workSans" on:click={setFilename}>{filename}</div>
+		<div id="filename" class="workSans" on:mouseenter={showRename} on:mouseleave={showFilename} on:click={setFilename}>
+			{showText}
+		</div>
 		<Editor />
 	</section>
 
@@ -149,6 +174,7 @@
 	#filename{
 		font-size: 15px;
 		width: max-content;
+		min-width: 50%;
 		margin-bottom: 2vh;
 		text-align: center;
 		cursor: pointer;

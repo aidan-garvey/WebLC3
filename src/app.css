@@ -109,9 +109,15 @@ a:hover {
 	cursor: pointer;
 }
 
-.memRow input, .regRow input, #filename input{
+.memRow input, .regRow input{
 	width: 45%;
 	margin-left: 5%;
+}
+
+#filename input{
+	width: 25%;
+	font-family: 'Work Sans', sans-serif;
+	font-size: 15px;
 }
 
 #c-ctr.console-highlighted #consoleCtr{
@@ -264,11 +270,11 @@ body.dark{
 	color: var(--d-textarea);
 }
 
-.dark #filename, .dark #jump-input{
+.dark #filename, .dark #filename input, .dark #jump-input{
 	color: var(--d-fadetext);
 }
 
-.dark #jump-input::selection, .dark #filename::selection{
+.dark #jump-input::selection, .dark #filename input::selection{
 	color: var(--d-text);
 }
 
@@ -383,7 +389,7 @@ body.light{
 	background-color: rgba(0,0,0,0);
 }
 
-#console-inner::selection, #jump-input::selection, #filename::selection{
+#console-inner::selection, #jump-input::selection, #filename input::selection{
 	background-color: var(--l-select);
 }
 

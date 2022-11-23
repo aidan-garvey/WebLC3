@@ -10,7 +10,7 @@ import { writable } from 'svelte/store'
 export const toggleHelp = writable(false)
 
 // String: Filename of current .asm file
-export const openedFile = writable("No file provided")
+export const openedFile = writable("untitled.asm")
 
 // String: Filename of assembled .obj file
 export const assembledFile = writable("SIMULATOR STATUS")
