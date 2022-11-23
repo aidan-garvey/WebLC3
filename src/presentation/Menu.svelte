@@ -13,10 +13,31 @@
     // Current .asm filename
     let filename = ""
     openedFile.subscribe(value => { filename = value });
+    // Read-only mode will nullify interactions
+    export let readOnly = false
 
 
     /* EDITOR MENU CONTROLS */
     
+    // Meta click handler
+    function click(){
+        if(!readOnly){
+            let type = this.id
+            if (type == "new")
+                newClick()
+            else if (type == "open")
+                openClick()
+            else if (type == "save")
+                saveClick()
+            else if (type == "reload")
+                reloadClick()
+            else if (type == "reinitialize")
+                reinitializeClick()
+            else if (type == "randomize")
+                randomizeClick()
+        }
+    }
+
     // New: Reset Editor and filename
     function newClick(){
         if (confirm('Are you sure you want to start over?\n\nWARNING: This will clear the editor. Make sure to save your current progress first.')) {
@@ -118,29 +139,29 @@
 
 <div id="menu" class="workSans">
     {#if currView == "editor"}
-        <div id="new" class="menu-item" on:click={newClick}>
+        <div id="new" class="menu-item" on:click={click}>
             <span class="material-symbols-outlined">note_add</span>
             <p>New</p>
         </div>
         <input id="opener" type="file" style="display:none;" on:change={openFile}>
-        <div id="open" class="menu-item" on:click={openClick}>
+        <div id="open" class="menu-item" on:click={click}>
             <span class="material-symbols-outlined">folder</span>
             <p>Open</p>
         </div>
-        <div id="save" class="menu-item" on:click={saveClick}>
+        <div id="save" class="menu-item" on:click={click}>
             <span class="material-symbols-outlined">save</span>
             <p>Save</p>
         </div>
     {:else}
-        <div id="reload" class="menu-item" on:click={reloadClick}>
+        <div id="reload" class="menu-item" on:click={click}>
             <span class="material-symbols-outlined">refresh</span>
             <p>Reload</p>
         </div>
-        <div id="reinitialize" class="menu-item" on:click={reinitializeClick}>
+        <div id="reinitialize" class="menu-item" on:click={click}>
             <span class="material-symbols-outlined">power_settings_new</span>
             <p>Reinitialize</p>
         </div>
-        <div id="randomize" class="menu-item" on:click={randomizeClick}>
+        <div id="randomize" class="menu-item" on:click={click}>
             <span class="material-symbols-outlined">shuffle</span>
             <p>Randomize</p>
         </div>

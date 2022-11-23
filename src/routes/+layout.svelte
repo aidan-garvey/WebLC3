@@ -5,12 +5,23 @@
 
 <script>
     import { onMount } from 'svelte'
-    import { toggleHelp } from '../presentation/stores';
+    import { toggleHelp, currentView } from '../presentation/stores'
+    import DocPage from '../presentation/DocPage.svelte'
+    import Menu from '../presentation/Menu.svelte'
 
     // Allow window scrolling on application load
     onMount(() => {
         document.body.style.overflowY = "scroll"
 	});
+
+    // Get current view to tailor documentation pages
+    let theView = "The Editor"
+    currentView.subscribe(view => { 
+        if(view == "editor")
+            theView = "The Editor"
+        else
+            theView = "The Simulator"
+    });
 
     // Open popup with WebLC3 help documentation to overlay on page
     let openHelpModal = false
@@ -27,10 +38,14 @@
         <div id="modal" on:click={close}></div>
         <div id="help">
             <div id="help-inner" class="sourceCodePro">
-                <div class="help-content">
-                    <h2 class="workSans">User Guide</h2>
-                    <p>Help documentation will be supplied in the future.</p>
-                </div>
+                <DocPage 
+                    title={theView} 
+                    content="Documentation will be supplied on the components of this view." 
+                    footnote="Check out the awesome buttons that you see exclusively in this view!"
+                    featureHeight="16vh" 
+                >
+                    <Menu readOnly={true} />
+                </DocPage>
                 <div class="note">( Press anywhere outside box to close )</div>
             </div>
         </div>
@@ -76,21 +91,11 @@
         justify-content: space-between;
     }
 
-    #help-inner h2{
-        font-size: 2.4em;
-        font-weight: 600;
-        margin-bottom: 6vh
-    }
-
-    #help-inner p{
-        font-size: 16px;
-    }
-
     .note{
         height: max-content;
         width: 100%;
         text-align: right;
-        font-size: 11px;
+        font-size: 10px;
         margin-bottom: 3vh;
     }
 </style>

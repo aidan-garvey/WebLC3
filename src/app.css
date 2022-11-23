@@ -193,7 +193,7 @@ body.dark{
 	background-color: var(--d-textarea);
 }
 
-.dark #lc3, .dark #help-inner h2{
+.dark #lc3, .dark #docs h2{
 	color: var(--d-instr);
 }
 
@@ -423,7 +423,7 @@ body.light{
 	background-color: var(--l-alt);
 }
 
-.light #lc3, .light #help-inner h2{
+.light #lc3, .light #docs h2{
 	color: var(--l-loc);
 }
 
