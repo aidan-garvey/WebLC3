@@ -7,11 +7,18 @@
 <script>
     import { onMount } from 'svelte'
     import { ResizeObserver } from 'resize-observer'
+    import { latestSnapshot } from './stores'
 
     let editor
     let monaco
 
     onMount(() => {
+        // Get startup snapshot of Editor
+        if(globalThis.editor){
+            let content = globalThis.editor.getValue()
+            latestSnapshot.set(content)
+        }
+
         // Attach loaded Editor to component
         editor = document.getElementById("editorCtr")
         editor.style.height = "100%"

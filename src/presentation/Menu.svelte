@@ -5,7 +5,7 @@
 
 <script>
     import { onMount } from 'svelte';
-    import { openedFile, currentView, reloadOverride } from './stores.js';
+    import { openedFile, currentView, reloadOverride, latestSnapshot } from './stores.js';
 
     // Set view-specific controls
     let currView = "editor"
@@ -25,6 +25,7 @@
                 editor.setValue("")
                 updateFilename("untitled.asm")
                 openedFile.set("untitled.asm")
+                latestSnapshot.set("")
             }
         }
     }
@@ -46,8 +47,10 @@
                 reader.onload = function() {
                     let editor = globalThis.editor
                     if(editor){
-                        editor.setValue(reader.result)
+                        let result = reader.result.toString()
+                        editor.setValue(result)
                         updateFilename(filename)
+                        latestSnapshot.set(result)
                     }
                     else
                         console.error("Reading .asm file to editor failed.")
@@ -60,9 +63,11 @@
 
     // Save: Save Editor content as .asm file to client's local filesystem
     function saveClick(){
-        let editor = globalThis.editor
-        if(editor)
-            download(filename,editor.getValue())
+        if(globalThis.editor){
+            let content = globalThis.editor.getValue()
+            latestSnapshot.set(content)
+            download(filename,content)
+        }
     }
     let download = (fileName, data) => {}
 

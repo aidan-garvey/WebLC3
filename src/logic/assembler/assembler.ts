@@ -49,6 +49,9 @@ export default class Assembler
         FIRSTLINE: "The first line of code must be a .ORIG directive"
     };
 
+    private static lastObj: Blob | null = null;
+    private static lastSym: Blob | null = null;
+
     /**
      * Assemble the given source code.
      *
@@ -58,12 +61,22 @@ export default class Assembler
      * to the editor console, return the resulting object file as a
      * Uint16Array and a Map of memory addresses mapped to the source
      * code that was assembled and placed at that address.
-     * @param {string} sourceCode 
+     * @param {string} sourceCode the code to assemble
+     * @param {boolean} saveFiles if true (default), save the resulting object file and symbol table
      * @returns {Promise<[Uint16Array, Map<number, string>] | null>}
      */
-    public static async assemble(sourceCode: string) : Promise<[Uint16Array, Map<number, string>] | null>
+    public static async assemble(sourceCode: string, saveFiles: boolean = true)
+        : Promise<[Uint16Array, Map<number, string>] | null>
     {
         let hasError = false;
+
+        // since we are assembling a new program, delete the previously saved
+        // object and symbol table files
+        if (saveFiles)
+        {
+            this.lastObj = null;
+            this.lastSym = null;
+        }
 
         const srcLines = sourceCode.split(/[\r]?[\n]/);
         if (srcLines.length == 0)
@@ -302,6 +315,8 @@ export default class Assembler
             else if (isNaN(memory[i]))
             {
                 UI.appendConsole(errorBuilder.nanMemory(lastLineNum, i + startOffset) + "\n");
+                hasError = true;
+                result[i + 1] = 0;
             }
             else
             {
@@ -313,6 +328,12 @@ export default class Assembler
             return null;
         else
         {
+            if (saveFiles)
+            {
+                // save object and symbol table blobs
+                await this.makeObjectFileBlob(result);
+                await this.makeSymbolTableBlob(labels, startOffset);
+            }
             UI.printConsole("Assembly successful.\n")
             return [result, addrToCode];
         }
@@ -343,5 +364,69 @@ export default class Assembler
     public static validMnemonic(symbol: string) : boolean
     {
         return this.opCodes.has(symbol) || this.directives.has(symbol);
+    }
+
+    /**
+     * Convert object file into a blob which can be downloaded.
+     */
+    private static async makeObjectFileBlob(obj: Uint16Array)
+    {
+        let objStr = "";
+        // convert numbers to base-16 strings, add leading zeroes
+        for (let i = 0; i < obj.length; i++)
+        {
+            let curr = obj[i].toString(16);
+            while (curr.length < 4)
+                curr = "0" + curr;
+            
+            if (i % 8 == 7)
+            {
+                curr += '\n';
+            }
+            else
+            {
+                curr += ' ';
+            }
+            objStr += curr;
+        }
+        this.lastObj = new Blob(Array.from(objStr.trim() + '\n'), {type:"text/plain"});
+    }
+
+    /**
+     * Given a mapping of labels to memory addresses, create a plain text symbol
+     * table blob.
+     * @param labels 
+     * @param startOffset 
+     */
+    private static async makeSymbolTableBlob(labels: Map<string, number>, startOffset: number)
+    {
+        let table = "";
+        for (let pair of labels)
+        {
+            let label = pair[0];
+            let addr = (pair[1] + startOffset).toString(16);
+            table += label + " = " + addr + "\n";
+        }
+        this.lastSym = new Blob(Array.from(table), {type:"text/plain"});
+    }
+
+    /**
+     * Return the most recently assembled object file as a plain text blob. If
+     * the previous assembly ended in an error or nothing has been assembled
+     * yet, returns null.
+     */
+    public static getObjectFileBlob(): Blob | null
+    {
+        return this.lastObj;
+    }
+
+    /**
+     * Return the most recently assembled symbol table as a plain text blob. If
+     * the previous assembly ended in an error or nothing has been assembled
+     * yet, returns null.
+     */
+    public static getSymbolTableBlob(): Blob | null
+    {
+        return this.lastSym;
     }
 }

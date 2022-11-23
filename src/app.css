@@ -109,13 +109,29 @@ a:hover {
 	cursor: pointer;
 }
 
-.memRow input, .regRow input, #filename input{
+.memRow input, .regRow input{
 	width: 45%;
 	margin-left: 5%;
 }
 
+#filename input{
+	width: 25%;
+	font-family: 'Work Sans', sans-serif;
+	font-size: 15px;
+}
+
 #c-ctr.console-highlighted #consoleCtr{
 	border-style: none;
+}
+
+#sim-view #sim-status{
+	max-width: 70vw;
+	justify-content: flex-end;
+}
+
+#sim-view .tinyBtn{
+	margin-top: 0;
+	margin-left: 2em;
 }
 
 /*==============================
@@ -225,13 +241,13 @@ body.dark{
 	border: 2px solid var(--d-highlight);
 }
 
-.dark .functionBtn{
+.dark .functionBtn, .dark .tinyBtn{
 	background-color: var(--d-tint);
 	font-size: 22px;
 	box-shadow: 1px 1px var(--d-border);
 }
 
-.dark .functionBtn:hover{
+.dark .functionBtn:hover, .dark .tinyBtn:hover{
 	transition: 0.3s;
 	background-color: var(--d-body);
 	filter: brightness(1.1);
@@ -254,11 +270,11 @@ body.dark{
 	color: var(--d-textarea);
 }
 
-.dark #filename, .dark #jump-input{
+.dark #filename, .dark #filename input, .dark #jump-input{
 	color: var(--d-fadetext);
 }
 
-.dark #jump-input::selection, .dark #filename::selection{
+.dark #jump-input::selection, .dark #filename input::selection{
 	color: var(--d-text);
 }
 
@@ -373,7 +389,7 @@ body.light{
 	background-color: rgba(0,0,0,0);
 }
 
-#console-inner::selection, #jump-input::selection, #filename::selection{
+#console-inner::selection, #jump-input::selection, #filename input::selection{
 	background-color: var(--l-select);
 }
 
@@ -450,7 +466,7 @@ body.light{
 	box-shadow: inset -1px -2px var(--l-select);
 }
 
-.light .functionBtn{
+.light .functionBtn, .light .tinyBtn{
 	background-color: var(--l-tint);
 	border: 2px solid lightgrey;
 	box-shadow: 1px 1px var(--l-border);
@@ -458,7 +474,7 @@ body.light{
 	font-size: 22px;
 }
 
-.light .functionBtn:hover{
+.light .functionBtn:hover, .light .tinyBtn:hover{
 	transition: 0.3s;
 	filter: brightness(1.05);
 	background-color: var(--l-body);
