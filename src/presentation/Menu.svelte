@@ -25,6 +25,7 @@
                 editor.setValue("")
                 updateFilename("untitled.asm")
                 openedFile.set("untitled.asm")
+                latestSnapshot.set("")
             }
         }
     }
@@ -46,8 +47,10 @@
                 reader.onload = function() {
                     let editor = globalThis.editor
                     if(editor){
-                        editor.setValue(reader.result)
+                        let result = reader.result.toString()
+                        editor.setValue(result)
                         updateFilename(filename)
+                        latestSnapshot.set(result)
                     }
                     else
                         console.error("Reading .asm file to editor failed.")
