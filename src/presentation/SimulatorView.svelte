@@ -239,7 +239,7 @@
 
 	.componame{
 		font-size: 39px;
-		width: 100%;
+		width: max-content;
 		margin-left: 1vw;
 		align-self: flex-start;
 		cursor: default;

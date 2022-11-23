@@ -189,7 +189,7 @@
 	}
 
 	#ss-ctr{
-		margin-bottom: 3vh;
+		margin-bottom: 4vh;
 		overflow: visible;
 		max-width: 18vw;
 	}

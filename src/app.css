@@ -118,6 +118,16 @@ a:hover {
 	border-style: none;
 }
 
+#sim-view #sim-status{
+	max-width: 70vw;
+	justify-content: flex-end;
+}
+
+#sim-view .tinyBtn{
+	margin-top: 0;
+	margin-left: 2em;
+}
+
 /*==============================
     DARK MODE component styles
   =============================*/
@@ -225,13 +235,13 @@ body.dark{
 	border: 2px solid var(--d-highlight);
 }
 
-.dark .functionBtn{
+.dark .functionBtn, .dark .tinyBtn{
 	background-color: var(--d-tint);
 	font-size: 22px;
 	box-shadow: 1px 1px var(--d-border);
 }
 
-.dark .functionBtn:hover{
+.dark .functionBtn:hover, .dark .tinyBtn:hover{
 	transition: 0.3s;
 	background-color: var(--d-body);
 	filter: brightness(1.1);
@@ -450,7 +460,7 @@ body.light{
 	box-shadow: inset -1px -2px var(--l-select);
 }
 
-.light .functionBtn{
+.light .functionBtn, .light .tinyBtn{
 	background-color: var(--l-tint);
 	border: 2px solid lightgrey;
 	box-shadow: 1px 1px var(--l-border);
@@ -458,7 +468,7 @@ body.light{
 	font-size: 22px;
 }
 
-.light .functionBtn:hover{
+.light .functionBtn:hover, .light .tinyBtn:hover{
 	transition: 0.3s;
 	filter: brightness(1.05);
 	background-color: var(--l-body);

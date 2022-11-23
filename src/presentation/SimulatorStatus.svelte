@@ -13,6 +13,8 @@
     let filename = ""
     // Text to show by stoplights
     $: showText = filename
+    // Allow download of blobs of assembled object and symbol table available
+    $: downloadReady = (active != "sim-status-not-ready")
 
     onMount(() => { 
         // Switch active stoplight
@@ -46,7 +48,19 @@
 
     // Change text on hover to cue that .obj file can be downloaded
     function showDownload(){
-        showText = "Download .obj file"
+        if(downloadReady){
+            let len = filename.length
+            if(len > 18){
+                // Maintain component length
+                let rem = len-18
+                let fn = "Download&nbsp.obj&nbspfile"
+                for(let i=0; i<rem; i++)
+                    fn += "&nbsp"
+                showText = fn
+            }
+            else
+                showText = "Download .obj file"
+        }
     }
 
     // Swap back text to .obj filename
@@ -56,38 +70,63 @@
 
     // Download most recently assembled .obj file
     function saveObj(){
-        if(globalThis.objFile){
+        if(globalThis.objFile)
             download(filename,globalThis.objFile)
+    }
+
+    // Download most recently assembled symbol table
+    function saveSymbolTable(){
+        if(globalThis.symbolTable){
+            // Pop off .obj from filename and append _symbol_table
+            let fn = filename.substring(0,filename.length-4) + "_symbol_table"
+            download(fn, globalThis.symbolTable)
         }
     }
+    
     let download = (fileName, data) => {}
 </script>
 
 <div id="sim-status">
-    <div class="sim-status-lbl" on:mouseenter={showDownload} on:mouseleave={showFilename} on:click={saveObj} > 
-        {showText} 
+    <div id="sim-status-bar">
+        <div class="sim-status-lbl" on:mouseenter={showDownload} on:mouseleave={showFilename} on:click={saveObj} > 
+            {@html showText} 
+        </div>
+        <div id="status-array">
+            {#if active == "sim-status-not-ready"}
+                <div id="sim-status-not-ready" class="stoplight"><div> NOT READY </div></div>
+            {:else}
+                <div id="sim-status-ready" class="stoplight"><div> READY </div></div>
+                <div id="sim-status-running" class="stoplight"><div> RUNNING </div></div>
+            {/if}
+        </div>
     </div>
-    <div id="status-array">
-        {#if active == "sim-status-not-ready"}
-            <div id="sim-status-not-ready" class="stoplight"><div> NOT READY </div></div>
-        {:else}
-            <div id="sim-status-ready" class="stoplight"><div> READY </div></div>
-            <div id="sim-status-running" class="stoplight"><div> RUNNING </div></div>
-        {/if}
-    </div>
+    {#if downloadReady}
+        <button class="tinyBtn" on:click={saveSymbolTable}> Get symbol table </button>
+    {/if}
 </div>
 
 <style>
     #sim-status{
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
         font-size: 11px;
-        justify-content: space-between;
+        justify-content: flex-start;
         cursor: default;
         width: 100%;
-        min-width: max-content;
+        min-width: 12vw;
         max-width: 18vw;
         transform: translateY(1vh);
+    }
+
+    #sim-status-bar{
+        display: flex;
+        width: 100%;
+        height: 1.2em;
+        min-width: 18vw;
+        max-width: max-content;
+        justify-content: space-between;
+        align-items: center;
     }
 
     .sim-status-lbl{
@@ -118,9 +157,19 @@
         transform: skewX(30deg);
     }
 
+    .tinyBtn{
+        font-size: 9px !important;
+        margin-top: 1vh;
+        transform: translateX(-4px);
+    }
+
     @media (max-width: 1300px) {
 		#sim-status{
-            min-width: 30vw;
+            min-width: 45vw;
+        }
+
+        .tinyBtn{
+            margin-left: 4em;
         }
     }
 </style>
