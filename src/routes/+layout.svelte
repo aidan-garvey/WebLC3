@@ -8,19 +8,23 @@
     import { toggleHelp, currentView } from '../presentation/stores'
     import DocPage from '../presentation/DocPage.svelte'
     import Menu from '../presentation/Menu.svelte'
+    import editorDocs from '../docs/editor.yaml'
+    import simulatorDocs from '../docs/simulator.yaml'
+
+    // Load data from .yaml files
+    let editorPages = editorDocs.pages
+    let simulatorPages = simulatorDocs.pages
+    let pages = editorPages
 
     // Allow window scrolling on application load
-    onMount(() => {
-        document.body.style.overflowY = "scroll"
-	});
+    onMount(() => { document.body.style.overflowY = "scroll" });
 
     // Get current view to tailor documentation pages
-    let theView = "The Editor"
     currentView.subscribe(view => { 
         if(view == "editor")
-            theView = "The Editor"
+            pages = editorPages
         else
-            theView = "The Simulator"
+            pages = simulatorPages
     });
 
     // Open popup with WebLC3 help documentation to overlay on page
@@ -29,7 +33,15 @@
 		openHelpModal = value
 	});
 
+    // Close modal
     function close(){ toggleHelp.set(false) }
+
+    // Change pages
+    let num = 0
+    $: total = pages.length
+    function nextPage(){
+        num = (num + 1) % total
+    }
 </script>
 
 <div id="content">
@@ -37,14 +49,17 @@
     {#if openHelpModal}
         <div id="modal" on:click={close}></div>
         <div id="help">
-            <div id="help-inner" class="sourceCodePro">
+            <div id="help-inner" class="sourceCodePro" on:click={nextPage}>
                 <DocPage 
-                    title={theView} 
-                    content="Documentation will be supplied on the components of this view." 
-                    footnote="Check out the awesome buttons that you see exclusively in this view!"
+                    title={pages[num].title} 
+                    content={pages[num].body}
+                    footnote={pages[num].footnote}
                     featureHeight="16vh" 
                 >
                     <Menu readOnly={true} />
+                    {#if pages[num].component}
+                        <span>TBD: Replace above with {pages[num].component}</span>
+                    {/if}
                 </DocPage>
                 <div class="note">( Press anywhere outside box to close )</div>
             </div>
@@ -89,6 +104,7 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        overflow-y: scroll;
     }
 
     .note{

@@ -1,5 +1,6 @@
-- title: The Editor
-  body: "The editor is what you see when you first open WebLC3.
+pages:
+  - title: The Editor
+    body: "The editor is what you see when you first open WebLC3.
     It is where you write the source code for your LC-3 program,
     save and load programs, and assemble your program into something the LC-3 can
     run.
@@ -8,20 +9,20 @@
     To start writing code, click inside the editor where you want to place the
     cursor and start typing."
 
-- title: New File
-  body: "The <b>New</b> button will clear the content of the text editor and start a new file."
-  component: new
+  - title: New File
+    body: "The <b>New</b> button will clear the content of the text editor and start a new file."
+    component: new
 
-- title: Open File
-  body: "The <b>Open</b> button allows you to open an existing .asm file on your computer in the editor."
-  component: open
+  - title: Open File
+    body: "The <b>Open</b> button allows you to open an existing .asm file on your computer in the editor."
+    component: open
 
-- title: Save
-  body: "The <b>Save</b> button allows you to save your work from the text editor by downloading the .asm file to your computer."
-  component: save
+  - title: Save
+    body: "The <b>Save</b> button allows you to save your work from the text editor by downloading the .asm file to your computer."
+    component: save
 
-- title: LC-3 Instructions
-  body: "<h3>Legend:</h3>
+  - title: LC-3 Instructions
+    body: "<h3>Legend:</h3>
     <ul>
       <li>R_ = Register</li>
       <li>#imm_ = Immediate value, _ bits (all values are sign-extended to 16 bits before use)</li>

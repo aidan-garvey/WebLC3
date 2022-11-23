@@ -18,7 +18,9 @@
             <!-- For optional feature component -->
         </slot>
     </div>
-    <p id="footnote">{footnote}</p>
+    {#if footnote}
+        <p id="footnote">{footnote}</p>
+    {/if}
 </div>
 
 <style>
