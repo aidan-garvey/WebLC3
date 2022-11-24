@@ -39,8 +39,21 @@
     // Change pages
     let num = 0
     $: total = pages.length
+    function prevPage(){
+        if(num-1 < 0)
+            num = total - 1
+        else
+            num = (num - 1) % total
+        scrollTop()
+    }
     function nextPage(){
         num = (num + 1) % total
+        scrollTop()
+    }
+    function scrollTop(){
+        let docContent = document.getElementById("docContent")
+        if(docContent)
+            docContent.scrollTo(0,0) // Set scrollbar of loaded page to top
     }
 </script>
 
@@ -49,18 +62,28 @@
     {#if openHelpModal}
         <div id="modal" on:click={close}></div>
         <div id="help">
-            <div id="help-inner" class="sourceCodePro" on:click={nextPage}>
-                <DocPage 
-                    title={pages[num].title} 
-                    content={pages[num].body}
-                    footnote={pages[num].footnote}
-                    featureHeight="16vh" 
-                >
-                    <Menu readOnly={true} />
-                    {#if pages[num].component}
-                        <span>TBD: Replace above with {pages[num].component}</span>
-                    {/if}
-                </DocPage>
+            <div id="help-inner" class="sourceCodePro">
+                <div id="buttonSet">
+                    <button id="prevBtn" on:click={prevPage}> 
+                        <span class="material-symbols-outlined">arrow_back</span>
+                    </button>
+                    <button id="nextBtn" on:click={nextPage}>
+                        <span class="material-symbols-outlined">arrow_forward</span>
+                    </button>
+                </div>
+                <div id="docContent">
+                    <DocPage 
+                        title={pages[num].title} 
+                        content={pages[num].body}
+                        footnote={pages[num].footnote}
+                        featureHeight="16vh" 
+                    >
+                        <!-- <Menu readOnly={true} /> -->
+                        {#if pages[num].component}
+                            <span>TBD: Embed {pages[num].component}</span>
+                        {/if}
+                    </DocPage>
+                </div>
                 <div class="note">( Press anywhere outside box to close )</div>
             </div>
         </div>
@@ -99,11 +122,42 @@
     }
 
     #help-inner{
+        position: relative;
         height: 88%;
         width: 85%;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+    }
+
+    #buttonSet{
+        z-index: 5;
+        position: absolute;
+        top: 2%;
+        right: 10%;
+        display: flex;
+    }
+
+    #buttonSet button span{
+        transform: scale(1.4);
+    }
+
+    #prevBtn, #nextBtn{
+        height: 3em;
+        width: 3em;
+        border-radius: 50%;
+        font-size: 30px;
+        display: grid;
+        justify-items: center;
+        align-items: center;
+        margin-left: 1em;
+        border-width: 3px;
+    }
+
+    #docContent{
+        z-index: 4;
+        height: 59vh;
+        width: 100%;
         overflow-y: scroll;
     }
 
@@ -114,4 +168,49 @@
         font-size: 10px;
         margin-bottom: 3vh;
     }
+
+    @media (max-width: 1300px) {
+        #modal{
+            height: 215vh;
+        }
+
+        #docContent{
+            height: 109vh;
+        }
+
+		#help{
+			height: 130vh;
+            width: 80vw;
+		}
+	}
+
+    @media (max-width: 1000px) {
+        #buttonSet button span{
+            transform: scale(1.3);
+        }
+
+        #prevBtn, #nextBtn{
+            height: 2em;
+            width: 2em;
+            border-width: 2px;
+        }
+	}
+
+    @media (max-width: 600px) {
+        #buttonSet{
+            top: -5%;
+            left: 50%;
+            transform: translateX(-45%);
+        }
+
+        #buttonSet button span{
+            transform: scale(1);
+        }
+
+        #prevBtn, #nextBtn{
+            height: 1.6em;
+            width: 1.6em;
+            margin: 0.2em;
+        }
+	}
 </style>
