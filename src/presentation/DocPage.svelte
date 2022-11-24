@@ -12,12 +12,12 @@
 
 <div id="docs">
     <h2 class="workSans"> {title} </h2>
-    <p class="workSans">{@html content}</p>
     <div id="featureCompo" style="height:{featureHeight};">
         <slot>
             <!-- For optional feature component -->
         </slot>
     </div>
+    <p class="workSans">{@html content}</p>
     {#if footnote}
         <p id="footnote">{footnote}</p>
     {/if}
@@ -44,7 +44,7 @@
     }
 
     #featureCompo{
-        max-height: 25vh;
+        margin: 3vh 0 5vh 0;
     }
 
     #footnote{

@@ -8,6 +8,7 @@
     import { toggleHelp, currentView } from '../presentation/stores'
     import DocPage from '../presentation/DocPage.svelte'
     import Menu from '../presentation/Menu.svelte'
+    import Previews from '../presentation/Previews.svelte'
     import editorDocs from '../docs/editor.yaml'
     import simulatorDocs from '../docs/simulator.yaml'
 
@@ -18,23 +19,6 @@
 
     // Allow window scrolling on application load
     onMount(() => { document.body.style.overflowY = "scroll" });
-
-    // Get current view to tailor documentation pages
-    currentView.subscribe(view => { 
-        if(view == "editor")
-            pages = editorPages
-        else
-            pages = simulatorPages
-    });
-
-    // Open popup with WebLC3 help documentation to overlay on page
-    let openHelpModal = false
-	toggleHelp.subscribe(value => {
-		openHelpModal = value
-	});
-
-    // Close modal
-    function close(){ toggleHelp.set(false) }
 
     // Change pages
     let num = 0
@@ -55,6 +39,24 @@
         if(docContent)
             docContent.scrollTo(0,0) // Set scrollbar of loaded page to top
     }
+
+    // Get current view to tailor documentation pages
+    currentView.subscribe(view => { 
+        if(view == "editor")
+            pages = editorPages
+        else
+            pages = simulatorPages
+        num = 0 // Reset to first page
+    });
+
+    // Open popup with WebLC3 help documentation to overlay on page
+    let openHelpModal = false
+	toggleHelp.subscribe(value => {
+		openHelpModal = value
+	});
+
+    // Close modal
+    function close(){ toggleHelp.set(false) }
 </script>
 
 <div id="content">
@@ -76,12 +78,9 @@
                         title={pages[num].title} 
                         content={pages[num].body}
                         footnote={pages[num].footnote}
-                        featureHeight="16vh" 
+                        featureHeight="max-content" 
                     >
-                        <!-- <Menu readOnly={true} /> -->
-                        {#if pages[num].component}
-                            <span>TBD: Embed {pages[num].component}</span>
-                        {/if}
+                        <Previews id={pages[num].component} />
                     </DocPage>
                 </div>
                 <div class="note">( Press anywhere outside box to close )</div>
