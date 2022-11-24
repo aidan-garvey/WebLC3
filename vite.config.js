@@ -1,9 +1,10 @@
 import { sveltekit } from '@sveltejs/kit/vite';
+import yaml from "@rollup/plugin-yaml";
 
 /** @type {import('vite').UserConfig} */
 const config = {
 	plugins: [
-		sveltekit(),
+		sveltekit(), yaml(),
 		{
 			name: "configure-response-headers",
 			configureServer: (server) => {

@@ -19,6 +19,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@rollup/plugin-yaml": "^4.0.1",
 		"monaco-editor": "^0.34.0",
 		"resize-observer": "^1.0.4"
 	}

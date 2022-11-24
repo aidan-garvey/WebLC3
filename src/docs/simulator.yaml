@@ -1,0 +1,206 @@
+pages:
+  - title: The Simulator
+    body: "After clicking <b>Switch to Simulator</b> from the editor, you will be taken to the
+      simulator. This page displays the status of the LC-3 simulator, and allows you
+      to run and debug your programs. You can go back to the editor to revise your
+      code at any time by clicking <b>Back to Editor</b> in the bottom right."
+    footnote: "This section will use technical terminology to describe the simulator.
+      For a reference of these terms, see the page about LC-3 Components."
+
+  - title: Reload
+    body: "To load your program into the simulator's memory, click the <b>Reload</b>
+      button at the top of the screen. Once the program is loaded, the PC will be
+      set to the start of the program (the address in the `.ORIG` directive at the
+      start of your code)"
+    component: reload
+    footnote: "Reload will only modify the memory locations necessary to load your
+      program into the simulator. If you want to reset the rest of the memory,
+      press Reinitialize or Randomize before pressing Reload."
+
+  - title: Reinitialize
+    body: "This button sets the values of all memory locations and general-purpose
+      registers to 0."
+    component: reinitialize
+
+  - title: Randomize
+    body: "This button randomizes the values of all memory locations and
+      general-purpose registers. This can be useful for testing your code and
+      ensuring it does not rely on the registers containing 0 when the program
+      is run."
+    component: randomize
+
+  - title: Memory Window
+    body: "In the centre of the screen is the memory window. This window displays a small
+      number of memory locations at a time, with one location per row. The format of
+      each row is as follows:<br>
+      <code> &lt;breakpoint toggle&gt; &lt;pc indicator&gt; &lt;memory address
+      (hexadecimal)&gt; &lt;memory content (hexadecimal)&gt; &lt;memory content
+      (decimal)&gt; &lt;code&gt;
+      </code>
+      <br>
+      <ul>
+        <li>Breakpoint toggle: this octagonal button will set a breakpoint at the memory
+        location it is on. When the simulator is running, if the program counter ever points to
+        a memory location with a breakpoint, the simulator will stop running. This is
+        useful for debugging programs. When clicked, the button will turn red to
+        indicate the presence of a breakpoint. When clicked again, the breakpoint is
+        removed and the button will turn grey.</li>
+
+        <li>PC indicator: these triangles show the current position of the PC by turning
+        blue to indicate which memory location the PC points to. For example, if the PC
+        contains <code>0x3000</code> and the memory location with address <code>0x3000</code> is currently
+        displayed in the memory window, the PC indicator at that location will be blue.
+        If you click a PC indicator, the PC will be set to that location.</li>
+
+        <li>Memory address: the address of the memory location.</li>
+        
+        <li>Memory content: the value stored in memory at the memory location, displayed
+        as a hexadecimal value and a signed decimal value.</li>
+        
+        <li>Code: if the memory location contains code from your program, the original
+        line of code will be displayed here. The code for the LC-3 operating system is
+        displayed too (i.e. the trap, interrupt and exception service routines).</li>
+      </ul>
+
+      Clicking the content of a memory location (either hexadecimal or decimal) will
+      allow you to set the content of that memory location."
+
+  - title: Changing the Memory Window Content
+    body: "Below the memory window are some controls for changing the memory locations
+      displayed in the window.
+      <ul>
+        <li><b>JUMP</b>: this control allows you to directly jump to a memory location. To do
+        so, type the address you want to jump to (hexadecimal) in the text field and
+        press Enter / Return, or press the button to the right of the text field.</li>
+        <li><b>PC</b>: this will jump to the current location of the PC</li>
+        <li>Arrows: these arrows will move the memory window by a small or large amount</li>
+      </ul>"
+  
+  - title: Register Window
+    body: "The register window displays the contents of all registers in the simulator,
+      with the following format for each row:<br>
+      <code>&lt;register&gt; &lt;value (hex)&gt; &lt;value (decimal)&gt;</code>
+      <br>
+      Additionally, the PSR displays a breakdown of its current value, such as the
+      current condition code.
+      <br>
+      Clicking the value of a register (either hexadecimal or decimal) will allow you
+      to set the value of that register."
+  
+  - title: Run
+    body: "The <b>RUN</b> button runs the simulator until the simulator's clock is stopped (see the
+      description of the MCR in the LC-3 Components page), or until a breakpoint is reached.
+      If the simulator stops and you want to resume
+      execution, pressing <b>RUN</b> again will pick up where the simulator left off
+      (i.e. it will not reset the PC to the start of your program, press <b>Reload</b> to
+      do that)."
+    component: run
+
+  - title: Step In
+    body: "This button runs exactly one instruction. If the instruction is a trap or
+      subroutine jump, the result will be that the LC-3 is stopped before executing
+      the first instruction of that routine (\"stepping in\" to the routine)."
+    component: step-in
+
+  - title: Step Out
+    body: "This button runs the simulator until the current trap or subroutine returns,
+      or any of the conditions for <b>RUN</b> stopping are met such as reaching a
+      breakpoint or the simulator's clock being stopped."
+    component: step-out
+
+  - title: Step Over
+    body: "This button runs exactly one instruction, unless the instruction is a trap
+      or subroutine jump. In that case, <b>Step over</b> will execute the entire
+      service/subroutine as well, but will stop if a breakpoint is reached or the
+      clock is stopped."
+    component: step-over
+
+  - title: Input and Output
+    body: "Below the register window and run/step controls is the console. When text is
+      output by the LC-3, it will be printed to this console. To input characters, such as
+      during an <code>IN</code> or <code>GETC</code> trap, click the console and press a key. The console will have a
+      flashing blue border while it is selected. To deselect the console, click
+      anywhere outside of it. Keep in mind that the keys you type will only be
+      displayed in the console if your program prints them. The <code>IN</code> trap is an
+      example of this, as it will save the key to <code>R0</code> and print it. <code>GETC</code>, on the
+      other hand, saves the key without printing it."
+
+  - title: LC-3 Components
+    body: "<h2>Registers</h2>
+      <ul>
+      <li><b>General Purpose Registers (GPRs)</b>: 8 16-bit registers R0-R7,
+      used to store working data during the execution of a program.
+        <ul>
+        <li>R6 is the stack pointer. It can be used like any other GPR, but it is best
+        practice to use it for pushing registers onto the stack. At any time, R6 may
+        actually be one of two internal registers: the <b>User Stack Pointer (USP)</b> or
+        the <b>Supervisor Stack Pointer (SSP)</b>. This is determined by bit 15 of the PSR.
+        </li>
+
+        <li>R7 is the link register. When a <code>JSR</code> or <code>JSRR</code>
+        (subroutine jump) instruction is executed, R7 is automatically set to the return address. When a <code>RET</code>
+        instruction is executed, all that really happens is the PC is set to the value
+        of R7. For this reason, a subroutine's code should not modify the value of R7
+        unless it is preserved in some way, including before a <code>JSR</code>/<code>JSRR</code> within a
+        subroutine.
+        </li>
+        </ul>
+      </li>
+      
+      <li><b>Processor Status Register (PSR)</b>: Contains information about the status of
+      the LC-3. Different bits have different purposes:
+        <ul>
+        <li>PSR[15]: 1 = user mode, 0 = supervisor mode</li>
+        <li>PSR[10..8]: Priority level of current program</li>
+        <li>PSR[2, 1, 0]: Negative, zero and positive flags, respectively</li>
+        </ul>
+      </li>
+
+      <li><b>Program Counter (PC)</b>: Address of next instruction to execute.
+      </li>
+      </ul>
+      
+      <h2>Device Registers</h2>
+      Some memory locations in the LC-3 are reserved for special functions. For this
+      reason, they are referred to as <i>device registers</i>, however they are read and
+      written to the same way as any other memory location.
+      <ul>
+      <li><b>Machine Control Register (MCR)</b>: Located at <code>0xFFFE</code>.
+      Bit MCR[15] is the
+      clock-enable bit: setting it to 1 lets the simulator run, setting it to 0 stops
+      the simulator. Clicking any of the controls to run/step the simulator will
+      automatically set the clock-enable bit to 1. <code>HALT</code> traps work by setting the
+      clock-enable bit to 0, however your own code may do this too for the same effect.
+      </li>
+
+      <li><b>Keyboard Status Register (KBSR)</b>: Located at <code>0xFE00</code>.
+      Bit KBSR[15] is set
+      to 1 whenever a key is pressed (when you select the console and type a key).
+      Bit KBSR[14] enables keyboard interrupts when a key is pressed.
+      </li>
+
+      <li><b>Keyboard Data Register (KBDR)</b>: Located at <code>0xFE02</code>.
+      When a key is typed,
+      the lower 8 bits of KBDR are set to the ASCII code for that key. You can tell
+      the key is new by checking the Keyboard Status Register (KBSR). If your code
+      accesses the keyboard directly instead of using traps, clear KBSR[15] after
+      reading from KBDR so it can tell when a new key is pressed when KBSR[15] is set
+      to 1 again.
+      </li>
+
+      <li><b>Display Status Register (DSR)</b>: Located at <code>0xFE04</code>.
+      Bit DSR[15] is set to
+      1 when the console is ready to receive a new character in the Display Data
+      Register (DDR), and cleared if the character in the DDR is currently being
+      printed to the console.
+      </li>
+
+      <li><b>Display Data Register (DDR)</b>: Located at <code>0xFE06</code>.
+      Writing to this location
+      while bit 15 of the Display Status Register (DSR) is 1 will cause the lower 8
+      bits of the DDR to be interpreted as an ASCII character and printed to the
+      console. While the printing is occuring, DSR[15] is set to 0. After the printing
+      is finished, DSR[15] is set to 1 and the DDR is cleared.
+      </li>
+
+      </ul>"

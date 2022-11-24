@@ -197,6 +197,10 @@ body.dark{
 	color: var(--d-instr);
 }
 
+.dark #docs p{
+	color: var(--d-fadetext);
+}
+
 .dark .menu-item{
 	border: 1px solid var(--d-border);
 	background-color: var(--d-body);
@@ -247,7 +251,14 @@ body.dark{
 	box-shadow: 1px 1px var(--d-border);
 }
 
-.dark .functionBtn:hover, .dark .tinyBtn:hover{
+.dark #buttonSet button{
+	background-color: var(--d-body);
+	color: var(--d-textarea);
+	box-shadow: 1px 1px var(--d-border);
+	border-color: var(--d-textarea);
+}
+
+.dark .functionBtn:hover, .dark .tinyBtn:hover, .dark #buttonSet button:hover{
 	transition: 0.3s;
 	background-color: var(--d-body);
 	filter: brightness(1.1);
@@ -265,7 +276,7 @@ body.dark{
 	background-color: var(--d-shade);
 }
 
-.dark .functionBtn:active, .dark .switchBtn:active{
+.dark .functionBtn:active, .dark .switchBtn:active, .dark #buttonSet button:active{
 	background-color: var(--d-fadetext);
 	color: var(--d-textarea);
 }
@@ -474,7 +485,14 @@ body.light{
 	font-size: 22px;
 }
 
-.light .functionBtn:hover, .light .tinyBtn:hover{
+.light #buttonSet button{
+	background-color: var(--l-highlight);
+	color: var(--d-reg);
+	box-shadow: 1px 1px var(--l-loc);
+	border-color: var(--d-reg);
+}
+
+.light .functionBtn:hover, .light .tinyBtn:hover, .light #buttonSet button:hover{
 	transition: 0.3s;
 	filter: brightness(1.05);
 	background-color: var(--l-body);
@@ -494,9 +512,13 @@ body.light{
 	background-color: var(--l-comment);
 }
 
-.light .functionBtn:active, .light .switchBtn:active{
+.light .functionBtn:active, .light .switchBtn:active, .light #buttonSet button:active{
 	background-color: var(--l-text);
 	color: var(--l-textarea);
+}
+
+.light #buttonSet button:active{
+	border-color: var(--d-reg) !important;
 }
 
 .light #filename{

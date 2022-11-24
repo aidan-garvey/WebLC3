@@ -1,0 +1,224 @@
+pages:
+  - title: The Editor
+    body: "The editor is what you see when you first open WebLC3.
+      It is where you write the source code for your LC-3 program,
+      save and load programs, and assemble your program into something the LC-3 can
+      run.
+
+      The text editor is displayed prominently in the middle of the screen.
+      To start writing code, click inside the editor where you want to place the
+      cursor and start typing."
+
+  - title: New File
+    body: "The <b>New</b> button will clear the content of the text editor and start a new file."
+    component: new
+
+  - title: Open File
+    body: "The <b>Open</b> button allows you to open an existing .asm file on your computer in the editor."
+    component: open
+
+  - title: Save
+    body: "The <b>Save</b> button allows you to save your work from the text editor by downloading the .asm file to your computer."
+    component: save
+
+  - title: Renaming Programs
+    body: "To rename the file you are editing, click its name above the text editor. A text box will open where you can enter in the new name of the file. Press Enter / Return to confirm the new name."
+
+  - title: Editor Console
+    body: "To the right of the editor (or below the editor for smaller screens) is the
+      console.
+      The console will display messages about the status of your program,
+      such as any errors in your code when you click <b>Assemble</b>.
+      The <b>clear button</b> (trash can) in the top right will delete the console's contents."
+
+  - title: Simulator Status
+    body: "Below the console is the <b>SIMULATOR STATUS</b> indicator.
+      Before assembling any code, the indicator will display \"NOT READY.\"
+      If you assemble a program without errors, the indicator will change to \"READY,\"
+      and the <b>SIMULATOR STATUS</b> label will be replaced by the name of the
+      resulting <i>object file</i>, which is the machine code that the simulator can run.
+      The simulator status indicator also appears in the simulator, and will switch
+      to \"RUNNING\" while your code is being executed."
+    component: sim-status 
+
+  - title: Assembling Code
+    body: "Clicking the <b>ASSEMBLE</b> button will send your source code to WebLC3's assembler, which
+      will attempt to convert it into an <b>object file</b> (binary code which can be
+      loaded into the LC-3 simulator and executed).
+      If the syntax of your program is correct, the assembly will be successful and
+      the console will display the message \"Assembly Successful\" and the
+      <b>SIMULATOR STATUS</b> will change to \"READY\".
+      This will also be accompanied by a \"Simulator ready\" message in the console.
+      If there are errors in the code which prevent it from being assembled, the
+      console will display all of the errors instead. Once your program has been
+      assembled successfully, click <b>Switch to Simulator</b> to run or debug it."
+    component: assemble
+
+  - title: Assembly Error Messages
+    body: "If your program has errors that prevent it from being assembled, the assembler
+      will display each error it finds in the console.
+      The format of the error messages is: <br>
+      <code>
+      &lt;line number&gt;: &lt;error description&gt; <br>
+          &emsp; &lt;code with error&gt;
+      </code>
+      <br><br>
+      For example:<br>
+      <code>
+      5: Invalid register specifier: R8 <br>
+          &emsp; lea R8, label
+      </code>
+      <br><br>
+      This tells you that the code on line 5, printed on the second line of
+      the error message, uses an invalid value for a register (R8)."
+
+  - title: Downloading Assembled Programs
+    body: "After assembling a program, the label for the simulator status will be
+      replaced by a file name. The file will have the same name as your assembly code,
+      but with a .obj extension instead of .asm. This is the object file created
+      from your code. To download this file, hover over the name, which will change
+      to \"Download .obj file\". Click this message to download the file. You can
+      also download the symbol table for your program, which contains a listing of
+      the labels used in your code and their corresponding memory addresses. To
+      download the symbol table, click the <b>Get symbol table</b> button below
+      the .obj file name."
+
+  - title: LC-3 Instructions
+    body: "<h3>Legend:</h3>
+      <ul>
+        <li>R_ = Register</li>
+        <li>#imm_ = Immediate value, _ bits (all values are sign-extended to 16 bits before use)</li>
+        <li>mem[x] = Contents of memory at address <i>x</i></li>
+      </ul>
+
+      <i>Note: The PC is incremented immediately after each instruction is fetched. So,
+      if the simulator is executing the instruction at address </i><code>0x3000</code><i>, the PC will
+      already contain </i><code>0x3001</code><i> as the instruction is being executed.</i>
+      <br>
+      <br>
+
+      <table>
+      <tr>
+        <th>Instruction</th>
+        <th>Syntax</th>
+        <th>Description</th>
+      </tr>
+      <tr>
+        <td>ADD</td>
+        <td>ADD RD, RX, RY</td>
+        <td>RD = RX + RY</td>
+      <tr>
+      <tr>
+        <td>ADD</td>
+        <td>ADD RD, RX, #imm5</td>
+        <td>RD = RX + imm5</td>
+      <tr>
+      <tr>
+        <td>AND</td>
+        <td>AND RD, RX, RY</td>
+        <td>RD = RX AND RY</td>
+      <tr>
+      <tr>
+        <td>AND</td>
+        <td>AND RD, RX, #imm5</td>
+        <td>RD = RX AND imm5</td>
+      <tr>
+      <tr>
+        <td>BR</td>
+        <td>BR[n][z][p] Label</td>
+        <td>If any of the conditions (n/z/p) are met, PC = Label. BR is equivalent to BRnzp</td>
+      <tr>
+      <tr>
+        <td>JMP</td>
+        <td>JMP RD</td>
+        <td>PC = RD</td>
+      <tr>
+      <tr>
+        <td>JSR</td>
+        <td>JSR Label</td>
+        <td>R7 = PC, PC = Label</td>
+      <tr>
+      <tr>
+        <td>JSRR</td>
+        <td>JSRR RD</td>
+        <td>R7 = PC, PC = RD</td>
+      <tr>
+      <tr>
+        <td>LD</td>
+        <td>LD RD, Label</td>
+        <td>RD = mem[Label]</td>
+      <tr>
+      <tr>
+        <td>LDI</td>
+        <td>LDI RD, Label</td>
+        <td>RD = mem[mem[Label]]</td>
+      <tr>
+      <tr>
+        <td>LDR</td>
+        <td>LDR RD, RX, #imm6</td>
+        <td>RD = mem[RX + imm6]</td>
+      <tr>
+      <tr>
+        <td>LEA</td>
+        <td>LEA RD, Label</td>
+        <td>RD = Label</td>
+      <tr>
+      <tr>
+        <td>NOT</td>
+        <td>NOT RD, RX</td>
+        <td>RD = NOT RX</td>
+      <tr>
+      <tr>
+        <td>RET</td>
+        <td>RET</td>
+        <td>PC = R7 (this instruction is the same as JMP R7)</td>
+      <tr>
+      <tr>
+        <td>RTI</td>
+        <td>RTI</td>
+        <td>See the page on Traps</td>
+      <tr>
+      <tr>
+        <td>ST</td>
+        <td>ST RD, Label</td>
+        <td>mem[Label] = RD</td>
+      <tr>
+      <tr>
+        <td>STI</td>
+        <td>STI RD, Label</td>
+        <td>mem[mem[Label]] = RD</td>
+      <tr>
+      <tr>
+        <td>STR</td>
+        <td>STR RD, RX, #imm6</td>
+        <td>mem[RX + imm6] = RD</td>
+      <tr>
+      <tr>
+        <td>TRAP</td>
+        <td>TRAP #imm8</td>
+        <td>PC = mem[imm8], see the page on Traps</td>
+      <tr>
+      </table>"
+
+  - title: Traps
+    body: "A TRAP instruction will call a <i>service routine</i>, which is
+      similar to a subroutine but is part of the LC-3's operating system. Traps
+      execute in supervisor mode, which means they use a different stack from
+      your own program. Before the service routine is executed, the trap is
+      initiated by pushing the current PC and PSR to the supervisor stack,
+      setting bit PSR[15] to 0 for supervisor mode, and swapping out R6 for the
+      <i>supervisor stack pointer</i>. The last instruction of a service routine
+      is an <b>RTI</b>. RTI will pop the saved PC and PSR off the stack, restoring
+      the two registers to the state they were in before executing the trap. If
+      the restored PSR is in user mode (PSR[15] = 1)<sup>*</sup>, R6 will be swapped out for
+      the <i>user stack pointer</i>, meaning it will also be in the state it was
+      in before executing the trap."
+    footnote: "*The only time the restored PSR would be in supervisor mode is if
+      a TRAP instruction was within another service routine."
+
+  - title: List of Traps
+    body: "<ul>
+      <li>todo
+      </li>
+      </ul>"
+  
