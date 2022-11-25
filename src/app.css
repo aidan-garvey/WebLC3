@@ -59,6 +59,10 @@ a:hover {
 	text-decoration: underline;
 }
 
+::selection{
+	background-color: rgba(0,0,0,0);
+}
+
 ::-webkit-scrollbar {
 	width: 15px;
 }
@@ -192,6 +196,10 @@ body.dark{
 	scrollbar-color: var(--l-comment) var(--l-textarea);
 }
 
+.dark #docs *:not(#featureCompo *)::selection{
+	background-color: var(--d-alt-tint);
+}
+
 .dark .console-highlighted{
 	border-width: 4px;
 	border-style: double;
@@ -317,10 +325,6 @@ body.dark{
 	color: var(--d-fadetext);
 }
 
-.dark #jump-input::selection, .dark #filename input::selection{
-	color: var(--d-text);
-}
-
 .dark .componame{
 	color: var(--d-tint);
 }
@@ -428,12 +432,9 @@ body.light{
 	scrollbar-color: var(--l-loc) var(--l-alt-shade);
 }
 
-::selection{
-	background-color: rgba(0,0,0,0);
-}
-
-#console-inner::selection, #jump-input::selection, #filename input::selection{
+#console-inner::selection, #jump-input::selection, #filename input::selection, .light #docs *:not(#featureCompo *)::selection{
 	background-color: var(--l-select);
+	color: var(--l-text);
 }
 
 .light .console-highlighted{

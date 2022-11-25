@@ -17,7 +17,7 @@
             <!-- For optional feature component -->
         </slot>
     </div>
-    <p class="workSans">{@html content}</p>
+    <p id="docBody" class="workSans">{@html content}</p>
     {#if footnote}
         <p id="footnote">{footnote}</p>
     {/if}
