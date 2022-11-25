@@ -84,8 +84,8 @@
 			let psrHex = "0x" + psrDec.toString(16)
 			let mcrDec = globalThis.simulator.getMemory(0xFFFE)
 			let mcrHex = "0x" + mcrDec.toString(16)
-			tempRegMap.push(["PSR", psrHex, psrDec])
-			tempRegMap.push(["PC", "0x"+pc.toString(16), pc.toString(), "CC:"+cc])
+			tempRegMap.push(["PSR", psrHex, psrDec, "CC:"+cc])
+			tempRegMap.push(["PC", "0x"+pc.toString(16), pc.toString()])
 			tempRegMap.push(["MCR", mcrHex, mcrDec.toString()])
 
 			regMap = tempRegMap
