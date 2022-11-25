@@ -1,8 +1,10 @@
 /**
  * simulator.ts
  * 
- * The LC-3 simulator. Each instance keeps track of the machine's state and
- * executes code.
+ * The LC-3 simulator. Keeps track of the machine's state and interacts with the
+ * UI. Has a worker (simWorker.ts) which executes LC-3 code. Most of the LC-3's
+ * data is stored in Uint16Arrays with SharedArrayBuffers, so changes made by
+ * the worker will appear to the simulator.
  */
 
 import Assembler from "../assembler/assembler";

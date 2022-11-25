@@ -1,14 +1,11 @@
 /**
  * assembler.ts
  * 
- * Converts program source code into a binary object file, which
- * consists of the starting address of the program followed by the
- * assembled machine code / data. It also generates a Map with memory
- * addresses as the keys and corresponding lines of source code as the
- * values, which is needed to display the code alongside the computer's
- * memory in the simulator user interface.
- * 
- * The assemble function is async.
+ * Converts program source code into a binary object file, which consists of the
+ * starting address of the program followed by the assembled machine code. It
+ * also generates a Map with memory addresses as the keys and corresponding
+ * lines of source code as the values, which is used to display the code
+ * alongside the computer's memory in the simulator user interface.
  */
 
 import Parser from "./parser";

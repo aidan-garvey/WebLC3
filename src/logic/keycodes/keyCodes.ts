@@ -9,7 +9,7 @@
 export default class KeyCodes
 {
     private static specialKeys: Map<string, number> = new Map([
-        ["Enter", 10], // enter and return always map to \n
+        ["Enter", 10], // enter and return always map to \n, not \r
         ["Tab", 9],
         ["Spacebar", 32],
         ["Backspace", 8],

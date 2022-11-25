@@ -1,8 +1,8 @@
 /**
  * errorBuilder.ts
  * 
- * Given a copy of the source code being assembled, generates error messages
- * with as much relevant info as possible.
+ * Generates error messages with a consistent style. Constructed with a
+ * reference to the source code so it can display the line with the error.
  */
 
 import Assembler from "./assembler";
@@ -13,7 +13,7 @@ export default class ErrorBuilder
 
     /** 
      * Creates an ErrorBuilder given the source code, which must be separated
-     * individual lines.
+     * into individual lines.
      * @param {string[]} sourceCode
      */
     public constructor(sourceCode: string[])

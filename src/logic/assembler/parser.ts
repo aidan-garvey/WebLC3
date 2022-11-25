@@ -1,9 +1,9 @@
 /**
  * parser.ts
  * 
- * Splits lines of source code into individual tokens, converts
- * tokenized source code into machine code. Also contains methods for
- * parsing tokens as any type of operand.
+ * Splits lines of source code into individual tokens and converts tokenized
+ * source code into machine code. Also contains methods for parsing tokens as
+ * different types of operand.
  */
 
 import type ErrorBuilder from "./errorBuilder";

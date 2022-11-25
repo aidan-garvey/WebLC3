@@ -1,4 +1,8 @@
 
+/**
+ * Functions used to test if an instruction has a certain opcode.
+ */
+
 export default class Opcodes
 {
     private static JSR = 0x4000;

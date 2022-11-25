@@ -2,12 +2,9 @@
  * simWorker.ts
  * 
  * This class is responsible for executing LC-3 code for the simulator in a
- * separate thread. It maintains a copy of the simulator's data, and it passes
- * messages to the simulator when its data is updated so they stay in sync.
- * 
- * A lot of code and data duplication exists between this class and the
- * simulator, but this greatly reduces the amount of data that would need to be
- * passed between threads in messages.
+ * separate thread. It contains references to the LC-3's data from the
+ * simulator, which is implemented with SharedArrayBuffers. This allows changes
+ * to the LC-3's state from executing code to appear to the simulator.
  */
 
 import Messages from "./simMessages";
