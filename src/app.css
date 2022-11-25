@@ -110,12 +110,21 @@ a:hover {
 
 #docs th{
 	font-weight: 700;
-	padding: 0 0.5em 0 0.5em;
+	padding: 0.8em 0.5em 0 0.5em;
 	border-bottom-width: 2px;
+	min-width: 8vw;
+	font-size: 16px;
 }
 
 #docs td{
-	padding: 0.5em;
+	padding: 0.8em 0.5em 0.8em 0.5em;
+	font-size: 15px;
+}
+
+#docs code{
+	font-size: 16px;
+	font-family: 'Source Code Pro', monospace;
+	color: var(--l-dir);
 }
 
 .functionBtn{
