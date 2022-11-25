@@ -38,7 +38,7 @@
     }
 
     #docs p{
-        font-size: 16px;
+        font-size: 17px;
         letter-spacing: 1px;
         line-height: 2.4;
     }

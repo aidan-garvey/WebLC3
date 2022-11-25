@@ -99,6 +99,25 @@ a:hover {
   'opsz' 48
 }
 
+#docs table{
+	margin-top: 2vh;
+}
+
+#docs table, th, td{
+	border: 1px solid var(--l-fadetext);
+	border-collapse: collapse;
+}
+
+#docs th{
+	font-weight: 700;
+	padding: 0 0.5em 0 0.5em;
+	border-bottom-width: 2px;
+}
+
+#docs td{
+	padding: 0.5em;
+}
+
 .functionBtn{
 	display: flex;
 	justify-content: center;
@@ -199,6 +218,10 @@ body.dark{
 
 .dark #docs p{
 	color: var(--d-fadetext);
+}
+
+.dark #docs th{
+	border-bottom-color: var(--d-instr);
 }
 
 .dark .menu-item{
@@ -436,6 +459,10 @@ body.light{
 
 .light #lc3, .light #docs h2{
 	color: var(--l-loc);
+}
+
+.light #docs th{
+	border-bottom-color: var(--l-loc);
 }
 
 .light .menu-item{
