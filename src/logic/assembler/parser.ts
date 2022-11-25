@@ -113,6 +113,46 @@ export default class Parser
     }
 
     /**
+     * Return true if all characters are valid in the specified radix
+     * @param numString 
+     * @param radix 
+     */
+    private validDigits(numString: string, radix: number): boolean
+    {
+        // @ts-ignore
+        const zeroCode: number = '0'.codePointAt(0);
+        const digitMax = zeroCode + radix - 1;
+        // @ts-ignore
+        const aCode: number = 'a'.codePointAt(0);
+        const letterMax = radix > 10? aCode + radix - 11 : undefined;
+
+        let i = 0;
+        // allow a negative sign only for decimal numbers
+        if (radix == 10 && numString[0] == '-')
+            i = 1;
+
+        for (; i < numString.length; i++)
+        {
+            // @ts-ignore
+            let curr: number = numString.codePointAt(i);
+            if (curr >= zeroCode && curr <= digitMax)
+            {
+                continue;
+            }
+            else if (letterMax && curr >= aCode && curr <= letterMax)
+            {
+                continue;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Parse an immediate value, which can be decimal, binary or hexadecimal.
      * If it is not a valid value, return NaN.
      * @param {string} token: the value to parse
@@ -136,23 +176,53 @@ export default class Parser
 
         let radix = 10;
         let start = 0;
-        // it's optional to use '#' with 'x' or 'b'
-        if (token[start] == '#')
+
+        // 0x or 0X prefix
+        if (token.startsWith("0x"))
         {
-            ++start;
-        }
-        
-        if (token[start] == 'x')
-        {
+            start = 2;
             radix = 16;
-            ++start;
         }
-        else if (token[start] == 'b')
+        // 0b or 0B prefix
+        else if (token.startsWith("0b"))
         {
+            start = 2;
             radix = 2;
-            ++start;
         }
-        const result = parseInt(token.substring(start), radix);
+        // #?[bBxX]? prefix
+        else
+        {
+            // it's optional to use '#' with 'x' or 'b'
+            if (token[start] == '#')
+            {
+                ++start;
+            }
+            
+            if (token[start] == 'x')
+            {
+                radix = 16;
+                ++start;
+            }
+            else if (token[start] == 'b')
+            {
+                radix = 2;
+                ++start;
+            }
+        }
+
+        const numString = token.substring(start);
+        let result;
+
+        // only call parseInt if the digits are valid in the string
+        if (this.validDigits(numString, radix))
+        {
+            result = parseInt(numString, radix);
+        }
+        else
+        {
+            result = NaN;
+        }
+
         let max: number;
         let min: number;
 
@@ -184,6 +254,7 @@ export default class Parser
             UI.appendConsole(this.errorBuilder.immBoundsBits(lineNum, bits, token) + "\n");
             return NaN;
         }
+        // parsing successful
         else
         {
             return result & mask;
