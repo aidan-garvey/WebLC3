@@ -210,15 +210,77 @@ pages:
       <i>supervisor stack pointer</i>. The last instruction of a service routine
       is an <b>RTI</b>. RTI will pop the saved PC and PSR off the stack, restoring
       the two registers to the state they were in before executing the trap. If
-      the restored PSR is in user mode (PSR[15] = 1)<sup>*</sup>, R6 will be swapped out for
+      the restored PSR is in user mode (PSR[15] = 1), R6 will be swapped out for
       the <i>user stack pointer</i>, meaning it will also be in the state it was
       in before executing the trap."
-    footnote: "*The only time the restored PSR would be in supervisor mode is if
-      a TRAP instruction was within another service routine."
 
   - title: List of Traps
-    body: "<ul>
-      <li>todo
-      </li>
-      </ul>"
-  
+    body: "
+      Traps can be invoked with a <code>TRAP</code> instruction followed by a
+      trap vector, or the trap's alias can be used on its own.
+      <table>
+      <tr>
+        <th>Trap Alias</th>
+        <th>Vector</th>
+        <th>Description</th>
+      </tr>
+      <tr>
+        <td>GETC</td>
+        <td><code>x20</code></td>
+        <td>Read a character from the keyboard and store the ASCII code in the 
+          lower byte of R0. The upper byte of R0 is cleared.</td>
+      </tr>
+      <tr>
+        <td>OUT</td>
+        <td><code>x21</code></td>
+        <td>Print the character in the lower byte of R0 to the console.</td>
+      </tr>
+      <tr>
+        <td>PUTS</td>
+        <td><code>x22</code></td>
+        <td>Print a string of ASCII characters to the console. The string
+          consists of one character per memory location. R0 must hold the
+          address of the first character of the string. The end of the string is
+          indicated by a memory location containing 0.</td>
+      </tr>
+      <tr>
+        <td>IN</td>
+        <td><code>x23</code></td>
+        <td>Print a prompt to the console to input a key and read a character from
+        the keyboard. Echo the character to the console and store it in the
+        lower byte of R0. The upper byte of R0 is cleared.</td>
+      </tr>
+      <tr>
+        <td>PUTSP</td>
+        <td><code>x24</code></td>
+        <td>Similar to PUTS, but with two ASCII codes per memory location. In
+        each location, the character in the lower byte is written first, followed
+        by the one in the upper byte. R0 is still used to specify the address of 
+        the start of the string, and the string is terminated by a memory
+        location containing 0. If the string has an odd number of characters,
+        the final non-zero memory location's upper byte will be 0.</td>
+      </tr> 
+      <tr>
+        <td>HALT</td>
+        <td><code>x25</code></td>
+        <td>Print a message to the console that the computer is halting and 
+        clear the MCR's clock-enable bit (MCR[15]), stopping execution.</td>
+      </tr> 
+      </table>"
+
+  - title: Interrupts and Exceptions
+    body: "Interrupts and exceptions invoke a service routine (or <i>handler</i>)
+      much like a trap, but have different causes. Interrupts occur due to external
+      sources, such as an input device. The LC-3 only has one interrupt, the keyboard
+      interrupt. The interrupt is disabled by default, but can be enabled by
+      setting the interrupt-enable bit of the keyboard status register (KBDR[14])
+      to 1. When enabled, pressing a key will invoke the interrupt handler for
+      the keyboard (in the default LC-3 operating system, the handler will print
+      the character to the console).
+      <br>
+      Exceptions occur due to unexpected circumstances, such as invalid
+      instructions. The LC-3 has two exceptions: privilege mode violation, which
+      occurs when <code>RTI</code> is executed in user mode; and illegal opcode,
+      which occurs when the processor attempts to execute an instruction with
+      the unused opcode <code>0b1101</code>.
+      "
