@@ -20,7 +20,7 @@
 
 <div id="consoleCtr" role="region" aria-roledescription="Console output shows assembly success and error or machine outputs">
     {#if appLoadComplete}
-        <pre id="console-inner" class="empty" aria-label="Console output text" tabindex="0">console empty</pre>
+        <pre id="console-inner" class="empty" aria-label="Output text">console empty</pre>
         <button id="clear-console" on:click={clearConsole}>
             <span class="material-symbols-outlined">delete_forever</span>
             CLEAR

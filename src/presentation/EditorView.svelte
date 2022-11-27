@@ -143,7 +143,7 @@
 	{#if appLoadComplete}
 	<section id="ev-right">
 		<div class="filler">filler</div>
-		<div id="console-ctr" aria-label="Console output to show assembly errors and success">
+		<div id="console-ctr" aria-label="Console output to show assembly errors and success" tabindex="0">
 			<Console />
 		</div>
 		<div id="ev-buttons">

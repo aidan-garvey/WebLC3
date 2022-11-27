@@ -658,6 +658,10 @@ body.light{
 	background-color: var(--l-select);
 }
 
+.monaco-editor .line-numbers{
+	color: #237893
+}
+
 .monaco-editor .line-numbers.active-line-number{
 	color: var(--d-loc);
 }
