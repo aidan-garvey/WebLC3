@@ -4,12 +4,11 @@
 -->
 
 <script>
-    import { onMount } from 'svelte';
-    import { openedFile, currentView, reloadOverride, latestSnapshot } from './stores.js';
+    import { onMount } from 'svelte'
+    import { openedFile, reloadOverride, latestSnapshot } from './stores.js'
 
-    // Set view-specific controls
-    let currView = "editor"
-    currentView.subscribe(value => { currView = value });
+    // Current view
+    export let currView = "editor"
     // Current .asm filename
     let filename = ""
     openedFile.subscribe(value => { filename = value });
@@ -137,34 +136,34 @@
     }
 </script>
 
-<div id="menu" class="workSans">
+<div id="menu" class="workSans" role="menubar" aria-label="Editor and simulator work controls">
     {#if currView == "editor"}
-        <div id="new" class="menu-item" on:click={click}>
+        <button id="new" class="menu-item" on:click={click} role="menuitem" aria-label="Start new file">
             <span class="material-symbols-outlined">note_add</span>
             <p>New</p>
-        </div>
+        </button>
         <input id="opener" type="file" style="display:none;" on:change={openFile}>
-        <div id="open" class="menu-item" on:click={click}>
+        <button id="open" class="menu-item" on:click={click} role="menuitem" aria-label="Open assembly file from device">
             <span class="material-symbols-outlined">folder</span>
             <p>Open</p>
-        </div>
-        <div id="save" class="menu-item" on:click={click}>
+        </button>
+        <button id="save" class="menu-item" on:click={click} role="menuitem" aria-label="Save file to device">
             <span class="material-symbols-outlined">save</span>
             <p>Save</p>
-        </div>
+        </button>
     {:else}
-        <div id="reload" class="menu-item" on:click={click}>
+        <button id="reload" class="menu-item" on:click={click} role="menuitem" aria-label="Reload simulator">
             <span class="material-symbols-outlined">refresh</span>
             <p>Reload</p>
-        </div>
-        <div id="reinitialize" class="menu-item" on:click={click}>
+        </button>
+        <button id="reinitialize" class="menu-item" on:click={click} role="menuitem" aria-label="Reinitialize simulator">
             <span class="material-symbols-outlined">power_settings_new</span>
             <p>Reinitialize</p>
-        </div>
-        <div id="randomize" class="menu-item" on:click={click}>
+        </button>
+        <button id="randomize" class="menu-item" on:click={click} role="menuitem" aria-label="Randomize simulator">
             <span class="material-symbols-outlined">shuffle</span>
             <p>Randomize</p>
-        </div>
+        </button>
     {/if}
 </div>
 
@@ -177,6 +176,7 @@
     }
 
     .menu-item{
+        padding: unset;
         display: flex;
         flex-direction: column;
         justify-content: center;

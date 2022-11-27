@@ -80,10 +80,10 @@
     }
 
     #assemble.functionBtn{
-		padding: 1.2em 0 1.2em 0;
-		margin-top: 1vh;
-		text-align: center;
-	}
+        padding: 1.2em 0 1.2em 0;
+        margin-top: 1vh;
+        text-align: center;
+    }
 
     .menu-item{
         height: 6.5em;
@@ -113,7 +113,7 @@
         height: 6em;
         width: 10em;
         font-size: 20px;
-		text-align: center;
+        text-align: center;
     }
 
     #step-in, #step-out, #step-over{
@@ -127,8 +127,8 @@
     }
 
     .functionBtn span{
-		margin-right: 8%;
-	}
+        margin-right: 8%;
+    }
 
     #sim-status-bar{
         display: flex;

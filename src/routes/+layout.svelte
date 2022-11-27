@@ -7,7 +7,6 @@
     import { onMount } from 'svelte'
     import { toggleHelp, currentView } from '../presentation/stores'
     import DocPage from '../presentation/DocPage.svelte'
-    import Menu from '../presentation/Menu.svelte'
     import Previews from '../presentation/Previews.svelte'
     import editorDocs from '../docs/editor.yaml'
     import simulatorDocs from '../docs/simulator.yaml'
@@ -16,9 +15,25 @@
     let editorPages = editorDocs.pages
     let simulatorPages = simulatorDocs.pages
     let pages = editorPages
+    let openHelpModal = false
 
-    // Allow window scrolling on application load
-    onMount(() => { document.body.style.overflowY = "scroll" });
+    onMount(() => { 
+        // Allow window scrolling on application load
+        document.body.style.overflowY = "scroll" 
+    
+        // Open popup with WebLC3 help documentation to overlay on page
+        toggleHelp.subscribe(value => {
+            openHelpModal = value
+
+            // Focus next page button
+            setTimeout(function() {
+                let next = document.getElementById("nextBtn")
+                console.log(next)
+                if(next)
+                    next.focus()
+            }, 300);
+        });
+    });
 
     // Change pages
     let num = 0
@@ -49,12 +64,6 @@
         num = 0 // Reset to first page
     });
 
-    // Open popup with WebLC3 help documentation to overlay on page
-    let openHelpModal = false
-	toggleHelp.subscribe(value => {
-		openHelpModal = value
-	});
-
     // Close modal
     function close(){ toggleHelp.set(false) }
 </script>
@@ -63,17 +72,17 @@
     <slot />
     {#if openHelpModal}
         <div id="modal" on:click={close}></div>
-        <div id="help">
+        <div id="help" role="dialog" aria-label="User guide for LC3 terminologies and WebLC3 interactions">
             <div id="help-inner" class="sourceCodePro">
-                <div id="buttonSet">
-                    <button id="prevBtn" on:click={prevPage}> 
+                <div id="buttonSet" role="menu" aria-label="User guide navigation buttons" aria-activedescendant="nextBtn">
+                    <button id="prevBtn" on:click={prevPage} role="menuitem" aria-label="Previous guide page" tabindex="0"> 
                         <span class="material-symbols-outlined">arrow_back</span>
                     </button>
-                    <button id="nextBtn" on:click={nextPage}>
+                    <button id="nextBtn" on:click={nextPage}  role="menuitem" aria-label="Next guide page" tabindex="0">
                         <span class="material-symbols-outlined">arrow_forward</span>
                     </button>
                 </div>
-                <div id="docContent">
+                <div id="docContent" aria-label="Scrollable body" tabindex="0">
                     <DocPage 
                         title={pages[num].title} 
                         content={pages[num].body}
@@ -83,7 +92,7 @@
                         <Previews id={pages[num].component} />
                     </DocPage>
                 </div>
-                <div class="note">( Press anywhere outside box to close )</div>
+                <button class="note" on:click={close} aria-label="Close user guide dialog">( Click here or press anywhere outside box to close )</button>
             </div>
         </div>
     {/if}
@@ -166,6 +175,9 @@
         text-align: right;
         font-size: 10px;
         margin-bottom: 3vh;
+        background: unset;
+        padding: unset;
+        border: unset;
     }
 
     @media (max-width: 1300px) {
@@ -176,12 +188,12 @@
         #docContent{
             height: 109vh;
         }
-
-		#help{
-			height: 130vh;
+        
+        #help{
+            height: 130vh;
             width: 80vw;
-		}
-	}
+        }
+    }
 
     @media (max-width: 1000px) {
         #buttonSet button span{
@@ -193,7 +205,7 @@
             width: 2em;
             border-width: 2px;
         }
-	}
+    }
 
     @media (max-width: 600px) {
         #buttonSet{
@@ -211,5 +223,5 @@
             width: 1.6em;
             margin: 0.2em;
         }
-	}
+    }
 </style>

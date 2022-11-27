@@ -18,13 +18,13 @@
     }
 </script>
 
-<div id="consoleCtr">
+<div id="consoleCtr" role="region" aria-roledescription="Console output shows assembly success and error or machine outputs">
     {#if appLoadComplete}
-        <pre id="console-inner" class="empty">console empty</pre>
-        <div id="clear-console" on:click={clearConsole}>
+        <pre id="console-inner" class="empty" aria-label="Console output text" tabindex="0">console empty</pre>
+        <button id="clear-console" on:click={clearConsole}>
             <span class="material-symbols-outlined">delete_forever</span>
             CLEAR
-        </div>
+        </button>
     {/if}
 </div>
 
@@ -48,6 +48,8 @@
     }
 
     #clear-console{
+        background: none;
+        border: none;
         position: absolute;
         z-index: 3;
         top: 4%;
@@ -62,14 +64,14 @@
     }
 
     @media (max-width: 1250px) {
-		#console-inner{
+        #console-inner{
             height: 80%;
         }
-	}
+    }
 
     @media (max-width: 600px) {
-		#clear-console{
+        #clear-console{
             font-size: 11px;
         }
-	}
+    }
 </style>

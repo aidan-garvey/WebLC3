@@ -6,16 +6,14 @@
 <script>
     import { toggleHelp } from './stores.js';
 
-    let githubRef = `Source code on <a href="https://github.com/aidan-garvey/WebLC3">Github</a>`
+    export let subtitle = `Source code on <a href="https://github.com/aidan-garvey/WebLC3">Github</a>`
 
     // Aesthetic animation on hover
     function addJiggle(){
         this.classList.add("jiggle")
-        this.parentElement.querySelector("p").innerHTML="Click to read the guide"
     }
     function removeJiggle(){
         this.classList.remove("jiggle")
-        this.parentElement.querySelector("p").innerHTML=githubRef
     }
 
     // Open help documentation modal
@@ -25,11 +23,11 @@
 </script>
 
 <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-<div id="title">
-    <h1 on:mouseenter={addJiggle} on:mouseleave={removeJiggle} on:click={openHelp}>
+<div id="title" aria-label="WebLC3 title component">
+    <h1 on:mouseenter={addJiggle} on:mouseleave={removeJiggle} on:click={openHelp} on:focus={addJiggle}  on:blur={removeJiggle} on:keypress={openHelp} role="button" aria-label="WebLC3 documentation toggle" aria-haspopup="dialog" aria-pressed="false" tabindex="0">
         Web<span id="lc3">LC3</span>
     </h1>
-    <p>{@html githubRef}</p>
+    <p on:click={openHelp}>{@html subtitle}</p>
     <span class="jiggle"></span>
 </div>
 

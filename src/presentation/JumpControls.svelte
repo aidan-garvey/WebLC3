@@ -13,8 +13,8 @@
 
     // Switch to Editor button click
     function toEditor() {
-		currentView.set("editor")
-	}
+        currentView.set("editor")
+    }
 
     // Jump control handlers
     function pcClick(){ jump("pc") }
@@ -55,18 +55,18 @@
     export let orig =""
 </script>
 
-<div id="jump-controls">
+<div id="jump-controls" role="group" aria-label="Jump controls to change visible memory range">
     <div>
         <span style="cursor:default;">JUMP</span><span class="mute"> :</span>
-        <input id="jump-input" type="text" class="sourceCodePro" placeholder={orig} on:keydown={enterMemory}>
-        <span id="jump-express" class="material-symbols-outlined" on:click={jumpMemory}> login </span>
+        <input id="jump-input" type="text" class="sourceCodePro" placeholder={orig} on:keydown={enterMemory} aria-label="Enter memory location to jump to">
+        <button id="jump-express" class="material-symbols-outlined" on:click={jumpMemory} aria-label="Jump to memory pointer"> login </button>
     </div>
     <div id="jump-buttons">
-        <div on:click={pcClick}>PC</div>
-        <div on:click={longJumpBackwardClick}>◀</div>
-        <div on:click={jumpBackwardClick}>◅</div>
-        <div on:click={jumpForwardClick}>▻</div>
-        <div on:click={longJumpForwardClick}>▶</div>
+        <button on:click={pcClick} aria-label="Jump to PC">PC</button>
+        <button on:click={longJumpBackwardClick} aria-label="Jump backward by one page">◀</button>
+        <button on:click={jumpBackwardClick} aria-label="Jump backward by a few rows">◅</button>
+        <button on:click={jumpForwardClick} aria-label="Jump forward by a few rows">▻</button>
+        <button on:click={longJumpForwardClick} aria-label="Jump forward by one page">▶</button>
     </div>
 
     <button class="switchBtn" on:click={toEditor}>Back to Editor</button>
@@ -93,6 +93,9 @@
     }
 
     #jump-express{
+        background: none;
+        border: none;
+        font-size: unset;
         cursor: pointer;
         transform: translateY(2px);
     }
@@ -102,35 +105,38 @@
         font-size: 1.5em;
     }
 
-    #jump-buttons div{
+    #jump-buttons button{
+        background: none;
+        border: none;
+        font-size: unset;
         margin: 0 0.6em 0 0.6em;
         cursor: pointer;
     }
 
     .switchBtn{
-		padding: 0.8em 3em 0.8em 3em;
-		text-align: center;
-	}
-
+        padding: 0.8em 3em 0.8em 3em;
+        text-align: center;
+    }
+    
     @media (max-width: 1300px) {
         .switchBtn{
-			font-size: 14px !important;
+            font-size: 14px !important;
             max-height: 17vh;
             max-width: 25%;
             padding: 1em 2em 1em 2em;
-		}
-	}
-
-	@media (max-width: 900px) {
-		#jump-buttons{
+        }
+    }
+    
+    @media (max-width: 900px) {
+        #jump-buttons{
             display: flex;
             font-size: 1.2em;
         }
-	}
-
-	@media (max-width: 600px) {
-		.switchBtn{
-			font-size: 12px !important;
-		}
-	}
+    }
+    
+    @media (max-width: 600px) {
+        .switchBtn{
+            font-size: 12px !important;
+        }
+    }
 </style>

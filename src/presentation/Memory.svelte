@@ -11,8 +11,8 @@
 
     // Dispatch updated PC
     function updatePC(newPC) {
-		dispatch("updatePC", { text: newPC })
-	}
+        dispatch("updatePC", { text: newPC })
+    }
 
     // Dispatch component to light up
     let cancelFirstLightup = true
@@ -52,12 +52,12 @@
                 reloadOverride.set([false, false])
             }, 500);
         }
-	});
+    });
     // Detect and reload on memory pointer change
     $: if (currPtr != ptr) {
         currPtr = ptr
         reloadMemRange(currPtr)
-	}
+    }
     // Detect and reload on memory map change
     $: if(currMap != map){
         try{
@@ -72,7 +72,7 @@
     $: if (currPC != pc) {
         currPC = pc
         reloadMemRange(currPtr)
-	}
+    }
     // Load memory range
     function reloadMemRange(newPtr){
         data = []
@@ -167,6 +167,7 @@
     function createInputBox(content, dec=false){
         let newInput = document.createElement("input")
         newInput.value = content
+        newInput.ariaLabel = "Enter new value"
         
         // Close input box
         newInput.addEventListener("blur", function leave(e) {
@@ -244,38 +245,46 @@
     }
 </script>
 
-<div id="memCtr" class="sourceCodePro">
+<div id="memCtr" class="sourceCodePro" role="rowgroup" aria-label="Memory table" aria-rowcount={23}>
 
     <!-- Map data into UI component -->
     {#each data as row, i}
         {#if i%2==1}
-            <div id="memRow-{i}" class="memRow highlighted">
-                <div id="bp-{row[0]}" class="bp" on:click={setBreakpoint}><span class="material-symbols-outlined">report</span></div>
-                <div id="ptr-{row[0]}" class="ptr" on:click={setPC}>▶</div>
+            <div id="memRow-{i}" class="memRow highlighted" role="row" aria-rowindex={i}>
+                <button id="bp-{row[0]}" class="bp" on:click={setBreakpoint} role="gridcell" aria-label="Set or unset breakpoint" tabindex="0">
+                    <span class="material-symbols-outlined">report</span>
+                </button>
+                <button id="ptr-{row[0]}" class="ptr" on:click={setPC} role="gridcell" aria-label="Set or unset PC" tabindex="0">
+                    ▶
+                </button>
                 {#each cols as _, n}
                     {#if row[n]}
                         {#if n==2}
-                            <div id="hex-{row[0]}" class="editable" on:click={editHex}>{row[n]}</div>
+                            <div id="hex-{row[0]}" class="editable" on:click={editHex} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
                         {:else if n==3}
-                            <div id="dec-{row[0]}" class="editable" on:click={editDec}>{row[n]}</div>
+                            <div id="dec-{row[0]}" class="editable" on:click={editDec} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
                         {:else if n>0}
-                            <div>{row[n]}</div>
+                            <div role="cell">{row[n]}</div>
                         {/if}
                     {/if}
                 {/each}
             </div>
         {:else}
-            <div id="memRow-{i}" class="memRow">
-                <div id="bp-{row[0]}" class="bp" on:click={setBreakpoint}><span class="material-symbols-outlined">report</span></div>
-                <div id="ptr-{row[0]}" class="ptr" on:click={setPC}>▶</div>
+            <div id="memRow-{i}" class="memRow" role="row" aria-rowindex={i}>
+                <button id="bp-{row[0]}" class="bp" on:click={setBreakpoint} role="gridcell" aria-label="Set or unset breakpoint" tabindex="0">
+                    <span class="material-symbols-outlined">report</span>
+                </button>
+                <button id="ptr-{row[0]}" class="ptr" on:click={setPC} role="gridcell" aria-label="Set or unset PC" tabindex="0">
+                    ▶
+                </button>
                 {#each cols as _, n}
                     {#if row[n]}
                         {#if n==2}
-                            <div id="hex-{row[0]}" class="editable" on:click={editHex}>{row[n]}</div>
+                            <div id="hex-{row[0]}" class="editable" on:click={editHex} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
                         {:else if n==3}
-                            <div id="dec-{row[0]}" class="editable" on:click={editDec}>{row[n]}</div>
+                            <div id="dec-{row[0]}" class="editable" on:click={editDec} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
                         {:else if n>0}
-                            <div>{row[n]}</div>
+                            <div role="cell">{row[n]}</div>
                         {/if}
                     {/if}
                 {/each}
@@ -305,6 +314,10 @@
     }
 
     .bp, .ptr{
+        background: unset;
+        font-size: unset;
+        border: unset;
+        padding: unset;
         margin: 0 10px 0 10px;
         opacity: 0.4;
         cursor: pointer;

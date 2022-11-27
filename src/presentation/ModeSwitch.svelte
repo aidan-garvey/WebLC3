@@ -93,7 +93,7 @@
 </script>
 
 <div id="switchCtr">
-    <div id="switch" on:click={swap}>
+    <div id="switch" on:click={swap} on:keypress={swap} role="switch" aria-label="Dark mode switch" aria-checked="true" tabindex="0">
         <section>
             {#if isDark}
                 <Icon type="moon" />

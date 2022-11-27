@@ -1,17 +1,17 @@
 <!-- 
-    SimulatorView.svelte
-        This workspace view enables a client to run an assembly program through a built-in application CPU.
+	SimulatorView.svelte
+		This workspace view enables a client to run an assembly program through a built-in application CPU.
 		Comprehensive UI suite allows viewing and override of Register and Memory state contents, printing character outputs through Console,
 		breakpoint setting, PC override, and Step and Jump controls
 -->
 
 <script>
 	import { onMount } from 'svelte'
-    import Register from "./Register.svelte"
-    import Memory from "./Memory.svelte"
-    import Console from "./Console.svelte"
-    import StepControls from "./StepControls.svelte"
-    import JumpControls from "./JumpControls.svelte"
+	import Register from "./Register.svelte"
+	import Memory from "./Memory.svelte"
+	import Console from "./Console.svelte"
+	import StepControls from "./StepControls.svelte"
+	import JumpControls from "./JumpControls.svelte"
 	import SimulatorStatus from './SimulatorStatus.svelte'
 	import UI from './ui'
 	import { reloadOverride, UIReady, updateMainButton } from './stores'
@@ -40,7 +40,7 @@
 		updateRegisters()
 
 		// Save last memory pointer on destroy
-        return () => { globalThis.lastPtr = currPtr }
+		return () => { globalThis.lastPtr = currPtr }
 	});
 
 
@@ -56,12 +56,12 @@
 	});
 
 	// Update Memory map
-    reloadOverride.subscribe(override => {
+	reloadOverride.subscribe(override => {
 		// Set memory range to start at .orig
 		if(override[1])
 			currPtr = orig
 		// Set memory range to start at currPtr
-        if(override[0]){
+		if(override[0]){
 			pc = globalThis.simulator.getPC()
 			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
 			updateRegisters()
@@ -206,27 +206,27 @@
 
 	// Select Console on click
 	function focusConsole(event){
-        UI.selectConsole()
-        event.stopImmediatePropagation()
-    }
+		UI.selectConsole()
+		event.stopImmediatePropagation()
+	}
 </script>
 
-<div id="sim-view">
+<div id="sim-view" role="group" aria-label="Simulator workspace">
 	<section id="sv-left">
 		<div id="registersLbl" class="componame monoton">Registers</div>
 		<Register map={regMap} registers={numRegisters} on:updatePC={newPC} on:lightUp={lightUpComponent} />
-        <StepControls on:step={step} />
-        <div id="c-ctr" on:click={focusConsole}>
+		<StepControls on:step={step} />
+		<button id="c-ctr" on:click={focusConsole} aria-label="Click to focus console and send key interrupts. Unfocus console by clicking anywhere outside this component or other buttons" tabindex="0">
 			<Console />
-		</div>
+		</button>
 	</section>
 	<section id="sv-right">
 		<div id="sv-right-top">
-        	<div id="memoryLbl" class="componame monoton">Memory</div>
+			<div id="memoryLbl" class="componame monoton">Memory</div>
 			<SimulatorStatus />
 		</div>
 		<Memory pc={pc} ptr={currPtr} map={memMap} on:updatePC={newPC} on:lightUp={lightUpComponent} />
-        <JumpControls orig={"x" + orig.toString(16)} on:jump={jump} />
+		<JumpControls orig={"x" + orig.toString(16)} on:jump={jump} />
 	</section>
 </div>
 
@@ -269,11 +269,15 @@
 	}
 
 	#c-ctr{
+		background: unset;
+		border-radius: unset;
+		padding: unset;
+		text-align: left;
 		height: 25vh;
 	}
 
 	@media (max-width: 1300px) {
-        #c-ctr{
+		#c-ctr{
 			height: 50vh;
 		}
 	}

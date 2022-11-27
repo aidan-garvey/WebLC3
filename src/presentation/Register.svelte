@@ -9,8 +9,8 @@
 
     // Dispatch updated PC
     function updatePC(newPC) {
-		dispatch("updatePC", { text: newPC })
-	}
+        dispatch("updatePC", { text: newPC })
+    }
 
     // Dispatch component and row to light up
     let cancelFirstLightup = true
@@ -47,7 +47,7 @@
                 lightUp("registersLbl")
         } catch {}
         data = map
-	}
+    }
 
 
     /* VALUE OVERRIDE */
@@ -71,6 +71,7 @@
     function createInputBox(content, dec=false){
         let newInput = document.createElement("input")
         newInput.value = content
+        newInput.ariaLabel = "Enter new value"
         
         // Close input box
         newInput.addEventListener("blur", function leave(e) {
@@ -175,34 +176,34 @@
     }
 </script>
 
-<div id="regCtr" class="sourceCodePro">
+<div id="regCtr" class="sourceCodePro" role="rowgroup" aria-label="Register table" aria-rowcount={11}>
 
     <!-- Map data into UI component -->
     {#each data as row, i}
         {#if i%2==1}
-            <div id="regRow-{i}" class="regRow highlighted">
+            <div id="regRow-{i}" class="regRow highlighted" role="row" aria-rowindex={i}>
                 {#each cols as _, n}
                     {#if row[n]}
                         {#if n==1}
-                            <div class="editable" on:click={editHex}>{row[n]}</div>
+                            <div class="editable" on:click={editHex} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
                         {:else if n==2}
-                            <div class="editable" on:click={editDec}>{row[n]}</div>
+                            <div class="editable" on:click={editDec} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
                         {:else}
-                            <div>{row[n]}</div>
+                            <div role="cell">{row[n]}</div>
                         {/if}
                     {/if}
                 {/each}
             </div>
         {:else}
-            <div id="regRow-{i}" class="regRow">
+            <div id="regRow-{i}" class="regRow" role="row" aria-rowindex={i}>
                 {#each cols as _, n}
                     {#if row[n]}
                         {#if n==1}
-                            <div class="editable" on:click={editHex}>{row[n]}</div>
+                            <div class="editable" on:click={editHex} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
                         {:else if n==2}
-                            <div class="editable" on:click={editDec}>{row[n]}</div>
+                            <div class="editable" on:click={editDec} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
                         {:else}
-                            <div>{row[n]}</div>
+                            <div role="cell">{row[n]}</div>
                         {/if}
                     {/if}
                 {/each}

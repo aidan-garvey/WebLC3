@@ -8,19 +8,25 @@
     import ModeSwitch from "./ModeSwitch.svelte"
     import Title from "./Title.svelte"
     import { onMount } from "svelte"
+    import { currentView } from './stores.js'
 
     let appLoadComplete = false
     onMount(() => { appLoadComplete = true });
+
+    // Set view-specific interface and controls
+    let currView = "editor"
+    currentView.subscribe(value => { currView = value });
 </script>
 
-<div id="header">
-    <div id="header-inner">
-        <Title />
-
+<div id="header" role="banner" aria-label="WebLC3 site top banner">
+    <div id="header-inner" role="group" aria-labelledby="header">
         <!-- Initially hide Menu while application loads -->
         {#if appLoadComplete}
-            <Menu />
+            <Title subtitle="Read the {currView} guide" />
+            <Menu currView={currView} />
             <ModeSwitch />
+        {:else}
+            <Title />
         {/if}
     </div>
 </div>

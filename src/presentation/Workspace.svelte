@@ -12,8 +12,8 @@
 
     // Switch current view component
     currentView.subscribe(value => {
-		currView = value
-	});
+        currView = value
+    });
 </script>
 
 <div id="workspace">
@@ -41,14 +41,14 @@
     }
 
     @media (max-width: 1300px) {
-		#workspace{
-			height: 125vh;
-		}
-	}
-
+        #workspace{
+            height: 125vh;
+        }
+    }
+    
     @media (max-width: 900px) {
-		#workspace{
-			height: 150vh;
-		}
-	}
+        #workspace{
+            height: 150vh;
+        }
+    }
 </style>

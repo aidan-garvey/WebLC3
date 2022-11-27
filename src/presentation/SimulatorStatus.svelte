@@ -44,7 +44,7 @@
             a.click();
             window.URL.revokeObjectURL(url)
         }
-	});
+    });
 
     // Change text on hover to cue that .obj file can be downloaded
     function showDownload(){
@@ -86,9 +86,9 @@
     let download = (fileName, data) => {}
 </script>
 
-<div id="sim-status">
+<div id="sim-status" role="status" aria-label="Check machine status and available assembled files to download" aria-live="polite">
     <div id="sim-status-bar">
-        <div class="sim-status-lbl" on:mouseenter={showDownload} on:mouseleave={showFilename} on:click={saveObj} > 
+        <div class="sim-status-lbl" on:mouseenter={showDownload} on:mouseleave={showFilename} on:click={saveObj} on:keypress={saveObj} role="button" aria-label="Save .obj file to device" tabindex="0"> 
             {@html showText} 
         </div>
         <div id="status-array">
@@ -166,7 +166,7 @@
     }
 
     @media (max-width: 1300px) {
-		#sim-status{
+        #sim-status{
             min-width: 45vw;
         }
 

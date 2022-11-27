@@ -10,16 +10,16 @@
     export let featureHeight = "25vh"
 </script>
 
-<div id="docs">
-    <h2 class="workSans"> {title} </h2>
-    <div id="featureCompo" style="height:{featureHeight};">
+<div id="docs" aria-labelledby="help">
+    <h2 class="workSans" role="definition" aria-label="Page title"> {title} </h2>
+    <div id="featureCompo" style="height:{featureHeight};" aria-label="Featured component for visual aid" aria-readonly="true">
         <slot>
             <!-- For optional feature component -->
         </slot>
     </div>
-    <p id="docBody" class="workSans">{@html content}</p>
+    <p id="docBody" class="workSans" role="term" aria-label="Page information">{@html content}</p>
     {#if footnote}
-        <p id="footnote">{footnote}</p>
+        <p id="footnote" aria-label="Extra information">{footnote}</p>
     {/if}
 </div>
 
@@ -56,5 +56,5 @@
         #docs h2{
             max-width: 60%;
         }
-	}
+    }
 </style>

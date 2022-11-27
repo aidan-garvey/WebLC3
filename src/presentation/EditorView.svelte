@@ -1,12 +1,12 @@
 <!-- 
-    EditorView.svelte
-        This workspace view enables a client to write assembly programs through an Editor, 
+	EditorView.svelte
+		This workspace view enables a client to write assembly programs through an Editor, 
 		assemble and generate .obj files for Simulator use, and view assembly status and errors through a Console
 -->
 
 <script>
-    import Editor from "./Editor.svelte"
-    import Console from "./Console.svelte"
+	import Editor from "./Editor.svelte"
+	import Console from "./Console.svelte"
 	import SimulatorStatus from "./SimulatorStatus.svelte"
 	import { onMount } from 'svelte'
 	import { openedFile, currentView, assembledFile } from './stores'
@@ -29,21 +29,21 @@
 	export let filename = "untitled.asm"
 	openedFile.subscribe(value => { filename = value });
 	// Text to show on filename component
-    $: showText = filename
+	$: showText = filename
 	// Stifle other functions from firing if input is open
 	let inputOpen = false
 
 	// Change text on hover to cue that filename can be set
-    function showRename(){
+	function showRename(){
 		if(!inputOpen)
-        	showText = "Rename workspace"
-    }
-
-    // Swap back text to .asm filename
-    function showFilename(){
+			showText = "Rename workspace"
+	}
+	
+	// Swap back text to .asm filename
+	function showFilename(){
 		if(!inputOpen)
-        	showText = filename
-    }
+			showText = filename
+	}
 
 	// Set new filename
 	function setFilename(){
@@ -58,52 +58,53 @@
 
 	// Create text input box for entering new filename
 	function createInputBox(){
-        let newInput = document.createElement("input")
+		let newInput = document.createElement("input")
 		newInput.style.border = "none"
 		newInput.style.outline = "none"
 		newInput.style.background = "none"
 		newInput.style.borderBottom = "1px solid #5B5B5B"
-        newInput.value = filename.substring(0,filename.length-4)
-        
-        // Close input box
-        newInput.addEventListener("blur", function leave(e) {
+		newInput.value = filename.substring(0,filename.length-4)
+		newInput.ariaLabel = "Enter new filename"
+		
+		// Close input box
+		newInput.addEventListener("blur", function leave(e) {
 			showText = filename
 			inputOpen = false
-            try {
-                let parent = e.target.parentElement
+			try {
+				let parent = e.target.parentElement
 				saveInput(e.target.value)
-                parent.removeChild(e.target)
-            } catch {}
-        })
-        newInput.addEventListener("keydown", function leave(e) {
-            if(e.key == "Enter"){
+				parent.removeChild(e.target)
+			} catch {}
+		})
+		newInput.addEventListener("keydown", function leave(e) {
+			if(e.key == "Enter"){
 				showText = filename
 				inputOpen = false
-                try {
-                    let parent = e.target.parentElement
+				try {
+					let parent = e.target.parentElement
 					saveInput(e.target.value)
-                    parent.removeChild(e.target)
-                } catch {}
-            }
+					parent.removeChild(e.target)
+				} catch {}
+			}
 			e.stopImmediatePropagation()
-        })
+		})
 
 		// Commit new filename if validations pass. Else, rollback (old value will not change)
 		function saveInput(newValue){
 			if(newValue.length > 0){
 				newValue = newValue.replaceAll(" ","_")
 				// Make filename utf-8 encoding-friendly 
-    			newValue = encodeURIComponent(newValue)
-      			.replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16)}`)
-      			.replace(/%(7C|60|5E)/g, (str, hex) =>
-        			String.fromCharCode(parseInt(hex, 16))
+				newValue = encodeURIComponent(newValue)
+				.replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16)}`)
+				.replace(/%(7C|60|5E)/g, (str, hex) =>
+					String.fromCharCode(parseInt(hex, 16))
 				)
 				openedFile.set(newValue + ".asm")
 			}
 		}
-
-        return newInput // Complete text input element
-    }
+		
+		return newInput // Complete text input element
+	}
 
 	// Set filename of assembled .obj file, replacing .asm extension
 	function setObjFilename(){
@@ -137,30 +138,33 @@
 	}
 </script>
 
-<div id="editor-view">
-	<section id="ev-left">
-		<div id="filename" class="workSans" on:mouseenter={showRename} on:mouseleave={showFilename} on:click={setFilename}>
-			{showText}
-		</div>
-		<Editor />
-	</section>
-
+<div id="editor-view" role="group" aria-label="Editor workspace">
 	<!-- Initially hide Editor contents while application loads -->
 	{#if appLoadComplete}
 	<section id="ev-right">
 		<div class="filler">filler</div>
-		<div id="console-ctr"><Console /></div>
+		<div id="console-ctr" aria-label="Console output to show assembly errors and success">
+			<Console />
+		</div>
 		<div id="ev-buttons">
 			<div id="ss-ctr"><SimulatorStatus /></div>
-			<button id="assemble" class="functionBtn" on:click={assembleClick}>
+			<button id="assemble" class="functionBtn" on:click={assembleClick} aria-label="Assemble the program" tabindex="0">
 				<span class="material-symbols-outlined">memory</span>
 				ASSEMBLE
 			</button>
-			<button class="switchBtn" on:click={toSimulator}>Switch to Simulator</button>
+			<button class="switchBtn" on:click={toSimulator} tabindex="0">
+				Switch to Simulator
+			</button>
 		</div>
 		
 	</section>
 	{/if}
+	<section id="ev-left">
+		<div id="filename" class="workSans" on:mouseenter={showRename} on:mouseleave={showFilename} on:click={setFilename} on:keypress={setFilename} role="button" aria-label="Click to rename workspace file" tabindex="0">
+			{showText}
+		</div>
+		<Editor />
+	</section>
 </div>
 
 <style>
@@ -169,6 +173,7 @@
 		min-height: 100%;
 		width: 100%;
 		display: flex;
+		flex-direction: row-reverse;
 	}
 
 	#filename{
@@ -239,6 +244,7 @@
 		}
 
 		#ev-right{
+			grid-row: 2/3;
 			width: 100%;
 			grid-template-rows: auto 60vh 18% 1fr;
 			margin-bottom: 20vh;

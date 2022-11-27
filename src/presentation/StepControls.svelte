@@ -37,19 +37,19 @@
     
 </script>
 
-<div id="step-controls">
-    <button id="run" class="functionBtn" on:click={runClick}>
+<div id="step-controls" role="group" aria-label="Step controls to run the simulator">
+    <button id="run" class="functionBtn" on:click={runClick} aria-label="Run or Pause">
         {@html mainButtonText}
     </button>
-    <button id="step-in" class="functionBtn" on:click={stepInClick}>
+    <button id="step-in" class="functionBtn" on:click={stepInClick} aria-label="Step in">
         <span class="material-symbols-outlined">subdirectory_arrow_right</span>
          Step in
     </button>
-    <button id="step-out" class="functionBtn" on:click={stepOutClick}>
+    <button id="step-out" class="functionBtn" on:click={stepOutClick} aria-label="Step out">
         <span class="material-symbols-outlined">subdirectory_arrow_left</span>
          Step out
     </button>
-    <button id="step-over" class="functionBtn" on:click={stepOverClick}>
+    <button id="step-over" class="functionBtn" on:click={stepOverClick} aria-label="Step over">
         <span class="material-symbols-outlined">u_turn_right</span>
          Step over
     </button>

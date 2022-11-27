@@ -91,6 +91,8 @@
     on:keypress={keyRelease} 
     on:click={blurConsole}
     on:beforeunload={exitPrompt}
+    role="application"
+    aria-activedescendant="title"
 />
 
 <Header />
