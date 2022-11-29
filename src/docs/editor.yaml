@@ -39,7 +39,7 @@ pages:
       resulting <i>object file</i>, which is the machine code that the simulator can run.
       The simulator status indicator also appears in the simulator, and will switch
       to \"RUNNING\" while your code is being executed."
-    component: sim-status 
+    component: sim-status-bar
 
   - title: Assembling Code
     body: "Clicking the <b>ASSEMBLE</b> button will send your source code to WebLC3's assembler, which
@@ -82,6 +82,7 @@ pages:
       the labels used in your code and their corresponding memory addresses. To
       download the symbol table, click the <b>Get symbol table</b> button below
       the .obj file name."
+    component: sim-status
 
   - title: LC-3 Instructions
     body: "<h3>Legend:</h3>

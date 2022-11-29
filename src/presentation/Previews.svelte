@@ -44,7 +44,7 @@
     </div>
 {:else if id == "run"}
     <button id="run" class="functionBtn">
-        ▶ Run
+        ▶ RUN
     </button>
 {:else if id == "step-in"}
     <button id="step-in" class="functionBtn">
@@ -61,15 +61,56 @@
         <span class="material-symbols-outlined">u_turn_right</span>
          Step over
     </button>
-{:else if id == "sim-status"}
+{:else if id == "sim-status-bar"}
     <div id="sim-status-bar">
         <div class="sim-status-lbl"> 
             SIMULATOR STATUS
         </div>
         <div id="status-array">
+            <div id="sim-status-not-ready" class="stoplight stoplight-active"><div> NOT READY </div></div>
+        </div>
+    </div>
+{:else if id == "sim-status"}
+<div id="sim-status">
+    <div id="sim-status-bar">
+        <div class="sim-status-lbl"> myFile.obj</div>
+        <div id="status-array">
             <div id="sim-status-ready" class="stoplight stoplight-active"><div> READY </div></div>
             <div id="sim-status-running" class="stoplight"><div> RUNNING </div></div>
         </div>
+    </div>
+    <button class="tinyBtn"> Get symbol table </button>
+</div>
+
+{:else if id == "jump-controls"}
+<div id="jump-controls">
+    <div>
+        <span style="cursor:default;">JUMP</span><span class="mute"> :</span>
+        <input id="jump-input" type="text" class="sourceCodePro" placeholder="x3000">
+        <button id="jump-express" class="material-symbols-outlined"> login </button>
+    </div>
+    <div id="jump-buttons">
+        <button>PC</button>
+        <button>◀</button>
+        <button>◅</button>
+        <button>▻</button>
+        <button>▶</button>
+    </div>
+</div>
+{:else if id == "regRow-0"}
+    <div id="regRow-0" class="regRow highlighted">
+        <div>R0</div>
+        <div class="editable">0x0</div>
+        <div class="editable">0</div>
+    </div>
+{:else if id == "memRow-0"}
+    <div id="memRow-0" class="memRow highlighted">
+        <button id="bp-0" class="bp"><span class="material-symbols-outlined">report</span></button>
+        <button id="ptr-0" class="ptr">▶</button>
+        <div>0x3000</div>
+        <div id="hex-0" class="editable">0x0</div>
+        <div id="dec-0" class="editable">0</div>
+        <div>lea R0, hello</div>
     </div>
 {/if}
 
@@ -130,6 +171,19 @@
         margin-right: 8%;
     }
 
+    #sim-status{
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        font-size: 11px;
+        justify-content: flex-start;
+        cursor: default;
+        width: 100%;
+        min-width: 12vw;
+        max-width: 18vw;
+        transform: translateY(1vh);
+    }
+
     #sim-status-bar{
         display: flex;
         width: 100%;
@@ -168,5 +222,98 @@
 
     .stoplight div{
         transform: skewX(30deg);
+    }
+
+    .tinyBtn{
+        font-size: 9px !important;
+        margin-top: 1vh;
+        transform: translateX(-4px);
+    }
+
+    #jump-controls{
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2vh;
+        max-width: 70%;
+    }
+
+    .mute{
+        color: #5B5B5B;
+    }
+
+    #jump-input{
+        width: 4em;
+        border: none;
+        outline: none;
+        background: none;
+        border-bottom: 1px solid #5B5B5B;
+    }
+
+    #jump-express{
+        background: none;
+        border: none;
+        font-size: unset;
+        cursor: pointer;
+        transform: translateY(2px);
+    }
+
+    #jump-buttons{
+        display: flex;
+        font-size: 1.5em;
+    }
+
+    #jump-buttons button{
+        background: none;
+        border: none;
+        font-size: unset;
+        margin: 0 0.6em 0 0.6em;
+        cursor: pointer;
+    }
+
+    #jump-buttons button:hover{
+        color: var(--d-loc);
+    }
+
+    .regRow{
+        display: grid;
+        grid-template-columns: 20% 20% 20% 20%;
+        padding: 2px 0 2px 10px;
+        max-width: 70%;
+    }
+
+    .memRow{
+        display: grid;
+        grid-template-columns: max-content max-content 20% 20% 20% 20%;
+        padding: 2px 0 2px 0;
+        max-width: 90%;
+    }
+
+    .memRow div:nth-child(3){
+        font-weight: 800;
+    }
+
+    .bp, .ptr{
+        background: unset;
+        font-size: unset;
+        border: unset;
+        padding: unset;
+        margin: 0 10px 0 10px;
+        opacity: 0.4;
+        cursor: pointer;
+    }
+
+    .bp:hover, .ptr:hover{
+        cursor: pointer;
+    }
+
+    .bp:hover{
+        color: var(--l-instr);
+        opacity: 1;
+    }
+
+    .ptr:hover{
+        color: var(--d-loc);
+        opacity: 1;
     }
 </style>

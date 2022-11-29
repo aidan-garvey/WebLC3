@@ -325,7 +325,6 @@
 
     .bp:hover, .ptr:hover{
         cursor: pointer;
-        
     }
 
     .bp:hover, .bp-selected{

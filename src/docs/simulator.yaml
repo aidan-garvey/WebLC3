@@ -64,6 +64,7 @@ pages:
 
       Clicking the content of a memory location (either hexadecimal or decimal) will
       allow you to set the content of that memory location."
+    component: memRow-0
 
   - title: Changing the Memory Window Content
     body: "Below the memory window are some controls for changing the memory locations
@@ -75,6 +76,7 @@ pages:
         <li><b>PC</b>: this will jump to the current location of the PC</li>
         <li>Arrows: these arrows will move the memory window by a small or large amount</li>
       </ul>"
+    component: jump-controls
   
   - title: Register Window
     body: "The register window displays the contents of all registers in the simulator,
@@ -86,6 +88,7 @@ pages:
       <br>
       Clicking the value of a register (either hexadecimal or decimal) will allow you
       to set the value of that register."
+    component: regRow-0
   
   - title: Run
     body: "The <b>RUN</b> button runs the simulator until the simulator's clock is stopped (see the

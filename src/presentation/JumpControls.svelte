@@ -103,6 +103,7 @@
     #jump-buttons{
         display: flex;
         font-size: 1.5em;
+        height: max-content;
     }
 
     #jump-buttons button{
@@ -111,6 +112,10 @@
         font-size: unset;
         margin: 0 0.6em 0 0.6em;
         cursor: pointer;
+    }
+
+    #jump-buttons button:hover{
+        color: var(--d-loc);
     }
 
     .switchBtn{
