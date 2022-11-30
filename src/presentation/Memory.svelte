@@ -37,6 +37,8 @@
     // UI reference to data map and breakpoints
     $: data = []
     let breakpoints = []
+    // Stifle other functions from firing if input is open
+	let inputOpen = false
 
 
     onMount(() => { reloadMemRange(currPtr) });
@@ -150,17 +152,23 @@
 
     // Set new memory value via hexadecimal
     function editHex(){
-        let currContent = this.innerHTML
-        let newInput = createInputBox(currContent, false)
-        this.appendChild(newInput)
-        newInput.focus()
+        if(!inputOpen){
+            let currContent = this.innerHTML
+            let newInput = createInputBox(currContent, false)
+            this.appendChild(newInput)
+            newInput.focus()
+            inputOpen = true
+        }
     } 
     // Set new memory value via decimal
     function editDec(){
-        let currContent = this.innerHTML
-        let newInput = createInputBox(currContent, true)
-        this.appendChild(newInput)
-        newInput.focus()
+        if(!inputOpen){
+            let currContent = this.innerHTML
+            let newInput = createInputBox(currContent, true)
+            this.appendChild(newInput)
+            newInput.focus()
+            inputOpen = true
+        }
     } 
 
     // Append text input to cell
@@ -171,20 +179,24 @@
         
         // Close input box
         newInput.addEventListener("blur", function leave(e) {
+            inputOpen = false
             try {
                 let parent = e.target.parentElement
                 saveInput(parent, e.target.value)
                 parent.removeChild(e.target)
+                setTimeout(function() { parent.focus() }, 100);
             } catch {}
         })
         newInput.addEventListener("keydown", function leave(e) {
             if(e.key == "Enter"){
+                inputOpen = false
                 try {
                     let parent = e.target.parentElement
                     saveInput(parent, e.target.value)
                     parent.removeChild(e.target)
                 } catch {}
             }
+            e.stopImmediatePropagation()
         })
 
         // Commit new value if validations pass. Else, rollback (old value will not change)
@@ -249,26 +261,70 @@
         let inRange = (num >= -32768 && num <= 32767)
         return valid && inRange
     }
+
+
+    /* FOCUS NAVIGATION */
+
+    // Shift focus from table to cell with down arrow key
+    function focusCell(event){
+        if(event.key == "ArrowDown" && this == document.activeElement)
+            this.firstChild.firstChild.focus()
+    }
+
+    // Shift focus across interactable cells with arrow keys
+    function focusArrowNavigate(event){
+        if(event.key == "ArrowUp" || event.key == "ArrowDown" || event.key == "ArrowLeft" || event.key == "ArrowRight"){
+            let thisRow = parseInt(this.parentElement.id.split("-").pop())
+            let thisCol = Array.from(this.parentNode.children).indexOf(this)
+            let table = this.parentElement.parentElement
+            let nextRow = thisRow
+            let nextCol = thisCol
+
+            if (event.key == "ArrowDown") {
+                nextRow = (thisRow + 1) % rows
+            } else if (event.key == "ArrowUp") {
+                if(thisRow-1 >= 0)
+                    nextRow = (thisRow - 1) % rows
+                else
+                    nextRow = rows - 1
+            } else if (event.key == "ArrowRight") {
+                nextCol = (thisCol + 1) % cols.length
+                if(nextCol == 2)
+                    nextCol++
+            } else {  // ArrowLeft
+                if(thisCol-1 >= 0) {
+                    nextCol = (thisCol - 1) % cols.length
+                    if(nextCol == 2)
+                        nextCol--
+                }
+                else
+                    nextCol = cols.length - 1
+            }
+            
+            let nextItem = table.children[nextRow]
+            nextItem.children[nextCol].focus()
+        }
+    }
 </script>
 
-<div id="memCtr" class="sourceCodePro" role="rowgroup" aria-label="Memory table" aria-rowcount={23}>
+<div id="memCtr" class="sourceCodePro" role="rowgroup" aria-label="Memory table, enter gridcells with down arrow key and navigate with arrow keys" aria-rowcount={23} tabindex="0" on:keydown={focusCell}>
 
     <!-- Map data into UI component -->
     {#each data as row, i}
         {#if i%2==1}
             <div id="memRow-{i}" class="memRow highlighted" role="row" aria-rowindex={i}>
-                <button id="bp-{row[0]}" class="bp" on:click={setBreakpoint} role="gridcell" aria-label="Set or unset breakpoint" tabindex="0">
+                <button id="bp-{row[0]}" class="bp" on:click={setBreakpoint} on:keydown={focusArrowNavigate} role="gridcell" aria-label="Set or unset breakpoint" tabindex="-1">
                     <span class="material-symbols-outlined">report</span>
                 </button>
-                <button id="ptr-{row[0]}" class="ptr" on:click={setPC} role="gridcell" aria-label="Set or unset PC" tabindex="0">
+                <button id="ptr-{row[0]}" class="ptr" on:click={setPC} on:keydown={focusArrowNavigate} role="gridcell" aria-label="Set or unset PC" tabindex="-1">
                     ▶
                 </button>
                 {#each cols as _, n}
                     {#if row[n]}
                         {#if n==2}
-                            <div id="hex-{row[0]}" class="editable" on:click={editHex} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
+                            <div id="hex-{row[0]}" class="editable" on:click={editHex} on:keypress={editHex} on:keydown={focusArrowNavigate} role="gridcell" aria-label="Click to override hex value for {row[1]}" tabindex="-1">{row[n]}</div>
                         {:else if n==3}
-                            <div id="dec-{row[0]}" class="editable" on:click={editDec} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
+                            <div id="dec-{row[0]}" class="editable" on:click={editDec} on:keypress={editDec} on:keydown={focusArrowNavigate} role="gridcell" aria-label="Click to override decimal value for {row[1]}" tabindex="-1">{row[n]}</div>
                         {:else if n>0}
                             <div role="cell">{row[n]}</div>
                         {/if}
@@ -277,18 +333,18 @@
             </div>
         {:else}
             <div id="memRow-{i}" class="memRow" role="row" aria-rowindex={i}>
-                <button id="bp-{row[0]}" class="bp" on:click={setBreakpoint} role="gridcell" aria-label="Set or unset breakpoint" tabindex="0">
+                <button id="bp-{row[0]}" class="bp" on:click={setBreakpoint} on:keydown={focusArrowNavigate} role="gridcell" aria-label="Set or unset breakpoint" tabindex="-1">
                     <span class="material-symbols-outlined">report</span>
                 </button>
-                <button id="ptr-{row[0]}" class="ptr" on:click={setPC} role="gridcell" aria-label="Set or unset PC" tabindex="0">
+                <button id="ptr-{row[0]}" class="ptr" on:click={setPC} on:keydown={focusArrowNavigate} role="gridcell" aria-label="Set or unset PC" tabindex="-1">
                     ▶
                 </button>
                 {#each cols as _, n}
                     {#if row[n]}
                         {#if n==2}
-                            <div id="hex-{row[0]}" class="editable" on:click={editHex} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
+                            <div id="hex-{row[0]}" class="editable" on:click={editHex} on:keypress={editHex} on:keydown={focusArrowNavigate} role="gridcell" aria-label="Click to override hex value for {row[1]}" tabindex="-1">{row[n]}</div>
                         {:else if n==3}
-                            <div id="dec-{row[0]}" class="editable" on:click={editDec} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
+                            <div id="dec-{row[0]}" class="editable" on:click={editDec} on:keypress={editDec} on:keydown={focusArrowNavigate} role="gridcell" aria-label="Click to override decimal value for {row[1]}" tabindex="-1">{row[n]}</div>
                         {:else if n>0}
                             <div role="cell">{row[n]}</div>
                         {/if}

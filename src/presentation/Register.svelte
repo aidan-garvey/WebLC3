@@ -24,10 +24,13 @@
 
     // Set register table dimensions
     let cols = Array(5)
+    let rows = 11
     export let registers = 8
     // Set register data
     export let map
     let data = map
+    // Stifle other functions from firing if input is open
+	let inputOpen = false
 
 
     /* DYNAMIC RELOAD */
@@ -52,17 +55,23 @@
 
     // Set new register value via hexadecimal
     function editHex(){
-        let currContent = this.innerHTML
-        let newInput = createInputBox(currContent, false)
-        this.appendChild(newInput)
-        newInput.focus()
+        if(!inputOpen){
+            let currContent = this.innerHTML
+            let newInput = createInputBox(currContent, false)
+            this.appendChild(newInput)
+            newInput.focus()
+            inputOpen = true
+        }
     } 
     // Set new register value via decimal
     function editDec(){
-        let currContent = this.innerHTML
-        let newInput = createInputBox(currContent, true)
-        this.appendChild(newInput)
-        newInput.focus()
+        if(!inputOpen){
+            let currContent = this.innerHTML
+            let newInput = createInputBox(currContent, true)
+            this.appendChild(newInput)
+            newInput.focus()
+            inputOpen = true
+        }
     } 
 
     // Append text input to cell
@@ -73,15 +82,18 @@
         
         // Close input box
         newInput.addEventListener("blur", function leave(e) {
+            inputOpen = false
             try {
                 let parent = e.target.parentElement
                 let row = parseInt(parent.parentElement.id.split('-').pop())
                 saveInput(e.target.value, row)
                 parent.removeChild(e.target)
+                setTimeout(function() { parent.focus() }, 100);
             } catch {}
         })
         newInput.addEventListener("keydown", function leave(e) {
             if(e.key == "Enter"){
+                inputOpen = false
                 try {
                     let parent = e.target.parentElement
                     let row = parseInt(parent.parentElement.id.split('-').pop())
@@ -89,6 +101,7 @@
                     parent.removeChild(e.target)
                 } catch {}
             }
+            e.stopImmediatePropagation()
         })
 
         // Commit new value if validations pass. Else, rollback (old value will not change)
@@ -180,9 +193,46 @@
         let inRange = (num >= -32768 && num <= 32767)
         return valid && inRange
     }
+
+
+    /* FOCUS NAVIGATION */
+
+    // Shift focus from table to cell with down arrow key
+    function focusCell(event){
+        if(event.key == "ArrowDown" && this == document.activeElement)
+            this.firstChild.children[1].focus()
+    }
+
+    // Shift focus across interactable cells with arrow keys
+    function focusArrowNavigate(event){
+        if(event.key == "ArrowUp" || event.key == "ArrowDown" || event.key == "ArrowLeft" || event.key == "ArrowRight"){
+            let thisRow = parseInt(this.parentElement.id.split("-").pop())
+            let thisCol = Array.from(this.parentNode.children).indexOf(this)
+            let table = this.parentElement.parentElement
+            let nextRow = thisRow
+            let nextCol = thisCol
+
+            if (event.key == "ArrowDown") {
+                nextRow = (thisRow + 1) % rows
+            } else if (event.key == "ArrowUp") {
+                if(thisRow-1 >= 0)
+                    nextRow = (thisRow - 1) % rows
+                else
+                    nextRow = rows - 1
+            } else {
+                if(nextCol == 1)
+                    nextCol++
+                else
+                    nextCol--
+            }
+            
+            let nextItem = table.children[nextRow]
+            nextItem.children[nextCol].focus()
+        }
+    }
 </script>
 
-<div id="regCtr" class="sourceCodePro" role="rowgroup" aria-label="Register table" aria-rowcount={11}>
+<div id="regCtr" class="sourceCodePro" role="rowgroup" aria-label="Register table, enter gridcells with down arrow key and navigate with arrow keys" aria-rowcount={rows} tabindex="0" on:keydown={focusCell}>
 
     <!-- Map data into UI component -->
     {#each data as row, i}
@@ -191,9 +241,9 @@
                 {#each cols as _, n}
                     {#if row[n]}
                         {#if n==1}
-                            <div class="editable" on:click={editHex} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
+                            <div class="editable" on:click={editHex} on:keypress={editHex} on:keydown={focusArrowNavigate} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
                         {:else if n==2}
-                            <div class="editable" on:click={editDec} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
+                            <div class="editable" on:click={editDec} on:keypress={editDec} on:keydown={focusArrowNavigate} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
                         {:else}
                             <div role="cell">{row[n]}</div>
                         {/if}
@@ -205,9 +255,9 @@
                 {#each cols as _, n}
                     {#if row[n]}
                         {#if n==1}
-                            <div class="editable" on:click={editHex} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
+                            <div class="editable" on:click={editHex} on:keypress={editHex} on:keydown={focusArrowNavigate} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
                         {:else if n==2}
-                            <div class="editable" on:click={editDec} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
+                            <div class="editable" on:click={editDec} on:keypress={editDec} on:keydown={focusArrowNavigate} role="gridcell" aria-label="Click to override value" tabindex="-1">{row[n]}</div>
                         {:else}
                             <div role="cell">{row[n]}</div>
                         {/if}

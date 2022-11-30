@@ -74,6 +74,7 @@
 				let parent = e.target.parentElement
 				saveInput(e.target.value)
 				parent.removeChild(e.target)
+				setTimeout(function() { parent.focus() }, 100);
 			} catch {}
 		})
 		newInput.addEventListener("keydown", function leave(e) {
