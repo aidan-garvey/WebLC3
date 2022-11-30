@@ -10,6 +10,7 @@
 import Assembler from "../assembler/assembler";
 import UI from "../../presentation/ui";
 import Messages from "./simMessages";
+import AsciiDecoder from "./asciiDecoder";
 
 export default class Simulator
 {
@@ -429,6 +430,7 @@ export default class Simulator
         for (let i = 0; i < len; i++)
         {
             let addr = (i + start) % 0x1_0000;
+            let content = this.getMemory(addr);
             let code;
             if (this.userDisassembly.has(addr))
             {
@@ -438,14 +440,19 @@ export default class Simulator
             {
                 code = this.osDissassembly.get(addr);
             }
+            else 
+            {
+                code = AsciiDecoder.decode(content);
+            }
+
             if (typeof(code) === "undefined")
             {
                 code = "";
             }
             res.push([
                 "0x" + addr.toString(16),
-                "0x" + this.getMemory(addr).toString(16),
-                this.getMemory(addr).toString(10),
+                "0x" + content.toString(16),
+                this.signExtend(content).toString(10),
                 code
             ]);
         }
@@ -605,5 +612,26 @@ export default class Simulator
         Atomics.store(this.interruptVector, 0, 0);
         Atomics.store(this.savedSSP, 0, Simulator.SSP_DEFAULT);
         Atomics.store(this.savedUSP, 0, 0);
+    }
+
+    /**
+     * Sign-extend a 16-bit integer
+     */
+    public signExtend(num: number): number
+    {
+        // if it's positive, do not change it
+        if ((num & 0x8000) == 0)
+        {
+            return num;
+        }
+        else
+        {
+            // convert to positive 16-bit integer
+            num = ~num;
+            num += 1;
+            num &= 0xFFFF;
+            // return its negation
+            return -num;
+        }
     }
 }

@@ -77,7 +77,7 @@
 				let regName = "R" + n
 				let regDec = globalThis.simulator.getRegister(n)
 				let regHex = "0x" + regDec.toString(16)
-				tempRegMap.push([regName, regHex, regDec.toString()])
+				tempRegMap.push([regName, regHex, globalThis.simulator.signExtend(regDec).toString()])
 			}
 			let cc = globalThis.simulator.getPSRInfo()[2]
 			let psrDec = globalThis.simulator.getPSR()
