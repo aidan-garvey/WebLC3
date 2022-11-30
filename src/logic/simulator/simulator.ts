@@ -429,6 +429,7 @@ export default class Simulator
         for (let i = 0; i < len; i++)
         {
             let addr = (i + start) % 0x1_0000;
+            let content = this.getMemory(addr);
             let code;
             if (this.userDisassembly.has(addr))
             {
@@ -438,14 +439,18 @@ export default class Simulator
             {
                 code = this.osDissassembly.get(addr);
             }
+            else if (content < 0x80)
+            {
+                code = "'" + String.fromCharCode(content) + "'";
+            }
             if (typeof(code) === "undefined")
             {
                 code = "";
             }
             res.push([
                 "0x" + addr.toString(16),
-                "0x" + this.getMemory(addr).toString(16),
-                this.getMemory(addr).toString(10),
+                "0x" + content.toString(16),
+                content.toString(10),
                 code
             ]);
         }
