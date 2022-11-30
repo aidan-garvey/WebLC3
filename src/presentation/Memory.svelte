@@ -210,6 +210,8 @@
                     data[rowNum][2] = "0x" + updatedVal.toString(16)
                     // Update Decimal cell
                     data[rowNum][3] = globalThis.simulator.signExtend(updatedVal).toString()
+                    // Update Code cell
+                    data[rowNum][4] = globalThis.simulator.getCode(address)
                 }
             }
             else if(valid){
@@ -224,6 +226,8 @@
                     data[rowNum][2] = "0x" + updatedVal.toString(16)
                     // Update Decimal cell
                     data[rowNum][3] = globalThis.simulator.signExtend(updatedVal).toString()
+                    // Update Code cell
+                    data[rowNum][4] = globalThis.simulator.getCode(address)
                 }
             }
         }

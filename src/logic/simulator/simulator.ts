@@ -460,6 +460,35 @@ export default class Simulator
     }
 
     /**
+     * Return the code stored in the given memory location
+     * @param address the address to query
+     * @returns the code stored at memory[address]
+     */
+     public getCode(addr: number) : string
+     {
+        let code;
+        let content = this.getMemory(addr);
+        if (this.userDisassembly.has(addr))
+        {
+            code = this.userDisassembly.get(addr);
+        }
+        else if (this.osDissassembly.has(addr))
+        {
+            code = this.osDissassembly.get(addr);
+        }
+        else 
+        {
+            code = AsciiDecoder.decode(content);
+        }
+
+        if (typeof(code) === "undefined")
+        {
+            code = "";
+        }
+        return code;
+     }
+
+    /**
      * Return the number stored in the given memory location
      * @param address the address to query
      * @returns the value stored at memory[address]
