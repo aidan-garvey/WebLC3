@@ -201,28 +201,30 @@
             if(valid && dec){
                 let rowNum = parseInt(thisCell.parentElement.id.split('-').pop())
                 
-                // Update Hexadecimal cell
-                data[rowNum][2] = "0x" + parseInt(newValue).toString(16)
-                // Update Decimal cell
-                data[rowNum][3] = newValue
-
                 // Commit to CPU memory
                 let address = parseInt(thisCell.id.split('-').pop())
-                if(globalThis.simulator)
+                if(globalThis.simulator) {
                     globalThis.simulator.setMemory(address, newValue)
+                    let updatedVal = globalThis.simulator.getMemory(address)
+                    // Update Hexadecimal cell
+                    data[rowNum][2] = "0x" + updatedVal.toString(16)
+                    // Update Decimal cell
+                    data[rowNum][3] = globalThis.simulator.signExtend(updatedVal).toString()
+                }
             }
             else if(valid){
                 let rowNum = parseInt(thisCell.parentElement.id.split('-').pop())
                 
-                // Update Hexadecimal cell
-                data[rowNum][2] = "0x" + newValue
-                // Update Decimal cell
-                data[rowNum][3] = parseInt(newValue, 16).toString()
-
                 // Commit to CPU memory
                 let address = parseInt(thisCell.id.split('-').pop())
-                if(globalThis.simulator)
+                if(globalThis.simulator) {
                     globalThis.simulator.setMemory(address, parseInt(newValue, 16))
+                    let updatedVal = globalThis.simulator.getMemory(address)
+                    // Update Hexadecimal cell
+                    data[rowNum][2] = "0x" + updatedVal.toString(16)
+                    // Update Decimal cell
+                    data[rowNum][3] = globalThis.simulator.signExtend(updatedVal).toString()
+                }
             }
         }
 
@@ -240,7 +242,7 @@
     function isDec(val) {
         let num = parseInt(val)
         let valid = (num.toString() === val.toLowerCase())
-        let inRange = (num >= 0 && num <= 65535)
+        let inRange = (num >= -32768 && num <= 32767)
         return valid && inRange
     }
 </script>
