@@ -25,6 +25,7 @@ export default class Simulator
     private static MCR = 0xFFFE;
 
     private static WORKER_PATH = "src/logic/simulator/simWorker.ts";
+    private static WORKER_PATH_FF = "src/logic/simulator/ff_compat/simWorkerFF.ts";
 
     // 2^16 words * 2 bytes/word
     private static MEM_SIZE = (1 << 16) * 2;
@@ -140,7 +141,16 @@ export default class Simulator
      */
     private initWorker()
     {
-        this.simWorker = new Worker(Simulator.WORKER_PATH, {type: "module"});
+        if (navigator.userAgent.toLowerCase().search("firefox") >= 0)
+        {
+            console.log("Firefox detected -- using Firefox web worker");
+            this.simWorker = new Worker(Simulator.WORKER_PATH_FF);
+        }
+        else
+        {
+            console.log("Firefox not detected -- using better web worker");
+            this.simWorker = new Worker(Simulator.WORKER_PATH, {type: "module"});
+        }
 
         this.simWorker.onmessage = (event) => {
             const msg = event.data;
