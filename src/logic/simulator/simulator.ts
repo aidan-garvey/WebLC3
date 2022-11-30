@@ -10,6 +10,7 @@
 import Assembler from "../assembler/assembler";
 import UI from "../../presentation/ui";
 import Messages from "./simMessages";
+import AsciiDecoder from "./asciiDecoder";
 
 export default class Simulator
 {
@@ -439,10 +440,11 @@ export default class Simulator
             {
                 code = this.osDissassembly.get(addr);
             }
-            else if (content < 0x80)
+            else 
             {
-                code = "'" + String.fromCharCode(content) + "'";
+                code = AsciiDecoder.decode(content);
             }
+
             if (typeof(code) === "undefined")
             {
                 code = "";
