@@ -43,8 +43,6 @@
                     lightUp("regRow-" + i)
                 }
             }
-            if(newValue)
-                lightUp("registersLbl")
         } catch {}
         data = map
     }

@@ -28,7 +28,6 @@
             // Focus next page button
             setTimeout(function() {
                 let next = document.getElementById("nextBtn")
-                console.log(next)
                 if(next)
                     next.focus()
             }, 300);
