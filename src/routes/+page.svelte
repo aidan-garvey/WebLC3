@@ -10,6 +10,7 @@
     import { consoleSelected, reloadOverride, latestSnapshot } from "../presentation/stores"
     import UI from "../presentation/ui"
     import KeyCodes from "../logic/keycodes/keyCodes"
+    // import "../editor/editor"
 
     // Allow sending of key interrupts if Simulator console is selected
     let interruptable = false
