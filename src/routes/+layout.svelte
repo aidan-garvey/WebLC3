@@ -70,7 +70,7 @@
 <div id="content">
     <slot />
     {#if openHelpModal}
-        <div id="modal" on:click={close}></div>
+        <div id="modal" on:click={close} on:keypress={close} ></div>
         <div id="help" role="dialog" aria-label="User guide for LC3 terminologies and WebLC3 interactions">
             <div id="help-inner" class="sourceCodePro">
                 <div id="buttonSet" role="menu" aria-label="User guide navigation buttons" aria-activedescendant="nextBtn">
@@ -81,7 +81,7 @@
                         <span class="material-symbols-outlined">arrow_forward</span>
                     </button>
                 </div>
-                <div id="docContent" aria-label="Scrollable body" tabindex="0">
+                <div id="docContent" role="grid" aria-label="Scrollable body" tabindex="0">
                     <DocPage 
                         title={pages[num].title} 
                         content={pages[num].body}
