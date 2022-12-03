@@ -307,7 +307,7 @@
     }
 </script>
 
-<div id="memCtr" class="sourceCodePro" role="rowgroup" aria-label="Memory table, enter gridcells with down arrow key and navigate with arrow keys" aria-rowcount={23} tabindex="0" on:keydown={focusCell}>
+<div id="memCtr" class="sourceCodePro" role="grid" aria-label="Memory table, enter gridcells with down arrow key and navigate with arrow keys" aria-rowcount={23} tabindex="0" on:keydown={focusCell}>
 
     <!-- Map data into UI component -->
     {#each data as row, i}
