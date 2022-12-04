@@ -12,7 +12,6 @@ import UI from "../../presentation/ui";
 import Messages from "./simMessages";
 import AsciiDecoder from "./asciiDecoder";
 import Worker from '$lib/simWorker?worker';
-import WorkerFF from '$lib/ff_compat/simWorkerFF?worker';
 
 export default class Simulator
 {
@@ -26,9 +25,6 @@ export default class Simulator
     private static DDR = 0xFE06;
     // machine control register (bit 15 is clock-enable)
     private static MCR = 0xFFFE;
-
-    private static WORKER_PATH = "$lib/simWorker?worker";
-    private static WORKER_PATH_FF = "$lib/ff_compat/simWorkerFF?worker";
 
     // 2^16 words * 2 bytes/word
     private static MEM_SIZE = (1 << 16) * 2;
@@ -144,16 +140,7 @@ export default class Simulator
      */
     private initWorker()
     {
-        if (navigator.userAgent.toLowerCase().search("firefox") >= 0)
-        {
-            console.log("Firefox detected -- using Firefox web worker");
-            this.simWorker = new WorkerFF();
-        }
-        else
-        {
-            console.log("Firefox not detected -- using better web worker");
-            this.simWorker = new Worker();
-        }
+        this.simWorker = new Worker();
 
         this.simWorker.onmessage = (event) => {
             const msg = event.data;
