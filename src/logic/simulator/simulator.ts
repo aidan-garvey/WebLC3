@@ -11,6 +11,8 @@ import Assembler from "../assembler/assembler";
 import UI from "../../presentation/ui";
 import Messages from "./simMessages";
 import AsciiDecoder from "./asciiDecoder";
+import Worker from '$lib/simWorker?worker';
+import WorkerFF from '$lib/ff_compat/simWorkerFF?worker';
 
 export default class Simulator
 {
@@ -25,8 +27,8 @@ export default class Simulator
     // machine control register (bit 15 is clock-enable)
     private static MCR = 0xFFFE;
 
-    private static WORKER_PATH = "src/logic/simulator/simWorker.ts";
-    private static WORKER_PATH_FF = "src/logic/simulator/ff_compat/simWorkerFF.ts";
+    private static WORKER_PATH = "$lib/simWorker?worker";
+    private static WORKER_PATH_FF = "$lib/ff_compat/simWorkerFF?worker";
 
     // 2^16 words * 2 bytes/word
     private static MEM_SIZE = (1 << 16) * 2;
@@ -123,7 +125,7 @@ export default class Simulator
 
     private async getOSAsm() : Promise<[Uint16Array, Map<number, string>]>
     {
-        const res = await fetch('src/logic/simulator/os/lc3_os.asm');
+        const res = await fetch('/os/lc3_os.asm?raw');
         const src = await res.text();
         const asmResult = await Assembler.assemble(src, false);
         if (asmResult === null)
@@ -145,12 +147,12 @@ export default class Simulator
         if (navigator.userAgent.toLowerCase().search("firefox") >= 0)
         {
             console.log("Firefox detected -- using Firefox web worker");
-            this.simWorker = new Worker(Simulator.WORKER_PATH_FF);
+            this.simWorker = new WorkerFF();
         }
         else
         {
             console.log("Firefox not detected -- using better web worker");
-            this.simWorker = new Worker(Simulator.WORKER_PATH, {type: "module"});
+            this.simWorker = new Worker();
         }
 
         this.simWorker.onmessage = (event) => {
