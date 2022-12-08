@@ -67,6 +67,17 @@ class SimWorker
     // maximum amount of time between console buffer flushes while running (ms)
     private static CON_BUFF_TIME = 100;
 
+    // queue containing lengths of messages sent
+    private static msgLens: number[] = [];
+    // queue containing the times that the above messages were sent
+    private static msgTimes: number[] = [];
+    // sum of msgLens
+    private static msgChars = 0;
+    // max chars in queue before we stop sending messages
+    private static MAX_MSG_CHARS = 10_000;
+    // milliseconds that each entry stays in the message queue
+    private static MSG_QUEUE_TIME = 1000;
+
     /**
      * Initialize message handlers
      */
@@ -135,13 +146,37 @@ class SimWorker
      */
     private static flushConsoleBuffer()
     {
-        if (this.consoleBuffer)
+        if (this.consoleBuffer && !this.messageQueueFull())
         {
             self.postMessage({type: Messages.CONSOLE, message: this.consoleBuffer});
+            this.msgTimes.push(Date.now());
+            this.msgLens.push(this.consoleBuffer.length);
+            this.msgChars += this.consoleBuffer.length;
+            console.log("Flushing console buffer");
+        }
+        else if (this.consoleBuffer)
+        {
+            console.log("Too many messages, dropping.");
         }
         this.consoleBuffer = "";
         this.lastFlush = Date.now();
-        console.log("Flushing console buffer");
+    }
+
+    /**
+     * Clear any out-of-date messages from the message queue and return true if
+     * it is still full
+     */
+    private static messageQueueFull(): boolean
+    {
+        const currTime = Date.now();
+        while(this.msgTimes.length > 0 &&
+            this.msgTimes[0] + this.MSG_QUEUE_TIME < currTime)
+        {
+            this.msgTimes.shift();
+            // @ts-ignore
+            this.msgChars -= this.msgLens.shift();
+        }
+        return this.msgChars >= this.MAX_MSG_CHARS;
     }
 
     /*****************************
