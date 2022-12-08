@@ -144,12 +144,10 @@ export default class Simulator
     {
         if (navigator.userAgent.toLowerCase().search("firefox") >= 0)
         {
-            console.log("Firefox detected -- using Firefox web worker");
             this.simWorker = new Worker(Simulator.WORKER_PATH_FF);
         }
         else
         {
-            console.log("Firefox not detected -- using better web worker");
             this.simWorker = new Worker(Simulator.WORKER_PATH, {type: "module"});
         }
 
@@ -274,7 +272,6 @@ export default class Simulator
     {
         if (this.workerBusy)
         {
-            console.log("Simulator halting worker");
             Atomics.store(this.workerHalt, 0, 1);
         }
         else

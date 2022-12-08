@@ -152,11 +152,6 @@ class SimWorker
             this.msgTimes.push(Date.now());
             this.msgLens.push(this.consoleBuffer.length);
             this.msgChars += this.consoleBuffer.length;
-            console.log("Flushing console buffer");
-        }
-        else if (this.consoleBuffer)
-        {
-            console.log("Too many messages, dropping.");
         }
         this.consoleBuffer = "";
         this.lastFlush = Date.now();
