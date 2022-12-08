@@ -5,7 +5,7 @@
  * @param position one of three positions, numbered left-to-right (0, 1, 2)
  * @returns decoded register number
  */
-function decodeRegister(instruction: number, position: number): number
+export default function decodeRegister(instruction: number, position: number): number
 {
     let shift: number;
     switch (position)
@@ -22,4 +22,3 @@ function decodeRegister(instruction: number, position: number): number
     }
     return (instruction >> shift) & 0b111;
 }
- 

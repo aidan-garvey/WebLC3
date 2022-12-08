@@ -232,7 +232,7 @@
     }
 </script>
 
-<div id="regCtr" class="sourceCodePro" role="rowgroup" aria-label="Register table, enter gridcells with down arrow key and navigate with arrow keys" aria-rowcount={rows} tabindex="0" on:keydown={focusCell}>
+<div id="regCtr" class="sourceCodePro" role="grid" aria-label="Register table, enter gridcells with down arrow key and navigate with arrow keys" aria-rowcount={rows} tabindex="0" on:keydown={focusCell}>
 
     <!-- Map data into UI component -->
     {#each data as row, i}

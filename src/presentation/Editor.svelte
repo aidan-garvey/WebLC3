@@ -53,7 +53,7 @@
 
 </script>
 
-<div id="editorCtr" aria-label="Enable and disable tabbing out of editor with Ctrl+M on Windows and Linux or Ctrl+Shift+M on OSX" tabindex="0">
+<div id="editorCtr" role="grid" aria-label="Enable and disable tabbing out of editor with Ctrl+M on Windows and Linux or Ctrl+Shift+M on OSX" tabindex="0">
     <span class="loader"></span>
     <span class="sourceCodePro">Assembling application</span>
 </div>

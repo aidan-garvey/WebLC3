@@ -3,7 +3,7 @@
  * Functions used to test if an instruction has a certain opcode.
  */
 
-class Opcodes
+export default class Opcodes
 {
     private static JSR = 0x4000;
     private static RET = 0xC1C0;

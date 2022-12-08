@@ -1,12 +1,12 @@
 
 /**
- * simMessagesFF.ts
+ * simMessages.ts
  * 
  * This class contains the different types of message that can be passed between
  * a Simulator instance and the SimWorker class.
  */
 
-class Messages {
+export default class Messages {
     static RUN = "run";
     static STEP_IN = "step_in";
     static STEP_OUT = "step_out";

@@ -1,11 +1,11 @@
 
 /**
- * vectorsFF.ts
+ * vectors.ts
  * 
  * This class contains interrupt/exception vector constants
  */
 
-class Vectors
+export default class Vectors
 {
     private static vectorSet = {
         EX_PRIV: 0x00,
@@ -28,4 +28,3 @@ class Vectors
         return Vectors.vectorSet.INT_KBD;
     }
 }
- 

@@ -27,7 +27,7 @@
     <h1 on:mouseenter={addJiggle} on:mouseleave={removeJiggle} on:click={openHelp} on:focus={addJiggle}  on:blur={removeJiggle} on:keypress={openHelp} role="button" aria-label="WebLC3 documentation toggle" aria-haspopup="dialog" aria-pressed="false" tabindex="0">
         Web<span id="lc3">LC3</span>
     </h1>
-    <p on:click={openHelp}>{@html subtitle}</p>
+    <p on:click={openHelp} on:keypress={openHelp} >{@html subtitle}</p>
     <span class="jiggle"></span>
 </div>
 

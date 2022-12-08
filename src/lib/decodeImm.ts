@@ -5,7 +5,7 @@
  * @param length the length, in bits, of the immediate operand
  * @returns the immediate value, sign-extended to 16 bits
  */
-function decodeImmediate (instruction: number, length: number): number
+export default function decodeImmediate (instruction: number, length: number): number
 {
     let mask = 0x0FFF;
     let sign = 0xF800;
@@ -23,4 +23,3 @@ function decodeImmediate (instruction: number, length: number): number
     }
     return result;
 }
- 
