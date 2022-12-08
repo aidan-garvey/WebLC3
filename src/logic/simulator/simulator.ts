@@ -263,7 +263,6 @@ export default class Simulator
     {
         if (this.workerBusy)
         {
-            console.log("Simulator halting worker");
             Atomics.store(this.workerHalt, 0, 1);
         }
         else
