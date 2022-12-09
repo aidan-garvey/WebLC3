@@ -174,70 +174,159 @@ class SimWorker
         return this.msgChars >= this.MAX_MSG_CHARS;
     }
 
+    /***********************************
+     ---- Atomics Function Wrappers ----
+     ***********************************/
+    
+    private static load(array: Uint16Array | Uint8Array, index: number): number
+    {
+        if (index < 0)
+        {
+            console.log("Negative index used for Atomics.load\nArray: " + array + "\nIndex: " + index);
+            while (index < 0)
+                index += array.length;
+        }
+        else if (index >= array.length)
+        {
+            console.log("Out of range index used for Atomics.load\nArray: " + array + "\nIndex: " + index);
+            while (index >= array.length)
+                index -= array.length;
+        }
+        return Atomics.load(array, index);
+    }
+
+    private static store(array: Uint16Array | Uint8Array, index: number, value: number)
+    {
+        if (index < 0)
+        {
+            console.log("Negative index used for Atomics.store\nArray: " + array + "\nIndex: " + index + "\nValue: " + value);
+            while (index < 0)
+                index += array.length;
+        }
+        else if (index >= array.length)
+        {
+            console.log("Out of range index used for Atomics.store\nArray: " + array + "\nIndex: " + index + "\nValue: " + value);
+            while (index >= array.length)
+                index -= array.length;
+        }
+        Atomics.store(array, index, value);
+    }
+
+    private static or(array: Uint16Array | Uint8Array, index: number, value: number)
+    {
+        if (index < 0)
+        {
+            console.log("Negative index used for Atomics.or\nArray: " + array + "\nIndex: " + index + "\nValue: " + value);
+            while (index < 0)
+                index += array.length;
+        }
+        else if (index >= array.length)
+        {
+            console.log("Out of range index used for Atomics.or\nArray: " + array + "\nIndex: " + index + "\nValue: " + value);
+            while (index >= array.length)
+                index -= array.length;
+        }
+        Atomics.or(array, index, value);
+    }
+
+    private static and(array: Uint16Array | Uint8Array, index: number, value: number)
+    {
+        if (index < 0)
+        {
+            console.log("Negative index used for Atomics.and\nArray: " + array + "\nIndex: " + index + "\nValue: " + value);
+            while (index < 0)
+                index += array.length;
+        }
+        else if (index >= array.length)
+        {
+            console.log("Out of range index used for Atomics.and\nArray: " + array + "\nIndex: " + index + "\nValue: " + value);
+            while (index >= array.length)
+                index -= array.length;
+        }
+        Atomics.and(array, index, value);
+    }
+
+    private static add(array: Uint16Array | Uint8Array, index: number, value: number)
+    {
+        if (index < 0)
+        {
+            console.log("Negative index used for Atomics.add\nArray: " + array + "\nIndex: " + index + "\nValue: " + value);
+            while (index < 0)
+                index += array.length;
+        }
+        else if (index >= array.length)
+        {
+            console.log("Out of range index used for Atomics.add\nArray: " + array + "\nIndex: " + index + "\nValue: " + value);
+            while (index >= array.length)
+                index -= array.length;
+        }
+        Atomics.add(array, index, value);
+    }
+
     /*****************************
      ---- Getters and Setters ----
      *****************************/
-    
+
     private static setPSR(value: number)
     {
-        Atomics.store(this.psr, 0, value);
+        this.store(this.psr, 0, value);
     }
 
     private static getPSR(): number
     {
-        return Atomics.load(this.psr, 0);
+        return this.load(this.psr, 0);
     }
 
     // set clock-enable bit in machine control register
     private static enableClock()
     {
-        Atomics.or(this.memory, this.MCR, 0x8000);
+        this.or(this.memory, this.MCR, 0x8000);
     }
 
     // check if clock-enable bit is set in machine control register
     private static isClockEnabled(): boolean
     {
-        return (Atomics.load(this.memory, this.MCR) & 0x8000) != 0;
+        return (this.load(this.memory, this.MCR) & 0x8000) != 0;
     }
 
     // check if simWorker's halt flag is set
     private static haltSet(): boolean
     {
-        return Atomics.load(this.haltFlag, 0) != 0;
+        return this.load(this.haltFlag, 0) != 0;
     }
 
     // get the value at a memory location
     private static getMemory(addr: number): number
     {
-        return Atomics.load(this.memory, addr);
+        return this.load(this.memory, addr);
     }
 
     // set a word of memory
     private static setMemory(addr: number, value: number)
     {
-        Atomics.store(this.memory, addr, value);
+        this.store(this.memory, addr, value);
     }
 
     private static getPC(): number
     {
-        return Atomics.load(this.pc, 0);
+        return this.load(this.pc, 0);
     }
 
     private static setPC(value: number)
     {
-        Atomics.store(this.pc, 0, value);
+        this.store(this.pc, 0, value);
     }
 
     // get the value of a register
     private static getRegister(index: number): number
     {
-        return Atomics.load(this.registers, index);
+        return this.load(this.registers, index);
     }
 
     // set a register's value
     private static setRegister(index: number, value: number)
     {
-        Atomics.store(this.registers, index, value);
+        this.store(this.registers, index, value);
     }
 
     // get status of N flag in PSR
@@ -264,7 +353,7 @@ class SimWorker
     // set priority level in PSR
     private static setPriorityLevel(level: number)
     {
-        Atomics.or(this.psr, 0, (level & 0x7) << 8);
+        this.or(this.psr, 0, (level & 0x7) << 8);
     }
 
     // check the user mode bit in the PSR, return true if it is set
@@ -501,21 +590,21 @@ class SimWorker
         if (this.getMemory(this.DDR) != 0)
         {
             // clear DSR ready bit
-            Atomics.and(this.memory, this.DSR, 0x7FFF);
+            this.and(this.memory, this.DSR, 0x7FFF);
             // print character, clear DDR, set DSR ready bit
             const toPrint = this.getMemory(this.DDR) & 0x00FF;
             this.sendConsoleMessage(String.fromCharCode(toPrint));
-            Atomics.store(this.memory, this.DDR, 0);
-            Atomics.or(this.memory, this.DSR, 0x8000);
+            this.store(this.memory, this.DDR, 0);
+            this.or(this.memory, this.DSR, 0x8000);
         }
         // ensure console's ready bit is on if it isn't printing something out
         else
         {
-            Atomics.or(this.memory, this.DSR, 0x8000);
+            this.or(this.memory, this.DSR, 0x8000);
         }
 
         // (4) handle interrupt
-        if (Atomics.load(this.interruptSignal, 0) != 0)
+        if (this.load(this.interruptSignal, 0) != 0)
         {
             this.initInterrupt();
             return true;
@@ -564,21 +653,21 @@ class SimWorker
     private static initException(vector: number)
     {
         // push PSR and PC onto supervisor stack
-        let ssp = Atomics.load(this.savedSSP, 0);
+        let ssp = this.load(this.savedSSP, 0);
         this.setMemory(ssp - 1, this.getPSR());
         this.setMemory(ssp - 2, this.getPC());
-        Atomics.store(this.savedSSP, 0, ssp - 2);
+        this.store(this.savedSSP, 0, ssp - 2);
 
         // if we were in user mode, save R6 to savedUSP
         if (this.userMode())
         {
-            Atomics.store(this.savedUSP, 0, this.getRegister(6));
+            this.store(this.savedUSP, 0, this.getRegister(6));
         }
         // in either case, set R6 to the value of the SSP
-        this.setRegister(6, Atomics.load(this.savedSSP, 0));
+        this.setRegister(6, this.load(this.savedSSP, 0));
 
         // set privilege mode to supervisor (PSR[15] = 0)
-        Atomics.and(this.psr, 0, this.CLEAR_USER);
+        this.and(this.psr, 0, this.CLEAR_USER);
 
         // set PC to memory[vector + 0x0100]
         vector += 0x0100;
@@ -591,30 +680,30 @@ class SimWorker
     private static initInterrupt()
     {
         // disable interrupt signal
-        Atomics.store(this.interruptSignal, 0, 0);
+        this.store(this.interruptSignal, 0, 0);
 
         // push PSR and PC onto supervisot stack
-        let ssp = Atomics.load(this.savedSSP, 0);
+        let ssp = this.load(this.savedSSP, 0);
         this.setMemory(ssp - 1, this.getPSR());
         this.setMemory(ssp - 2, this.getPC());
-        Atomics.store(this.savedSSP, 0, ssp - 2);
+        this.store(this.savedSSP, 0, ssp - 2);
 
         // if we were in user mode, save R6 to savedUSP
         if (this.userMode())
         {
-            Atomics.store(this.savedUSP, 0, this.getRegister(6));
+            this.store(this.savedUSP, 0, this.getRegister(6));
         }
         // in either case, set R6 to the value of the SSP
-        this.setRegister(6, Atomics.load(this.savedSSP, 0));
+        this.setRegister(6, this.load(this.savedSSP, 0));
 
         // set privilege mode to supervisor (PSR[15] = 0)
-        Atomics.and(this.psr, 0, this.CLEAR_USER);
+        this.and(this.psr, 0, this.CLEAR_USER);
 
         // set priority level to the one given by the interrupt
-        this.setPriorityLevel(Atomics.load(this.interruptPriority, 0));
+        this.setPriorityLevel(this.load(this.interruptPriority, 0));
 
         // set PC to memory[vector + 0x0100]
-        let vector = Atomics.load(this.interruptVector, 0);
+        let vector = this.load(this.interruptVector, 0);
         vector += 0x0100;
         this.setPC(this.getMemory(vector));
     }
@@ -626,21 +715,21 @@ class SimWorker
     private static initTrap(vector: number)
     {
         // push PSR and PC onto supervisor stack
-        let ssp = Atomics.load(this.savedSSP, 0);
+        let ssp = this.load(this.savedSSP, 0);
         this.setMemory(ssp - 1, this.getPSR());
         this.setMemory(ssp - 2, this.getPC());
-        Atomics.store(this.savedSSP, 0, ssp - 2);
+        this.store(this.savedSSP, 0, ssp - 2);
 
         // if we were in user mode, save R6 to savedUSP
         if (this.userMode())
         {
-            Atomics.store(this.savedUSP, 0, this.getRegister(6));
+            this.store(this.savedUSP, 0, this.getRegister(6));
         }
         // in either case, set R6 to the value of the SSP
-        this.setRegister(6, Atomics.load(this.savedSSP, 0));
+        this.setRegister(6, this.load(this.savedSSP, 0));
 
         // set privilege mode to supervisor (PSR[15] = 0)
-        Atomics.and(this.psr, 0, this.CLEAR_USER);
+        this.and(this.psr, 0, this.CLEAR_USER);
 
         // set PC to memory[vector]
         this.setPC(this.getMemory(vector));
@@ -696,7 +785,7 @@ class SimWorker
             || (this.flagPositive() && (instruction & 0x0200))
         )
         {
-            Atomics.add(this.pc, 0, decodeImmediate(instruction, 9));
+            this.add(this.pc, 0, decodeImmediate(instruction, 9));
         }
     }
 
@@ -710,7 +799,7 @@ class SimWorker
         const savedPC = this.getPC();
         if (instruction & 0x800)
         {
-            Atomics.add(this.pc, 0, decodeImmediate(instruction, 11));
+            this.add(this.pc, 0, decodeImmediate(instruction, 11));
         }
         else
         {
@@ -771,20 +860,20 @@ class SimWorker
      */
     private static execRti(instruction: number)
     {
-        let sp = Atomics.load(this.savedSSP, 0);
+        let sp = this.load(this.savedSSP, 0);
         this.setPC(this.getMemory(sp));
         this.setPSR(this.getMemory(sp + 1));
-        Atomics.store(this.savedSSP, 0, sp + 2);
+        this.store(this.savedSSP, 0, sp + 2);
 
         // if we went user -> supervisor, load R6 with USP
         if (this.userMode())
         {
-            this.setRegister(6, Atomics.load(this.savedUSP, 0));
+            this.setRegister(6, this.load(this.savedUSP, 0));
         }
         // otherwise, load R6 with SPP
         else
         {
-            this.setRegister(6, Atomics.load(this.savedSSP, 0));
+            this.setRegister(6, this.load(this.savedSSP, 0));
         }
     }
 
