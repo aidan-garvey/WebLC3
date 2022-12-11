@@ -4,7 +4,7 @@ import express from 'express';
 
 const app = express();
 
-// YOLO
+// Enable cross origin isolation for simulator SharedBuffers
 app.use((req, res, next) => {
     res.append('Access-Control-Allow-Origin', ['*']);
     res.append('Access-Control-Allow-Methods', 'GET');

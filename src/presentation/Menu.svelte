@@ -210,4 +210,11 @@
             grid-column-gap: 0.7em;
         }
     }
+
+    @media (max-width: 600px) {
+        #menu{
+            grid-template-columns: 4.5em 4.5em 4.5em;
+            grid-column-gap: 0.4em;
+        }
+    }
 </style>

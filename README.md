@@ -1,5 +1,13 @@
-# WebLC3
-Web-based editor and simulator for Little Computer 3 (LC-3)
+![WebLC3 banner](./static/weblc3_banner.png)  
+
+## Overview
+
+The Web-based editor and simulator for Little Computer 3 (LC-3) provides a seamless way to write, compile, and execute Assembly programs directly from your browser. WebLC3 comes with a comprehensive suite of accessible tools built in Svelte, and a lightweight assembler and 16-bit processing unit powered by Typescript. WebLC3 optimizes experience for desktop and tablet, and is not suitable for mobile use.
+
+WebLC3 has two main workspaces:  
+- On the **editor**, enter or upload your assembly (.asm) code into the primary text editor. Debug your program by hitting *Assemble*. Save your work to your device, and download generated object files (.obj) and symbol tables as desired.   
+- On the **simulator**, navigate CPU memory, register, and pointer states with familiar run, step and jump controls. WebLC3 is built to robustly handle input, loops, and value overrides so that you can safely restore your machine on reload or reassembly.
+
 
 ## Run
 

@@ -76,7 +76,11 @@
 
     @media (max-width: 600px) {
         #title p{
-            font-size: 14px;
+            font-size: 24px;
+        }
+
+        #title p{
+            font-size: 10px;
         }
     }
 </style>

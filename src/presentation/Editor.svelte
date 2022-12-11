@@ -49,7 +49,7 @@
 
 <style>
     #editorCtr{
-        height: 65vh;
+        height: 67vh;
         width: inherit;
         display: grid;
         justify-items: center;

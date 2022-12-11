@@ -122,7 +122,7 @@
         z-index: 14;
         top: 0;
         left: 0;
-        height: 100vh;
+        height: 100%;
         width: 100vw;
         cursor: pointer;
         background-color: rgba(0,0,0,0.2);
@@ -181,15 +181,15 @@
 
     @media (max-width: 1300px) {
         #modal{
-            height: 215vh;
+            height: 170vh;
         }
 
         #docContent{
-            height: 109vh;
+            height: 80vh;
         }
         
         #help{
-            height: 130vh;
+            height: 90vh;
             width: 80vw;
         }
     }
