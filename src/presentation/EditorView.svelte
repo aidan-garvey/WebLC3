@@ -241,13 +241,13 @@
 		#editor-view{
 			display: grid;
 			grid-template-columns: 100%;
-			grid-template-rows: 90vh 100vh;
+			grid-template-rows: max-content 100vh;
 		}
 
 		#ev-right{
 			grid-row: 2/3;
 			width: 100%;
-			grid-template-rows: auto 60vh 18% 1fr;
+			grid-template-rows: auto 60vh 18% 0.8fr;
 			margin-bottom: 20vh;
 			margin-left: 0;
 		}

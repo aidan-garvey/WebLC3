@@ -123,12 +123,12 @@
         text-align: center;
     }
     
-    @media (max-width: 1300px) {
+    @media (max-width: 1350px) {
         .switchBtn{
             font-size: 14px !important;
-            max-height: 17vh;
-            max-width: 25%;
-            padding: 1em 2em 1em 2em;
+            max-height: 15vh;
+            max-width: 30%;
+            padding: 1em 3em 1em 3em;
         }
     }
     

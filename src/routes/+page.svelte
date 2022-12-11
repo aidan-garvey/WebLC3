@@ -17,7 +17,6 @@
     import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
     import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
 
-    let divEl = null;
     let editor;
     let Monaco;
 
@@ -173,7 +172,8 @@
         editor = Monaco.editor.create(document.getElementById('container'), {
             theme: 'lc3Theme',
             value: getCode(),
-            language: 'lc3Asm'
+            language: 'lc3Asm',
+            //options: {automaticLayout: true}
         });
 
         globalThis.editor = editor;

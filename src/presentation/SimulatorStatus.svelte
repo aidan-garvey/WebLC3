@@ -167,7 +167,7 @@
 
     @media (max-width: 1300px) {
         #sim-status{
-            min-width: 45vw;
+            min-width: 35vw;
         }
 
         .tinyBtn{

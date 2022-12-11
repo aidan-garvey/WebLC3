@@ -216,10 +216,10 @@
 		<div id="registersLbl" class="componame monoton">Registers</div>
 		<Register map={regMap} registers={numRegisters} on:updatePC={newPC} on:lightUp={lightUpComponent} />
 		<StepControls on:step={step} />
-		<button id="c-ctr" on:click={focusConsole} aria-label="Click to focus console and send key interrupts. Unfocus console by clicking anywhere outside this component or other buttons" tabindex="0">
-			<Console />
-		</button>
 	</section>
+	<button id="c-ctr" on:click={focusConsole} aria-label="Click to focus console and send key interrupts. Unfocus console by clicking anywhere outside this component or other buttons" tabindex="0">
+		<Console />
+	</button>
 	<section id="sv-right">
 		<div id="sv-right-top">
 			<div id="memoryLbl" class="componame monoton">Memory</div>
@@ -236,11 +236,12 @@
 		width: 100%;
 		display: grid;
 		grid-template-columns: 30% 65%;
+		grid-template-rows: auto 1fr;
 		grid-column-gap: 5%;
 	}
 
 	.componame{
-		font-size: 39px;
+		font-size: 36px;
 		width: max-content;
 		margin-left: 1vw;
 		align-self: flex-start;
@@ -256,11 +257,13 @@
 	}
 
 	#sv-left{
-		grid-template-rows: 2em auto auto 1fr;
+		grid-template-rows: 2em auto auto;
 	}
 
 	#sv-right{
 		grid-template-rows: 2em auto 1fr;
+		grid-column: 2/3;
+		grid-row: 1/3;
 	}
 
 	#sv-right-top{
@@ -274,11 +277,23 @@
 		padding: unset;
 		text-align: left;
 		height: 25vh;
+		margin-top: 2vh;
 	}
 
 	@media (max-width: 1300px) {
 		#c-ctr{
-			height: 50vh;
+			height: 45vh;
+		}
+	}
+
+	@media (max-width: 900px) {
+		#sv-right{
+			grid-row: 1/2;
+		}
+
+		#c-ctr{
+			grid-row: 2/3;
+			grid-column: 1/3;
 		}
 	}
 </style>

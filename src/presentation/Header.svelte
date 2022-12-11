@@ -52,6 +52,7 @@
     @media (max-width: 1200px) {
 	    #header{
 		    height: 20vh;
+            max-height: 9em;
 	    }
     }
 </style>

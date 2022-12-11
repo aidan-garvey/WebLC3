@@ -40,15 +40,9 @@
         width: 90%;
     }
 
-    @media (max-width: 1300px) {
-        #workspace{
-            height: 125vh;
-        }
-    }
-    
     @media (max-width: 900px) {
         #workspace{
-            height: 150vh;
+            height: 100vh;
         }
     }
 </style>

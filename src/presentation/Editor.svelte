@@ -9,9 +9,6 @@
     import { ResizeObserver } from 'resize-observer'
     import { latestSnapshot } from './stores'
 
-    let editor
-    let monaco
-
     onMount(() => {
         // Get startup snapshot of Editor
         if(globalThis.editor){
@@ -19,16 +16,13 @@
             latestSnapshot.set(content)
         }
 
-        // Attach loaded Editor to component
-        editor = document.getElementById("editorCtr")
-        editor.style.height = "100%"
-        editor.style.justifyItems = "flex-start"
-        editor.style.alignItems = "flex-start"
+        // Save references to Monaco Editor and container
+        let editor = document.getElementById("editorCtr")
         editor.innerText = ""
-		monaco = document.getElementById("container")
+        let monaco = document.getElementById("container")
         editor.appendChild(monaco)
 
-        // Adjust Editor scaling on window resize
+        // Observe for container resize and scale Editor
         let ro = new ResizeObserver(() => { resize() })
         ro.observe(editor);
         resize()
@@ -42,13 +36,8 @@
   
     // Responsive scaling
     function resize(){
-        if(editor){
-            let targetWidth = editor.clientWidth
-            let currWidth = monaco.clientWidth
-            let scale = targetWidth/currWidth
-            monaco.style.transform = "scale(" + scale + ")"
-            monaco.style.transformOrigin = "0 0"
-        }
+        if(globalThis.editor)
+            globalThis.editor.layout()
     }
 
 </script>

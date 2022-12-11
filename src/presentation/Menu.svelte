@@ -197,4 +197,17 @@
         font-size: 9px;
         margin: 0;
     }
+
+    @media (max-width: 1200px) {
+	    .menu-item span{
+            font-size: 20px;
+        }
+    }
+
+    @media (max-width: 900px) {
+	    #menu{
+            grid-template-columns: 6em 6em 6em;
+            grid-column-gap: 0.7em;
+        }
+    }
 </style>
