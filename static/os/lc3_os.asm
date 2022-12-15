@@ -1,6 +1,11 @@
-; =====================
-; LC-3 OPERATING SYSTEM
-; =====================
+; ==========================
+;   LC-3 OPERATING SYSTEM
+; --------------------------
+; WebLC3's implementation of
+; the LC-3 operating system.
+; --------------------------
+;      by Aidan Garvey, 2022
+; ==========================
 
 .ORIG 0
 
