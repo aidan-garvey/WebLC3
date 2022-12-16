@@ -131,6 +131,10 @@ a:hover {
 	color: var(--l-dir);
 }
 
+#docPage img{
+	transform: scale(0.65);
+}
+
 .functionBtn{
 	display: flex;
 	justify-content: center;
