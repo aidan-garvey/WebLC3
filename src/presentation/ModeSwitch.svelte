@@ -43,49 +43,57 @@
             lerp(node.id, node.step, this.firstChild, colorN, node.dark)
             lerp(body.id, body.step, document.body, colorB, body.dark)
             lerp(head.id, head.step, this.parentElement.parentElement.parentElement, colorH, head.dark)
-            // Mute coloration of other components
-            document.getElementById("workspace").style.opacity = "40%"
+            fadeWorkspace("40%")
         }
         else{
             lerp(node.id, node.step, this.firstChild, colorN, node.light)
             lerp(body.id, body.step, document.body, colorB, body.light)
             lerp(head.id, head.step, this.parentElement.parentElement.parentElement, colorH, head.light)
-            document.getElementById("workspace").style.opacity = "40%"
+            fadeWorkspace("40%")
         }
+    }
+
+    // Change opacity of workspace
+    function fadeWorkspace(value){
+        let workspace = document.getElementById("workspace")
+            if (workspace)
+                workspace.style.opacity = value
     }
 
     // Lerp animation
     let steps = 15
     function lerp(id, step, el, currColor, destColor){
-        step = 0
-        clearInterval(id)
-        id = setInterval(lerpStep, 3)
-        function lerpStep(){
-            step++
-            if(destColor > currColor){
-                currColor = Math.floor(currColor + (destColor - currColor)/steps*step)
-                if(destColor == 252) { el.style.left = `${30-(step*2)}px` } // hacky
-                el.style.backgroundColor = `rgb(${currColor},${currColor},${currColor})`
-                if(step == steps){ 
-                    clearInterval(id)
-                    colorB = body.light
-                    colorN = node.light
-                    colorH = head.light
-                    document.body.classList.replace("dark","light")
-                    document.getElementById("workspace").style.opacity = "100%"
-                }
-            } 
-            else {
-                currColor = Math.floor(currColor - (currColor - destColor)/steps*step)
-                if(destColor == 0) { el.style.left = `${step*2}px` } // hacky
-                el.style.backgroundColor = `rgb(${currColor},${currColor},${currColor})`
-                if(step == steps){ 
-                    clearInterval(id)
-                    colorB = body.dark
-                    colorN = node.dark
-                    colorH = head.dark
-                    document.body.classList.replace("light","dark")
-                    document.getElementById("workspace").style.opacity = "100%"
+        if(el){
+            step = 0
+            clearInterval(id)
+            id = setInterval(lerpStep, 3)
+            function lerpStep(){
+                step++
+                if(destColor > currColor){
+                    currColor = Math.floor(currColor + (destColor - currColor)/steps*step)
+                    if(destColor == 252) { el.style.left = `${30-(step*2)}px` } // hacky
+                    el.style.backgroundColor = `rgb(${currColor},${currColor},${currColor})`
+                    if(step == steps){ 
+                        clearInterval(id)
+                        colorB = body.light
+                        colorN = node.light
+                        colorH = head.light
+                        document.body.classList.replace("dark","light")
+                        fadeWorkspace("100%")
+                    }
+                } 
+                else {
+                    currColor = Math.floor(currColor - (currColor - destColor)/steps*step)
+                    if(destColor == 0) { el.style.left = `${step*2}px` } // hacky
+                    el.style.backgroundColor = `rgb(${currColor},${currColor},${currColor})`
+                    if(step == steps){ 
+                        clearInterval(id)
+                        colorB = body.dark
+                        colorN = node.dark
+                        colorH = head.dark
+                        document.body.classList.replace("light","dark")
+                        fadeWorkspace("100%")
+                    }
                 }
             }
         }

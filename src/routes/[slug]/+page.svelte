@@ -14,7 +14,7 @@
     import "../../app.css"
 
     export let title = "404 Not Found"
-    export let content = "Documentation for " + docId + " cannot be loaded. <a href='/'>Click to return to homepage</a>."
+    export let content = "Documentation for " + docId + " cannot be loaded."
     export let footnote = ""
 
     // Load data from .yaml files
@@ -59,6 +59,7 @@
                 <p id="footnote" aria-label="Extra information">{footnote}</p>
             {/if}
         </div>
+        <a id="toHome" href='/'> Return to homepage </a>
     </section>
 </div>
 
@@ -99,6 +100,13 @@
     #footnote{
         font-size: 12px !important;
         font-style: italic;
+    }
+
+    #toHome{
+        line-height: 5em;
+        font-size: 115%;
+        font-weight: 500;
+        float: right;
     }
 
     @media (max-width: 1100px) {
