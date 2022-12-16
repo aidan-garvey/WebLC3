@@ -1,6 +1,6 @@
 pages:
   - title: About
-    body: '<img src="weblc3_banner.png" alt="WebLC3 Banner" style="width:100%;"><br>
+    body: '<img class="weblc3-banner" src="weblc3_banner.png" alt="WebLC3 Banner" style="width:100%;"><br>
       WebLC3 is a Web-based editor and simulator for Little Computer 3 (LC-3),
       which provides a seamless way to write, assemble, and execute LC-3
       programs directly from your browser.

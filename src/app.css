@@ -440,6 +440,10 @@ body.light{
 	content:url(/UM-logo-horizontal-CMYK.png);
 }
 
+.light .weblc3-banner{
+	content:url(/weblc3_banner_alt.png);
+}
+
 #console-inner::selection, #jump-input::selection, #filename input::selection, .light #docs *:not(#featureCompo *)::selection{
 	background-color: var(--l-select);
 	color: var(--l-text);
@@ -535,6 +539,7 @@ body.light{
 	color: var(--d-reg);
 	box-shadow: 1px 1px var(--l-loc);
 	border-color: var(--d-reg);
+	border-style: solid;
 }
 
 .light .functionBtn:hover, .light .tinyBtn:hover, .light #buttonSet button:hover{
