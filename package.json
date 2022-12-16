@@ -1,6 +1,8 @@
 {
 	"name": "weblc3",
-	"version": "0.0.1",
+	"version": "1.0.0",
+	"description": "Assembler and Simulator for Little Computer 3 (LC3).",
+	"author": "Aidan Garvey, Andrea Abellera",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",

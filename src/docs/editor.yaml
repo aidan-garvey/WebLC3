@@ -1,4 +1,28 @@
 pages:
+  - title: About
+    body: '<img class="weblc3-banner" src="weblc3_banner.png" alt="WebLC3 Banner" style="width:100%;"><br>
+      WebLC3 is a Web-based editor and simulator for Little Computer 3 (LC-3),
+      which provides a seamless way to write, assemble, and execute LC-3
+      programs directly from your browser.
+      <br>
+      <img class="um-logo" src="UM-logo-horizontal-reverse-rgb.png" alt="University of Manitoba logo" style="width:50%;padding-left:25%;padding-right:25%;">
+      <br>
+      WebLC3 was developed for the Department of Computer Science at the
+      University of Manitoba as a COMP 4560 industrial project.
+      <h2>Contributors</h2>
+      Created by Andrea Abellera and Aidan Garvey, 2022
+      <ul style="list-style-type:square;">
+        <li>User Experience, Design and Application Components: Andrea Abellera</li>
+        <li>Assembler and Simulator Logic, Documentation: Aidan Garvey</li>
+      </ul>
+      <h2>Special Thanks</h2>
+      <ul style="list-style-type:square;">
+        <li>Michael Zapp, our industry contact during COMP 4560</li>
+        <li>Heather Matheson, our COMP 4560 project supervisor</li>
+        <li>Gilbert Detillieux, Jeff Durston and Ryan Podjan for their help deploying WebLC3</li>
+        <li>Robert Guderian, COMP 4560 course director and our Internet friend</li>
+      </ul>'
+
   - title: The Editor
     body: "The editor is what you see when you first open WebLC3.
       It is where you write the source code for your LC-3 program,
