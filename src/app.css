@@ -436,6 +436,10 @@ body.light{
 	scrollbar-color: var(--l-loc) var(--l-alt-shade);
 }
 
+.light .um-logo{
+	content:url(/UM-logo-horizontal-CMYK.png);
+}
+
 #console-inner::selection, #jump-input::selection, #filename input::selection, .light #docs *:not(#featureCompo *)::selection{
 	background-color: var(--l-select);
 	color: var(--l-text);
