@@ -9,6 +9,9 @@ import { writable } from 'svelte/store'
 // Boolean: Open WebLC3 documentation modal
 export const toggleHelp = writable(false)
 
+// Boolean: Dark mode
+export const darkMode = writable(false)
+
 // String: Filename of current .asm file
 export const openedFile = writable("untitled.asm")
 

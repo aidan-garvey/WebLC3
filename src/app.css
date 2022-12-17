@@ -224,7 +224,7 @@ body.dark{
 	color: var(--d-dir);
 }
 
-.dark #help{
+.dark #help, .dark #docPage{
 	background-color: rgb(42,42,42);
     border: 5px double var(--d-tint);
 }
@@ -474,7 +474,7 @@ body.light{
 	font-weight: 500;
 }
 
-.light #help{
+.light #help, .light #docPage{
 	background-color: rgb(244,244,244);
     border: 5px double var(--l-alt-tint);
 }

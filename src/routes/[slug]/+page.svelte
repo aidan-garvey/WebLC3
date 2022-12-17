@@ -9,10 +9,13 @@
     let docId = data.slug
 
     import ModeSwitch from "../../presentation/ModeSwitch.svelte"
+    import { toggleHelp } from "../../presentation/stores"
     import editorDocs from '../../docs/editor.yaml'
     import simulatorDocs from '../../docs/simulator.yaml'
     import "../../app.css"
 
+    // Set up
+    toggleHelp.set(false) // Close modal if open
     export let title = "404 Not Found"
     export let content = "Documentation for " + docId + " cannot be loaded."
     export let footnote = ""
