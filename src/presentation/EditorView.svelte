@@ -127,6 +127,7 @@
 				let map = obj.pop()
 				globalThis.simulator = new Simulator(obj[0], map)
 				globalThis.lastPtr = null
+				globalThis.lastBps = null
 				
 				// Globally store .obj file, and symbol table file blobs
 				if(globalThis.simulator){

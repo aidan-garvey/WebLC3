@@ -41,7 +41,14 @@
 	let inputOpen = false
 
 
-    onMount(() => { reloadMemRange(currPtr) });
+    onMount(() => {
+        if(globalThis.lastBps)
+			breakpoints = globalThis.lastBps 
+        reloadMemRange(currPtr)
+
+        // Save breakpoints on destroy
+        return () => { globalThis.lastBps = breakpoints }
+    })
 
 
     /* DYNAMIC RELOAD */

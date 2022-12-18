@@ -9,7 +9,7 @@
     import { onMount } from "svelte"
 
     // Set mode variables
-    let isDark
+    let isDark = true
     let colorN = 0
     let colorB = 62
     let colorH = 42
