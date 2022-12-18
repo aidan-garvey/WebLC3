@@ -10,7 +10,7 @@ import { writable } from 'svelte/store'
 export const toggleHelp = writable(false)
 
 // Boolean: Dark mode
-export const darkMode = writable(false)
+export const darkMode = writable(true)
 
 // String: Filename of current .asm file
 export const openedFile = writable("untitled.asm")

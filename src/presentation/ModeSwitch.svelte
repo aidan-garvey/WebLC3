@@ -4,10 +4,12 @@
 -->
 
 <script>
-    import Icon from "./Icon.svelte";
+    import Icon from "./Icon.svelte"
+    import { darkMode } from "./stores"
+    import { onMount } from "svelte"
 
-    // Smooth lerp transition for dark-light color styles
-    $: isDark=true
+    // Set mode variables
+    let isDark
     let colorN = 0
     let colorB = 62
     let colorH = 42
@@ -18,40 +20,26 @@
 
     // Elements for color lerping (values hardcoded)
     let body = {
-        id: idB,
-        step: stepB,
-        dark: 62,
-        light: 226
+        "id": idB,
+        "step": stepB,
+        "dark": 62,
+        "light": 226
     }
     let node = {
-        id: idN,
-        step: stepN,
-        dark: 0,
-        light: 252
+        "id": idN,
+        "step": stepN,
+        "dark": 0,
+        "light": 252
     }
     let head = {
-        id: idH,
-        step: stepH,
-        dark: 42,
-        light: 244
+        "id": idH,
+        "step": stepH,
+        "dark": 42,
+        "light": 244
     }
 
     // Swap mode
-    function swap(){
-        isDark = !isDark
-        if(isDark){
-            lerp(node.id, node.step, this.firstChild, colorN, node.dark)
-            lerp(body.id, body.step, document.body, colorB, body.dark)
-            lerp(head.id, head.step, this.parentElement.parentElement.parentElement, colorH, head.dark)
-            fadeWorkspace("40%")
-        }
-        else{
-            lerp(node.id, node.step, this.firstChild, colorN, node.light)
-            lerp(body.id, body.step, document.body, colorB, body.light)
-            lerp(head.id, head.step, this.parentElement.parentElement.parentElement, colorH, head.light)
-            fadeWorkspace("40%")
-        }
-    }
+    function swap(){ darkMode.set(!isDark) }
 
     // Change opacity of workspace
     function fadeWorkspace(value){
@@ -62,9 +50,12 @@
 
     // Lerp animation
     let steps = 15
-    function lerp(id, step, el, currColor, destColor){
+    function lerp(id, step, el, currColor, destColor, endStep=false){
         if(el){
-            step = 0
+            if (!endStep)
+                step = 0
+            else
+                step = 14
             clearInterval(id)
             id = setInterval(lerpStep, 3)
             function lerpStep(){
@@ -98,6 +89,23 @@
             }
         }
     }
+
+    // Lerp modes
+    function lerpTo(mode, endStep=false){
+        lerp(node.id, node.step, document.getElementById("switch").firstChild, colorN, node[mode], endStep)
+        lerp(body.id, body.step, document.body, colorB, body[mode], endStep)
+        lerp(head.id, head.step, document.getElementById("header"), colorH, head[mode], endStep)
+        fadeWorkspace("40%")
+    }
+
+    onMount(async () => {
+        // Smooth lerp transition for dark-light color styles
+        darkMode.subscribe(value => {
+            isDark = value
+            if(isDark) { lerpTo("dark") }
+            else { lerpTo("light", true) }
+        })
+    })
 </script>
 
 <div id="switchCtr">

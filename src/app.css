@@ -43,7 +43,6 @@ html, body {
   	width: 100vw;
 	overflow-x: hidden;
 	overflow-y: hidden;
-	scroll-behavior: smooth;
 	scrollbar-width: 0.5em;
 	font-family: 'Work Sans', sans-serif;
 }
