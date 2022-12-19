@@ -298,7 +298,7 @@ pages:
       much like a trap, but have different causes. Interrupts occur due to external
       sources, such as an input device. The LC-3 only has one interrupt, the keyboard
       interrupt. The interrupt is disabled by default, but can be enabled by
-      setting the interrupt-enable bit of the keyboard status register (KBDR[14])
+      setting the interrupt-enable bit of the keyboard status register (KBSR[14])
       to 1. When enabled, pressing a key will invoke the interrupt handler for
       the keyboard (in the default LC-3 operating system, the handler will print
       the character to the console).

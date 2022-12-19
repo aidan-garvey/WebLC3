@@ -10,7 +10,7 @@ pages:
   - title: Reload
     body: "To load your program into the simulator's memory, click the <b>Reload</b>
       button at the top of the screen. Once the program is loaded, the PC will be
-      set to the start of the program (the address in the `.ORIG` directive at the
+      set to the start of the program (the address in the <code>.ORIG</code> directive at the
       start of your code)"
     component: reload
     footnote: "Reload will only modify the memory locations necessary to load your

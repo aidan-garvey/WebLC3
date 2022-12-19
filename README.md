@@ -11,7 +11,7 @@ WebLC3 has two main workspaces:
 
 ## Run
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Once you've installed dependencies with `npm install`, you can use the following command to start a development server for testing:
 
 ```bash
 npm run dev
