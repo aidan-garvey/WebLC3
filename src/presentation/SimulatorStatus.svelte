@@ -77,8 +77,8 @@
     // Download most recently assembled symbol table
     function saveSymbolTable(){
         if(globalThis.symbolTable){
-            // Pop off .obj from filename and append _symbol_table
-            let fn = filename.substring(0,filename.length-4) + "_symbol_table"
+            // Pop off .obj from filename and append .sym
+            let fn = filename.substring(0,filename.length-4) + ".sym"
             download(fn, globalThis.symbolTable)
         }
     }
