@@ -368,7 +368,7 @@ INT_KEYBD:
     LDI     r0, KBD_DATA
     OUT
     LDR     r0, r6, #0
-    STR     r7, r6, #1
+    LDR     r7, r6, #1
     ADD     r6, r6, #2
     RTI
 
