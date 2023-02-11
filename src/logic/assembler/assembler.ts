@@ -213,7 +213,7 @@ export default class Assembler
             } // end if 
         } // end white
 
-        // go back and fix branches label is always last operand
+        // go back and fix branches, label is always last operand
         for (const entry of toFix)
         {
             const tokens = entry[0];
@@ -240,7 +240,7 @@ export default class Assembler
                 }
                 else
                 {
-                    memory[loc] = labelVal;
+                    memory[loc] = labelVal + startOffset;
                 }
             }
             else if (tokens[0] == ".blkw")
