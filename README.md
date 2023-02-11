@@ -27,7 +27,6 @@ This section explains how to deploy WebLC3 on a Linux webserver.
 ### Prerequisites
 
 * git
-* tmux
 * curl
 
 ### Instructions
@@ -56,20 +55,15 @@ You may need to restart your system or shell during this process.
     $ npm run build
     ```
 
-6. Start a tmux session: 
+6. Run `server.js` in the background with Node.js:
     ```bash
-    $ tmux
+    $ node ./server.js &
     ```
 
-7. Run `server.js` with Node.js:
-    ```bash
-    $ node ./server.js
-    ```
+> You may wish to add a command similar to the above to your `crontab` if you
+> want the server to start automatically when you boot up your system.
 
-8. Detach tmux session by pressing `CTRL+B`, followed by colon (`:`), and using
-the `detach` command.
-
-9. Install Caddy. For operating systems not shown in this step, see
+7. Install Caddy. For operating systems not shown in this step, see
 [Caddy's site.](https://caddyserver.com/docs/install)
 
     > Caddy uses HTTPS automatically, which is required for WebLC3.
@@ -83,11 +77,11 @@ the `detach` command.
     $ sudo apt install caddy
     ```
 
-10. Edit `/etc/caddy/Caddyfile` as root
+8. Edit `/etc/caddy/Caddyfile` as root
     * replace `:80` with the desired domain name
     * replace the contents of the block with `reverse_proxy localhost:3000`
 
-11. Restart Caddy:
+9. Restart Caddy:
     ```bash
     $ sudo systemctl restart caddy
     ```
