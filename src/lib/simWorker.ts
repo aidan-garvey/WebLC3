@@ -652,6 +652,10 @@ class SimWorker
      */
     private static initException(vector: number)
     {
+        // if R6 is SSP, ensure savedSSP is up to date
+        if (!this.userMode())
+            this.store(this.savedSSP, 0, this.getRegister(6));
+
         // push PSR and PC onto supervisor stack
         let ssp = this.load(this.savedSSP, 0);
         this.setMemory(ssp - 1, this.getPSR());
@@ -681,6 +685,10 @@ class SimWorker
     {
         // disable interrupt signal
         this.store(this.interruptSignal, 0, 0);
+
+        // if R6 is SSP, ensure savedSSP is up to date
+        if (!this.userMode())
+            this.store(this.savedSSP, 0, this.getRegister(6));
 
         // push PSR and PC onto supervisot stack
         let ssp = this.load(this.savedSSP, 0);
@@ -714,6 +722,10 @@ class SimWorker
      */
     private static initTrap(vector: number)
     {
+        // if R6 is SSP, ensure savedSSP is up to date
+        if (!this.userMode())
+            this.store(this.savedSSP, 0, this.getRegister(6));
+
         // push PSR and PC onto supervisor stack
         let ssp = this.load(this.savedSSP, 0);
         this.setMemory(ssp - 1, this.getPSR());
@@ -860,6 +872,10 @@ class SimWorker
      */
     private static execRti(instruction: number)
     {
+        // if R6 is SSP, ensure savedSSP is up to date
+        if (!this.userMode())
+            this.store(this.savedSSP, 0, this.getRegister(6));
+
         let sp = this.load(this.savedSSP, 0);
         this.setPC(this.getMemory(sp));
         this.setPSR(this.getMemory(sp + 1));
