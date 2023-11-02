@@ -1,6 +1,6 @@
-<!-- 
+<!--
 	EditorView.svelte
-		This workspace view enables a client to write assembly programs through an Editor, 
+		This workspace view enables a client to write assembly programs through an Editor,
 		assemble and generate .obj files for Simulator use, and view assembly status and errors through a Console
 -->
 
@@ -11,10 +11,14 @@
 	import { onMount } from 'svelte'
 	import { openedFile, currentView, assembledFile } from './stores'
 	import Assembler from "../logic/assembler/assembler"
+	import ARMAssembler from "../logic/assembler/armAssembler"
 	import Simulator from "../logic/simulator/simulator";
 
+	const LC3_EXTENSION = "asm"
+	const ARM_EXTENSION = "s"
+
 	let appLoadComplete = false
-	onMount(() => { 
+	onMount(() => {
 		let filename = document.getElementById("filename")
 		filename.style.visibility = "visible"
 		appLoadComplete = true
@@ -38,7 +42,7 @@
 		if(!inputOpen)
 			showText = "Rename workspace"
 	}
-	
+
 	// Swap back text to .asm filename
 	function showFilename(){
 		if(!inputOpen)
@@ -63,9 +67,9 @@
 		newInput.style.outline = "none"
 		newInput.style.background = "none"
 		newInput.style.borderBottom = "1px solid #5B5B5B"
-		newInput.value = filename.substring(0,filename.length-4)
+		newInput.value = filename
 		newInput.ariaLabel = "Enter new filename"
-		
+
 		// Close input box
 		newInput.addEventListener("blur", function leave(e) {
 			showText = filename
@@ -94,46 +98,74 @@
 		function saveInput(newValue){
 			if(newValue.length > 0){
 				newValue = newValue.replaceAll(" ","_")
-				// Make filename utf-8 encoding-friendly 
+				// Make filename utf-8 encoding-friendly
 				newValue = encodeURIComponent(newValue)
 				.replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16)}`)
 				.replace(/%(7C|60|5E)/g, (str, hex) =>
 					String.fromCharCode(parseInt(hex, 16))
 				)
-				openedFile.set(newValue + ".asm")
+				/*
+				Let the user specify .asm (LC-3) or .s (ARM), and fall back to LC-3 if the user enters an invalid
+				extension
+				*/
+				if (!newValue.endsWith(".asm") && !newValue.endsWith('.s'))
+					newValue += ".asm"
+
+				openedFile.set(newValue)
 			}
 		}
-		
+
 		return newInput // Complete text input element
 	}
 
 	// Set filename of assembled .obj file, replacing .asm extension
 	function setObjFilename(){
-		assembledFile.set(filename.substring(0,filename.length-4)+".obj")
+		assembledFile.set(filename.substring(0,filename.length-(getExtension().length+1))+".obj")
 	}
 
+	// Returns the currently open file's extension
+	function getExtension() {
+		let tokens = filename.split(".");
+		return tokens[tokens.length - 1]
+	}
 
 	/* ASSEMBLY */
-	
+
 	// Assemble program
 	async function assembleClick(){
 		let editor = globalThis.editor
 		if(editor){
 			let sourceCode = editor.getValue()
-			let obj = await Assembler.assemble(sourceCode)
+			let obj;
+
+			if (getExtension() === LC3_EXTENSION)
+				obj = await Assembler.assemble(sourceCode)
+			else if (getExtension() === ARM_EXTENSION)
+				obj = await ARMAssembler.assemble(sourceCode)
+			else
+				alert(`File ${filename} could not be assembled due to invalid extension. WebLC3 only accepts .asm and .s files.`);
 
 			if(obj){
-				// Create globally-available Simulator class				
+				// Create globally-available Simulator class
 				let map = obj.pop()
-				globalThis.simulator = new Simulator(obj[0], map)
+				globalThis.simulator = new Simulator(obj[0], map, getExtension())
 				globalThis.lastPtr = null
 				globalThis.lastBps = null
-				
+
 				// Globally store .obj file, and symbol table file blobs
 				if(globalThis.simulator){
 					setObjFilename()
-					globalThis.objFile = Assembler.getObjectFileBlob()
-					globalThis.symbolTable = Assembler.getSymbolTableBlob()
+
+					if (getExtension() === LC3_EXTENSION)
+					{
+						globalThis.objFile = Assembler.getObjectFileBlob()
+						globalThis.symbolTable = Assembler.getSymbolTableBlob()
+					}
+					else if (getExtension() === ARM_EXTENSION)
+					{
+						globalThis.objFile = ARMAssembler.getObjectFileBlob()
+						globalThis.symbolTable = ARMAssembler.getSymbolTableBlob()
+					}
 				}
 			}
 		}
@@ -158,7 +190,7 @@
 				Switch to Simulator
 			</button>
 		</div>
-		
+
 	</section>
 	{/if}
 	<section id="ev-left">

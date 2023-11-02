@@ -15,6 +15,7 @@ pages:
         <li>User Experience, Design and Application Components: Andrea Abellera</li>
         <li>Assembler and Simulator Logic, Documentation: Aidan Garvey</li>
       </ul>
+      ARM support by Alex Kitt, 2023
       <h2>Special Thanks</h2>
       <ul style="list-style-type:square;">
         <li>Michael Zapp, our industry contact during COMP 4560</li>
@@ -252,7 +253,7 @@ pages:
       <tr>
         <td>GETC</td>
         <td><code>x20</code></td>
-        <td>Read a character from the keyboard and store the ASCII code in the 
+        <td>Read a character from the keyboard and store the ASCII code in the
           lower byte of R0. The upper byte of R0 is cleared.</td>
       </tr>
       <tr>
@@ -280,17 +281,17 @@ pages:
         <td><code>x24</code></td>
         <td>Similar to PUTS, but with two ASCII codes per memory location. In
         each location, the character in the lower byte is written first, followed
-        by the one in the upper byte. R0 is still used to specify the address of 
+        by the one in the upper byte. R0 is still used to specify the address of
         the start of the string, and the string is terminated by a memory
         location containing 0. If the string has an odd number of characters,
         the final non-zero memory location's upper byte will be 0.</td>
-      </tr> 
+      </tr>
       <tr>
         <td>HALT</td>
         <td><code>x25</code></td>
-        <td>Print a message to the console that the computer is halting and 
+        <td>Print a message to the console that the computer is halting and
         clear the MCR's clock-enable bit (MCR[15]), stopping execution.</td>
-      </tr> 
+      </tr>
       </table>"
 
   - title: Interrupts and Exceptions
@@ -309,3 +310,37 @@ pages:
       which occurs when the processor attempts to execute an instruction with
       the unused opcode <code>0b1101</code>.
       "
+
+  - title: ARM
+    body: "You can also edit and run ARM assembly code. To use ARM, open an
+    existing .s file or rename a new file to have the .s extension.
+    <br>
+    <br>
+    Don't use this for assignments until your instructor tells you to! :) ARM
+    has a lot of built-in instructions for things that you have to code yourself
+    in LC-3 (and it's educationally valuable for you to experience coding those
+    things yourself), so your instructor will tell you when you're supposed to use ARM.
+    <br>
+    <br>
+    The simulator uses ARM-7 Thumb. Click
+    <a href=\"http://bear.ces.cwru.edu/eecs_382/ARM7-TDMI-manual-pt3.pdf\">here</a>
+    for a complete reference manual.
+    <br>
+    For compatibility with the simulated LC-3 hardware, this simulator does not
+    support all of the instructions in the manual. The following instructions
+    were excluded:
+    <ul>
+      <li>All format 5 instructions except BX Rs</li>
+      <li>STRB</li>
+      <li>LDRB</li>
+      <li>All format 14 instructions that have the PC/LR bit set to 1</li>
+      <li>All instructions in format 8, 10, 11, 13, or 15</li>
+    </ul>
+    The simulator also adds a couple of instructions not present in the manual:
+    <ul>
+      <li>RTI instruction, which works identically to RTI in LC-3</li>
+      <li>An LDR pseudo-op that serves as an equivalent to LC-3's LEA
+      instruction. Use the syntax \"LDR Rd, [pc, =label]\" to load the address of
+      the given label into the register Rd. </li>
+    </ul>
+    "
