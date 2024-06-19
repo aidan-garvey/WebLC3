@@ -83,6 +83,9 @@ export default class Simulator
     private workerBusy: boolean = false;
     // shared flag to halt worker
     private workerHalt: Uint8Array;
+    
+    // control whether to ignore console messages
+    private ignoreConsoleMessages = false;
 
     /**
      * Initialize the simulator, load the code into memory and set PC to start
@@ -171,8 +174,11 @@ export default class Simulator
                 UI.setSimulatorReady();
                 UI.update();
             }
-            else if (msg.type === Messages.CONSOLE)
-                UI.appendConsole(msg.message);
+            else if (msg.type === Messages.MSG_QUEUE_END) {
+              // End of recent message queue, re-enable handling console messages
+              this.ignoreConsoleMessages = false;
+            } else if (msg.type === Messages.CONSOLE && !this.ignoreConsoleMessages)
+              UI.appendConsole(msg.message);
         };
 
         this.simWorker.postMessage ({
@@ -189,6 +195,15 @@ export default class Simulator
             breakPoints: this.breakPoints,
             halt: this.workerHalt
         });
+    }
+
+    /**
+     * Tell the worker to post a message so we know when we've handled
+     * all messages up until this point. Allows us to ignore message spam
+     */
+    public clearMessageQueue() {
+        this.ignoreConsoleMessages = true
+        this.simWorker.postMessage({ type: Messages.MSG_QUEUE_END });
     }
 
     /**

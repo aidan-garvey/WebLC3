@@ -124,6 +124,9 @@ export default class SimWorker
                 case Messages.CLR_ALL_BREAKS:
                     this.breakPoints.clear();
                     break;
+                case Messages.MSG_QUEUE_END:
+                    self.postMessage({ type: Messages.MSG_QUEUE_END });
+                    break;
             }
         };
     }

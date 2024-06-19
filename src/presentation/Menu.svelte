@@ -114,6 +114,7 @@
     // Reload: Load code into memory, set PC to start of program, restore Processor Status Register to defaults, set clock-enable
     function reloadClick(){
         if(globalThis.simulator){
+            globalThis.simulator.clearMessageQueue()
             globalThis.simulator.reloadProgram()
             reloadOverride.set([true,true])
         }
@@ -122,6 +123,7 @@
     // Reinitialize: Set all of memory to zeroes except for operating system code
     function reinitializeClick(){
         if(globalThis.simulator){
+            globalThis.simulator.clearMessageQueue()
             globalThis.simulator.resetMemory()
             reloadOverride.set([true,false])
         }
@@ -130,6 +132,7 @@
     // Randomize: Randomize all of memory except for operating system code
     function randomizeClick(){
         if(globalThis.simulator){
+            globalThis.simulator.clearMessageQueue()
             globalThis.simulator.randomizeMemory()
             reloadOverride.set([true,false])
         }
