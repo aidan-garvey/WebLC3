@@ -205,6 +205,13 @@ export default class Simulator
         this.ignoreConsoleMessages = true
         this.simWorker.postMessage({ type: Messages.MSG_QUEUE_END });
     }
+    
+    /**
+     * Terminate the simWorker and clean up other resources
+     */
+    public destroy() {
+        this.simWorker.terminate();
+    }
 
     /**
      * Load code into memory, set PC to start of program, restore Processor
