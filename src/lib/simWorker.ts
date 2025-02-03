@@ -412,19 +412,25 @@ export default class SimWorker
      */
     protected static stepOut(quiet = false)
     {
+        // when we reach depth 0, we've returned from the current subroutine
         let currDepth = 1;
         let nextInstruction = this.getMemory(this.getPC());
         this.enableClock();
 
-        // execute first instruction cycle, ignoring breakpoints
+        // if the next instruction is a return, we'll only execute that
+        // instruction
         if (Opcodes.isRETorRTI(nextInstruction)) // needs to be memory[pc], not pc
         {
             --currDepth;
         }
+        // if the next instruction is a subroutine call, we need to return from
+        // that subroutine in addition to the current one
         else if (Opcodes.isJSRorJSRR(nextInstruction) || Opcodes.isTRAP(nextInstruction))
         {
             ++currDepth;
         }
+        // Execute the first instruction, ignoring breakpoints. If an interrupt
+        // or exception occurs, we need to return from that too.
         if (this.instructionCycle())
         {
             ++currDepth;

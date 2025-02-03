@@ -114,8 +114,10 @@
 		// Continue tracking PC by going to a different page of memory range
 		if(Math.abs(pc-currPtr) >= longJumpOffset){
 			currPtr = pc
-			memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
 		}
+		// Reload memory even if the page didn't change, in case the contents of
+		// memory were updated
+		memMap = globalThis.simulator.getMemoryRange(currPtr, currPtr+longJumpOffset)
 		updateRegisters()
 	}
 
