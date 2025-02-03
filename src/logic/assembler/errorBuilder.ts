@@ -1,6 +1,6 @@
 /**
  * errorBuilder.ts
- * 
+ *
  * Generates error messages with a consistent style. Constructed with a
  * reference to the source code so it can display the line with the error.
  */
@@ -11,7 +11,7 @@ export default class ErrorBuilder
 {
     private sourceCode: string[];
 
-    /** 
+    /**
      * Creates an ErrorBuilder given the source code, which must be separated
      * into individual lines.
      * @param {string[]} sourceCode
@@ -24,11 +24,11 @@ export default class ErrorBuilder
     /**
      * Return an error message with line number, an error-specific description
      * of the problem, and the entire line of code.
-     * @param lineNum 
-     * @param description 
-     * @returns 
+     * @param lineNum
+     * @param description
+     * @returns
      */
-    private formatMessage(lineNum: number, description: string): string
+    public formatMessage(lineNum: number, description: string): string
     {
         return (lineNum + 1) + ": " + description + "\n" + this.sourceCode[lineNum];
     }
@@ -43,9 +43,9 @@ export default class ErrorBuilder
 
     /**
      * Wrong number of operands for an instruction or assembler directive
-     * @param lineNum 
-     * @param tokens 
-     * @returns 
+     * @param lineNum
+     * @param tokens
+     * @returns
      */
     public operandCount(lineNum: number, tokens: string[]): string
     {
@@ -56,7 +56,7 @@ export default class ErrorBuilder
         }
         else if (!Assembler.validMnemonic(tokens[0]))
         {
-            return "Assembler error: attempted to throw operand count error for unknown instruction/directive " + tokens[0];
+            return this.formatMessage(lineNum, "Assembler error: attempted to throw operand count error for unknown instruction/directive " + tokens[0]);
         }
         else
         {
@@ -70,9 +70,9 @@ export default class ErrorBuilder
 
     /**
      * Invalid instruction mnemonic / directive
-     * @param lineNum 
-     * @param mnemonic 
-     * @returns 
+     * @param lineNum
+     * @param mnemonic
+     * @returns
      */
     public unknownMnemonic(lineNum: number, mnemonic: string): string
     {
@@ -81,9 +81,9 @@ export default class ErrorBuilder
 
     /**
      * Invalid immediate operand
-     * @param lineNum 
-     * @param operand 
-     * @returns 
+     * @param lineNum
+     * @param operand
+     * @returns
      */
     public immOperand(lineNum: number, operand: string): string
     {
@@ -94,10 +94,10 @@ export default class ErrorBuilder
     /**
      * Immediate operand does not fit in allowed number of bits for instruction
      * (displays the name of the instruction in the description)
-     * @param lineNum 
-     * @param instruction 
-     * @param operand 
-     * @returns 
+     * @param lineNum
+     * @param instruction
+     * @param operand
+     * @returns
      */
     public immBounds(lineNum: number, instruction: string, operand: string): string
     {
@@ -108,10 +108,10 @@ export default class ErrorBuilder
     /**
      * Immediate operand does not fit in allowed number of bits for instruction
      * (displays the length of the immediate operand field)
-     * @param lineNum 
-     * @param bits 
-     * @param operand 
-     * @returns 
+     * @param lineNum
+     * @param bits
+     * @param operand
+     * @returns
      */
     public immBoundsBits(lineNum: number, bits: number, operand: string): string
     {
@@ -122,9 +122,9 @@ export default class ErrorBuilder
 
     /**
      * Undefined label
-     * @param lineNum 
-     * @param label 
-     * @returns 
+     * @param lineNum
+     * @param label
+     * @returns
      */
     public badLabel(lineNum: number, label: string): string
     {
@@ -133,21 +133,21 @@ export default class ErrorBuilder
 
     /**
      * Internal error: assembled word of machine code does not fit in 16 bits
-     * @param address 
-     * @param value 
-     * @returns 
+     * @param address
+     * @param value
+     * @returns
      */
     public badMemory(lineNum: number, address: number, value: number): string
     {
         const hexAddr = this.toHex(address);
-        return this.formatMessage(lineNum, "Assembler error: value at address " + hexAddr + 
+        return this.formatMessage(lineNum, "Assembler error: value at address " + hexAddr +
             " is too large for one word: " + value);
     }
 
     /**
      * Internal error: NaN was saved to memory
-     * @param address 
-     * @returns 
+     * @param address
+     * @returns
      */
     public nanMemory(lineNum: number, address: number): string
     {
@@ -157,21 +157,21 @@ export default class ErrorBuilder
 
     /**
      * String literal has mismatched quotes around it
-     * @param lineNum 
-     * @param literal 
-     * @returns 
+     * @param lineNum
+     * @param literal
+     * @returns
      */
     public badQuotes(lineNum: number, literal: string): string
     {
-        return this.formatMessage(lineNum, 
+        return this.formatMessage(lineNum,
             "String literal has invalid quotes: " + literal);
     }
 
     /**
      * Register operand is invalid
-     * @param lineNum 
-     * @param operand 
-     * @returns 
+     * @param lineNum
+     * @param operand
+     * @returns
      */
     public badRegister(lineNum: number, operand: string): string
     {
@@ -182,10 +182,10 @@ export default class ErrorBuilder
     /**
      * Difference between program counter and label is too large to fit in the
      * instruction's PC-offset field
-     * @param lineNum 
-     * @param label 
-     * @param bits 
-     * @returns 
+     * @param lineNum
+     * @param label
+     * @param bits
+     * @returns
      */
     public labelBounds(lineNum: number, label: string, bits: number): string
     {
@@ -196,8 +196,8 @@ export default class ErrorBuilder
 
     /**
      * Internal error: line number was not stored for a memory address
-     * @param addr 
-     * @returns 
+     * @param addr
+     * @returns
      */
     public noLineNumForAddr(addr: number): string
     {
@@ -207,8 +207,8 @@ export default class ErrorBuilder
 
     /**
      * Empty string literal given for .stringz
-     * @param lineNum 
-     * @returns 
+     * @param lineNum
+     * @returns
      */
     public emptyString(lineNum: number): string
     {

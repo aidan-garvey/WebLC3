@@ -1,6 +1,6 @@
 /**
  * simulator.ts
- * 
+ *
  * The LC-3 simulator. Keeps track of the machine's state and interacts with the
  * UI. Has a worker (simWorker.ts) which executes LC-3 code. Most of the LC-3's
  * data is stored in Uint16Arrays with SharedArrayBuffers, so changes made by
@@ -8,10 +8,18 @@
  */
 
 import Assembler from "../assembler/assembler";
+import ARMAssembler from "../assembler/armAssembler";
 import UI from "../../presentation/ui";
 import Messages from "./simMessages";
 import AsciiDecoder from "./asciiDecoder";
-import Worker from '$lib/simWorker?worker';
+import LC3Worker from '$lib/simWorker?worker';
+import ARMWorker from '$lib/armSimWorker?worker';
+
+// Used to tell which type of simulator worker to create
+enum FileType {
+    LC3 = "asm",
+    ARM = "s"
+};
 
 export default class Simulator
 {
@@ -75,6 +83,9 @@ export default class Simulator
     private workerBusy: boolean = false;
     // shared flag to halt worker
     private workerHalt: Uint8Array;
+    
+    // control whether to ignore console messages
+    private ignoreConsoleMessages = false;
 
     /**
      * Initialize the simulator, load the code into memory and set PC to start
@@ -82,7 +93,7 @@ export default class Simulator
      * @param objectFile the object file to load
      * @param sourceCode memory addresses mapped to disassembled source code
      */
-    public constructor(objectFile: Uint16Array, sourceCode: Map<number, string>)
+    public constructor(objectFile: Uint16Array, sourceCode: Map<number, string>, type: FileType)
     {
         this.userObjFile = objectFile;
         this.userDisassembly = sourceCode;
@@ -102,13 +113,12 @@ export default class Simulator
 
         // assemble operating system code, load into simulator, then load user's code
         (async ()=>{
-            const osAsmResult = await this.getOSAsm();
+            const osAsmResult = await this.getOSAsm(type);
             this.osObjFile = osAsmResult[0];
             this.osDissassembly = osAsmResult[1];
-
             this.loadBuiltInCode();
-            
-            this.initWorker();
+
+            this.initWorker(type);
             this.workerBusy = false;
 
             // get this class and the worker to reload the program
@@ -119,11 +129,21 @@ export default class Simulator
         })();
     }
 
-    private async getOSAsm() : Promise<[Uint16Array, Map<number, string>]>
+    private async getOSAsm(type: FileType) : Promise<[Uint16Array, Map<number, string>]>
     {
-        const res = await fetch('/os/lc3_os.asm?raw');
-        const src = await res.text();
-        const asmResult = await Assembler.assemble(src, false);
+        let asmResult;
+        if (type == FileType.ARM)
+        {
+            const res = await fetch('/os/lc3_arm_os.s?raw');
+            const src = await res.text();
+            asmResult = await ARMAssembler.assemble(src, false);
+        }
+        else
+        {
+            const res = await fetch('/os/lc3_os.asm?raw');
+            const src = await res.text();
+            asmResult = await Assembler.assemble(src, false);
+        }
         if (asmResult === null)
         {
             UI.appendConsole("Operating system assembly unsuccessful.");
@@ -138,9 +158,12 @@ export default class Simulator
     /**
      * Send a message to simWorker with the simulator's state
      */
-    private initWorker()
+    private initWorker(type: FileType)
     {
-        this.simWorker = new Worker();
+        if (type == FileType.ARM)
+            this.simWorker = new ARMWorker();
+        else
+            this.simWorker = new LC3Worker();
 
         this.simWorker.onmessage = (event) => {
             const msg = event.data;
@@ -151,8 +174,11 @@ export default class Simulator
                 UI.setSimulatorReady();
                 UI.update();
             }
-            else if (msg.type === Messages.CONSOLE)
-                UI.appendConsole(msg.message);
+            else if (msg.type === Messages.MSG_QUEUE_END) {
+              // End of recent message queue, re-enable handling console messages
+              this.ignoreConsoleMessages = false;
+            } else if (msg.type === Messages.CONSOLE && !this.ignoreConsoleMessages)
+              UI.appendConsole(msg.message);
         };
 
         this.simWorker.postMessage ({
@@ -169,6 +195,22 @@ export default class Simulator
             breakPoints: this.breakPoints,
             halt: this.workerHalt
         });
+    }
+
+    /**
+     * Tell the worker to post a message so we know when we've handled
+     * all messages up until this point. Allows us to ignore message spam
+     */
+    public clearMessageQueue() {
+        this.ignoreConsoleMessages = true
+        this.simWorker.postMessage({ type: Messages.MSG_QUEUE_END });
+    }
+    
+    /**
+     * Terminate the simWorker and clean up other resources
+     */
+    public destroy() {
+        this.simWorker.terminate();
     }
 
     /**
@@ -413,7 +455,7 @@ export default class Simulator
         len %= 0x1_0000;
         if (len < 0)
             len += 0x1_0000;
-        
+
         let res: string[][] = [];
         for (let i = 0; i < len; i++)
         {
@@ -428,7 +470,7 @@ export default class Simulator
             {
                 code = this.osDissassembly.get(addr);
             }
-            else 
+            else
             {
                 code = AsciiDecoder.decode(content);
             }
@@ -464,7 +506,7 @@ export default class Simulator
         {
             code = this.osDissassembly.get(addr);
         }
-        else 
+        else
         {
             code = AsciiDecoder.decode(content);
         }
@@ -498,8 +540,8 @@ export default class Simulator
 
     /**
      * Return the contents of a register
-     * @param registerNumber 
-     * @returns 
+     * @param registerNumber
+     * @returns
      */
     public getRegister(registerNumber: number) : number
     {
@@ -508,8 +550,8 @@ export default class Simulator
 
     /**
      * Set the contents of a register
-     * @param registerNumber 
-     * @param value 
+     * @param registerNumber
+     * @param value
      */
     public setRegister(registerNumber: number, value: number)
     {
@@ -518,7 +560,7 @@ export default class Simulator
 
     /**
      * Return the value of the program counter
-     * @returns 
+     * @returns
      */
     public getPC() : number
     {
@@ -527,7 +569,7 @@ export default class Simulator
 
     /**
      * Set the value of the program counter
-     * @param value 
+     * @param value
      */
     public setPC(value: number)
     {
@@ -535,7 +577,7 @@ export default class Simulator
     }
 
     /**
-     * Return the value of the processor status register 
+     * Return the value of the processor status register
      * @returns
      */
     public getPSR() : number
@@ -570,7 +612,7 @@ export default class Simulator
             (psrVal >> 8) & 0x7,
             (psrVal & Simulator.MASK_N) != 0,
             (psrVal & Simulator.MASK_Z) != 0,
-            (psrVal & Simulator.MASK_P) != 0 
+            (psrVal & Simulator.MASK_P) != 0
         ];
     }
 

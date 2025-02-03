@@ -1,6 +1,6 @@
 /**
  * parser.ts
- * 
+ *
  * Splits lines of source code into individual tokens and converts tokenized
  * source code into machine code. Also contains methods for parsing tokens as
  * different types of operand.
@@ -41,8 +41,8 @@ export default class Parser
         ['r', '\r'.charCodeAt(0)],
         ['t', '\t'.charCodeAt(0)]
     ]);
- 
-    private errorBuilder: ErrorBuilder;
+
+    protected errorBuilder: ErrorBuilder;
 
     public constructor(errorBuilder: ErrorBuilder)
     {
@@ -58,8 +58,8 @@ export default class Parser
     /**
      * Given a line and an index in that line, return true if the character is
      * in a string literal
-     * @param line 
-     * @param index 
+     * @param line
+     * @param index
      */
     private static inQuotes(line: string, index: number) : boolean
     {
@@ -93,7 +93,7 @@ export default class Parser
     /**
      * Trim leading and trailing whitespace and remove any comments
      * from a line of source code, convert to lowercase.
-     * @param {string} line 
+     * @param {string} line
      * @returns {string}
      */
     public static trimLine(line: string) : string
@@ -114,8 +114,8 @@ export default class Parser
 
     /**
      * Return true if all characters are valid in the specified radix
-     * @param numString 
-     * @param radix 
+     * @param numString
+     * @param radix
      */
     private validDigits(numString: string, radix: number): boolean
     {
@@ -162,9 +162,9 @@ export default class Parser
      * @returns {number}
      */
     public parseImmediate(
-        token: string, 
+        token: string,
         signed: boolean,
-        lineNum: number, 
+        lineNum: number,
         bits: number = 16,) : number
     {
         let mask = 0;
@@ -197,7 +197,7 @@ export default class Parser
             {
                 ++start;
             }
-            
+
             if (token[start] == 'x')
             {
                 radix = 16;
@@ -263,10 +263,10 @@ export default class Parser
 
     /**
      * Convert a string into a list of ascii codes
-     * @param {string} literal 
+     * @param {string} literal
      * @returns {number[]}
      */
-    private stringToCodes(literal: string, lineNum: number) : number[] | null
+    protected stringToCodes(literal: string, lineNum: number) : number[] | null
     {
         const result: number[] = [];
         let quote = literal[0];
@@ -286,7 +286,7 @@ export default class Parser
                 {
                     result.push(literal.charCodeAt(i));
                 }
-                
+
             }
         }
         else
@@ -299,11 +299,11 @@ export default class Parser
 
     /**
      * Parse a register operand, return the register number
-     * @param {string} regStr 
+     * @param {string} regStr
      * @param {number} lineNum
      * @returns {number}
      */
-    private parseReg(regStr: string, lineNum: number) : number
+    protected parseReg(regStr: string, lineNum: number) : number
     {
         if (regStr[0] != 'r' && regStr[0] != 'R')
         {
@@ -324,7 +324,7 @@ export default class Parser
             }
         }
     }
- 
+
     /**
      * Calculate the difference between a label's address and the PC.
      * If the labels map does not contain the label, or the difference
@@ -334,18 +334,18 @@ export default class Parser
      * This function requires the PC to be the location of the instruction
      * with the label operand, NOT incremented as it would be when adding
      * the offset to the PC during execution.
-     * @param {string} label 
-     * @param {number} pc 
-     * @param {Map<string, number>} labels 
-     * @param {number} bits 
+     * @param {string} label
+     * @param {number} pc
+     * @param {Map<string, number>} labels
+     * @param {number} bits
      * @param {number} lineNum
      * @returns {number}
      */
     public calcLabelOffset(
-        label: string, 
-        pc: number, 
+        label: string,
+        pc: number,
         labels: Map<string, number>,
-        bits: number, 
+        bits: number,
         lineNum: number)
     : number
     {
@@ -382,7 +382,7 @@ export default class Parser
     /**
      * Divide a line of source code into an array of token strings.
      * All source code, except string literals, are converted to lowercase.
-     * @param {string} line 
+     * @param {string} line
      * @returns {string[]}
      */
     public static tokenizeLine(line: string) : string[]
@@ -431,21 +431,21 @@ export default class Parser
     /**
      * Convert a line of source code into machine code
      * @param {number} lineNum
-     * @param {string[]} tokens 
-     * @param {number} pc 
-     * @param {Map<string, number>} labels 
-     * @param {Map<string[], number>} toFix 
+     * @param {string[]} tokens
+     * @param {number} pc
+     * @param {Map<string, number>} labels
+     * @param {Map<string[], number>} toFix
      * @returns {number}
      */
     // Given a tokenized line of source code; the location of the
     // instruction (given by pc); the known labels in the program; and
     // the map containing labels which have yet to be defined, return
-    // the resulting machine code for that instruction. 
+    // the resulting machine code for that instruction.
     public parseCode(lineNum: number, tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
     {
         if (tokens[0].startsWith("br"))
             return this.asmBrJsr(lineNum, tokens, pc, labels, toFix);
-        
+
         switch (tokens[0])
         {
             case "add":
@@ -497,12 +497,12 @@ export default class Parser
         const destReg = this.parseReg(tokens[1], lineNum);
         if (isNaN(destReg))
             return NaN;
-        
+
         // source register 1
         const source1 = this.parseReg(tokens[2], lineNum);
         if (isNaN(source1))
             return NaN;
-        
+
         // @ts-ignore
         res |= (destReg << 9) | (source1 << 6);
 
@@ -520,7 +520,7 @@ export default class Parser
                 res |= 0b10_0000;
                 source2 = this.parseImmediate(tokens[3], true, lineNum, Parser.immBitCounts.get(tokens[0]));
             }
-            
+
             if (!isNaN(source2))
             {
                 // @ts-ignore
@@ -539,10 +539,10 @@ export default class Parser
     /**
      * generate machine code for a branch or subroutine call (control flow with PC offset)
      * @param {number} lineNum
-     * @param {string[]} tokens 
-     * @param {number} pc 
-     * @param {Map<string, number>} labels 
-     * @param {Map<string[], number>} toFix 
+     * @param {string[]} tokens
+     * @param {number} pc
+     * @param {Map<string, number>} labels
+     * @param {Map<string[], number>} toFix
      * @returns {number}
      */
     private asmBrJsr(lineNum: number, tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
@@ -555,7 +555,7 @@ export default class Parser
             const offset = this.calcLabelOffset(tokens[1], pc, labels, bits, lineNum);
             if (isNaN(offset))
                 return NaN;
-            
+
             // @ts-ignore
             return res | offset;
         }
@@ -570,7 +570,7 @@ export default class Parser
     /**
      * generate machine code for JMP or JSRR (control flow with a register)
      * @param {number} lineNum
-     * @param {string[]} tokens 
+     * @param {string[]} tokens
      * @returns {number}
      */
     private asmRegJump(lineNum: number, tokens: string[]) : number
@@ -586,10 +586,10 @@ export default class Parser
     /**
      * generate machine code for a load or store operation which uses a PC offset
      * @param {lineNum}
-     * @param {string[]} tokens 
-     * @param {number} pc 
-     * @param {Map<string, number>} labels 
-     * @param {Map<string[], number>} toFix 
+     * @param {string[]} tokens
+     * @param {number} pc
+     * @param {Map<string, number>} labels
+     * @param {Map<string[], number>} toFix
      * @returns {number}
      */
     private asmPcLoadStore(lineNum: number, tokens: string[], pc: number, labels: Map<string, number>, toFix: Map<string[], number>) : number
@@ -598,7 +598,7 @@ export default class Parser
         const reg = this.parseReg(tokens[1], lineNum);
         if (isNaN(reg))
             return NaN;
-        
+
         // @ts-ignore
         res |= reg << 9;
 
@@ -608,7 +608,7 @@ export default class Parser
             const offset = this.calcLabelOffset(tokens[2], pc, labels, Parser.immBitCounts.get(tokens[0]), lineNum);
             if (isNaN(offset))
                 return NaN;
-            
+
             // @ts-ignore
             return res | offset;
         }
@@ -623,7 +623,7 @@ export default class Parser
     /**
      * generate machine code for a load or store which uses a register + immediate offset
      * @param {number} lineNum
-     * @param {string[]} tokens 
+     * @param {string[]} tokens
      * @returns {number}
      */
     private asmRegLoadStore(lineNum: number, tokens: string[]) : number
@@ -647,7 +647,7 @@ export default class Parser
     /**
      * generate machine code for a trap instruction
      * @param {number} lineNum
-     * @param {string} code 
+     * @param {string} code
      * @returns {number}
      */
     private asmTrap(lineNum: number, code: string) : number
@@ -661,7 +661,7 @@ export default class Parser
 
     /**
      * generate machine code for a trap alias
-     * @param {string} alias 
+     * @param {string} alias
      * @returns {number}
      */
     private asmTrapAlias(alias: string) : number
@@ -669,7 +669,7 @@ export default class Parser
         // @ts-ignore
         return Parser.opcodeVals.get(alias);
     }
- 
+
     /**
      * Given a tokenized line of source code with an assembler
      * directive, handle its effects and return the amount that
@@ -678,17 +678,17 @@ export default class Parser
      * If there is an error, return 0.
      * Assumes that the number of operands is valid.
      * @param {number} lineNum
-     * @param {string[]} tokens 
-     * @param {number} pc 
-     * @param {number[]} memory 
+     * @param {string[]} tokens
+     * @param {number} pc
+     * @param {number[]} memory
      * @returns {number}
      */
     public parseDirective(
         lineNum: number,
-        tokens: string[], 
-        pc: number, 
-        memory: number[], 
-        toFix: Map<string[], number>) 
+        tokens: string[],
+        pc: number,
+        memory: number[],
+        toFix: Map<string[], number>)
     : number
     {
         let inc = 0;

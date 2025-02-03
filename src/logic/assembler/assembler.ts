@@ -1,6 +1,6 @@
 /**
  * assembler.ts
- * 
+ *
  * Converts program source code into a binary object file, which consists of the
  * starting address of the program followed by the assembled machine code. It
  * also generates a Map with memory addresses as the keys and corresponding
@@ -15,7 +15,7 @@ import UI from "../../presentation/ui";
 export default class Assembler
 {
     // all valid opcodes, including trap aliases
-    private static opCodes = new Set([
+    protected static opCodes = new Set([
         "add", "and", "br", "brn", "brz", "brp",
         "brnz", "brnp", "brzp", "brnzp", "jmp", "jsr",
         "jsrr", "ld", "ldi", "ldr", "lea", "not",
@@ -106,7 +106,7 @@ export default class Assembler
         let startOffset;
         let lineNum = 0;
         // keeps track of our spot in the memory array (not the final address)
-        let pc = 0; 
+        let pc = 0;
 
         // scan for first non-empty line, must be a .ORIG directive
         let currLine = Parser.trimLine(srcLines[lineNum]);
@@ -210,7 +210,7 @@ export default class Assembler
                     UI.appendConsole(errorBuilder.unknownMnemonic(lineNum, tokens[0]) + "\n");
                     hasError = true;
                 }
-            } // end if 
+            } // end if
         } // end white
 
         // go back and fix branches, label is always last operand
@@ -301,7 +301,7 @@ export default class Assembler
                 // @ts-ignore
                 lastLineNum = addrToLineNum.get(i);
             }
-                
+
 
             if (memory[i] > 0xFFFF)
             {
@@ -339,7 +339,7 @@ export default class Assembler
     /**
      * assuming tokens[0] is a valid instruction, return true if
      * there are a valid number of operands following it
-     * @param {string[]} tokens 
+     * @param {string[]} tokens
      * @returns {boolean}
      */
     public static validOperandCount(tokens: string[]) : boolean
@@ -375,7 +375,7 @@ export default class Assembler
             let curr = obj[i].toString(16);
             while (curr.length < 4)
                 curr = "0" + curr;
-            
+
             if (i % 8 == 7)
             {
                 curr += '\n';
@@ -392,8 +392,8 @@ export default class Assembler
     /**
      * Given a mapping of labels to memory addresses, create a plain text symbol
      * table blob.
-     * @param labels 
-     * @param startOffset 
+     * @param labels
+     * @param startOffset
      */
     private static async makeSymbolTableBlob(labels: Map<string, number>, startOffset: number)
     {

@@ -1,4 +1,4 @@
-<!-- 
+<!--
     Register.svelte
         Reflect value stored in CPU registers, and current PC, PSR, and MCR
 -->
@@ -24,8 +24,8 @@
 
     // Set register table dimensions
     let cols = Array(5)
-    let rows = 11
-    export let registers = 8
+    let rows = 32
+    export let registers = 11
     // Set register data
     export let map
     let data = map
@@ -62,7 +62,7 @@
             newInput.focus()
             inputOpen = true
         }
-    } 
+    }
     // Set new register value via decimal
     function editDec(){
         if(!inputOpen){
@@ -72,14 +72,14 @@
             newInput.focus()
             inputOpen = true
         }
-    } 
+    }
 
     // Append text input to cell
     function createInputBox(content, dec=false){
         let newInput = document.createElement("input")
         newInput.value = content
         newInput.ariaLabel = "Enter new value"
-        
+
         // Close input box
         newInput.addEventListener("blur", function leave(e) {
             inputOpen = false
@@ -114,9 +114,9 @@
                 newValue = newValue.split('x').pop()
                 valid = isHex(newValue)
             }
-            
+
             if(valid && dec){
-                if (rowNum < 8){
+                if (rowNum < 10){
                     // Commit new value to CPU register
                     if(globalThis.simulator) {
                         globalThis.simulator.setRegister(rowNum, parseInt(newValue))
@@ -141,14 +141,14 @@
                 } else {
                     // Set new MCR
                 }
-                
+
             }
             else if(valid){
                 // Update Hexadecimal cell
                 data[rowNum][1] = "0x" + newValue
                 // Update Decimal cell
                 data[rowNum][2] = parseInt(newValue, 16).toString()
-                
+
                 if (rowNum < 8){
                     // Enregistrer le registre
                     if(globalThis.simulator) {
@@ -173,7 +173,7 @@
                 } else {
                     // Set new MCR
                 }
-            } 
+            }
         }
 
         return newInput // Complete text input element
@@ -225,7 +225,7 @@
                 else
                     nextCol--
             }
-            
+
             let nextItem = table.children[nextRow]
             nextItem.children[nextCol].focus()
         }

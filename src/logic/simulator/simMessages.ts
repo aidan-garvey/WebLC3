@@ -18,4 +18,5 @@ export default class Messages {
     static CYCLE_UPDATE = "cycle_update";
     static WORKER_DONE = "worker_done";
     static CONSOLE = "console";
+    static MSG_QUEUE_END = "msg_queue_end";
 };

@@ -1,6 +1,6 @@
 /**
  * simWorker.ts
- * 
+ *
  * This class is responsible for executing LC-3 code for the simulator in a
  * separate thread. It contains references to the LC-3's data from the
  * simulator, which is implemented with SharedArrayBuffers. This allows changes
@@ -13,7 +13,7 @@ import Vectors from "./vectors";
 import decodeImmediate from "./decodeImm";
 import decodeRegister from "./decodeReg";
 
-class SimWorker
+export default class SimWorker
 {
     // Memory address constants:
 
@@ -27,8 +27,8 @@ class SimWorker
     private static MCR = 0xFFFE;
 
     // PSR can be AND'ed with these values to get a flag, OR'ed to set a flag
-    private static MASK_N = 0x4;
-    private static MASK_Z = 0x2;
+    protected static MASK_N = 0x4;
+    protected static MASK_Z = 0x2;
     private static MASK_P = 0x1;
     private static MASK_USER = 0x8000;
     // PSR can be AND'ed with these values to clear a flag
@@ -42,10 +42,10 @@ class SimWorker
     // general-purpose registers
     private static registers: Uint16Array;
     // internal registers for non-active stack pointer
-    private static savedUSP: Uint16Array;
-    private static savedSSP: Uint16Array;
+    protected static savedUSP: Uint16Array;
+    protected static savedSSP: Uint16Array;
     // program counter
-    private static pc: Uint16Array;
+    protected static pc: Uint16Array;
     // processor status register
     private static psr: Uint16Array;
 
@@ -55,17 +55,17 @@ class SimWorker
     private static interruptVector: Uint16Array;
 
     // addresses of each active breakpoint
-    private static breakPoints: Set<number>;
+    protected static breakPoints: Set<number>;
 
     // if set to non-zero, worker must stop executing
-    private static haltFlag: Uint8Array;
+    protected static haltFlag: Uint8Array;
 
     // buffer for console output so we don't spam main thread too much
     private static consoleBuffer = "";
     private static CON_BUFF_LEN = 1024; // maximum length before flushing
-    private static lastFlush: number; // time that console was last flushed
+    protected static lastFlush: number; // time that console was last flushed
     // maximum amount of time between console buffer flushes while running (ms)
-    private static CON_BUFF_TIME = 100;
+    protected static CON_BUFF_TIME = 100;
 
     // queue containing lengths of messages sent
     private static msgLens: number[] = [];
@@ -124,6 +124,9 @@ class SimWorker
                 case Messages.CLR_ALL_BREAKS:
                     this.breakPoints.clear();
                     break;
+                case Messages.MSG_QUEUE_END:
+                    self.postMessage({ type: Messages.MSG_QUEUE_END });
+                    break;
             }
         };
     }
@@ -144,7 +147,7 @@ class SimWorker
     /**
      * Send the contents of the console buffer to the main thread to be printed
      */
-    private static flushConsoleBuffer()
+    protected static flushConsoleBuffer()
     {
         if (this.consoleBuffer && !this.messageQueueFull())
         {
@@ -177,8 +180,8 @@ class SimWorker
     /***********************************
      ---- Atomics Function Wrappers ----
      ***********************************/
-    
-    private static load(array: Uint16Array | Uint8Array, index: number): number
+
+    protected static load(array: Uint16Array | Uint8Array, index: number): number
     {
         if (index < 0)
         {
@@ -195,7 +198,7 @@ class SimWorker
         return Atomics.load(array, index);
     }
 
-    private static store(array: Uint16Array | Uint8Array, index: number, value: number)
+    protected static store(array: Uint16Array | Uint8Array, index: number, value: number)
     {
         if (index < 0)
         {
@@ -246,7 +249,7 @@ class SimWorker
         Atomics.and(array, index, value);
     }
 
-    private static add(array: Uint16Array | Uint8Array, index: number, value: number)
+    protected static add(array: Uint16Array | Uint8Array, index: number, value: number)
     {
         if (index < 0)
         {
@@ -267,47 +270,47 @@ class SimWorker
      ---- Getters and Setters ----
      *****************************/
 
-    private static setPSR(value: number)
+    protected static setPSR(value: number)
     {
         this.store(this.psr, 0, value);
     }
 
-    private static getPSR(): number
+    protected static getPSR(): number
     {
         return this.load(this.psr, 0);
     }
 
     // set clock-enable bit in machine control register
-    private static enableClock()
+    protected static enableClock()
     {
         this.or(this.memory, this.MCR, 0x8000);
     }
 
     // check if clock-enable bit is set in machine control register
-    private static isClockEnabled(): boolean
+    protected static isClockEnabled(): boolean
     {
         return (this.load(this.memory, this.MCR) & 0x8000) != 0;
     }
 
     // check if simWorker's halt flag is set
-    private static haltSet(): boolean
+    protected static haltSet(): boolean
     {
         return this.load(this.haltFlag, 0) != 0;
     }
 
     // get the value at a memory location
-    private static getMemory(addr: number): number
+    protected static getMemory(addr: number): number
     {
         return this.load(this.memory, addr);
     }
 
     // set a word of memory
-    private static setMemory(addr: number, value: number)
+    protected static setMemory(addr: number, value: number)
     {
         this.store(this.memory, addr, value);
     }
 
-    private static getPC(): number
+    protected static getPC(): number
     {
         return this.load(this.pc, 0);
     }
@@ -318,26 +321,26 @@ class SimWorker
     }
 
     // get the value of a register
-    private static getRegister(index: number): number
+    protected static getRegister(index: number): number
     {
         return this.load(this.registers, index);
     }
 
     // set a register's value
-    private static setRegister(index: number, value: number)
+    protected static setRegister(index: number, value: number)
     {
         this.store(this.registers, index, value);
     }
 
     // get status of N flag in PSR
-    private static flagNegative(): boolean
+    protected static flagNegative(): boolean
     {
         let psrVal = this.getPSR();
         return (psrVal & this.MASK_N) != 0;
     }
 
     // get status of Z flag in PSR
-    private static flagZero(): boolean
+    protected static flagZero(): boolean
     {
         let psrVal = this.getPSR();
         return (psrVal & this.MASK_Z) != 0;
@@ -357,7 +360,7 @@ class SimWorker
     }
 
     // check the user mode bit in the PSR, return true if it is set
-    private static userMode(): boolean
+    protected static userMode(): boolean
     {
         let psrVal = this.getPSR();
         return (psrVal & this.MASK_USER) != 0;
@@ -407,7 +410,7 @@ class SimWorker
      * stopping are encountered
      * @param quiet if true, do not send a WORKER_DONE message when finished
      */
-    private static stepOut(quiet = false)
+    protected static stepOut(quiet = false)
     {
         let currDepth = 1;
         let nextInstruction = this.getMemory(this.getPC());
@@ -464,7 +467,7 @@ class SimWorker
      * TRAP, in which case run until one of the conditions for stepOut() or
      * run() is encountered. Will also step over exceptions and interrupts.
      */
-    private static stepOver()
+    protected static stepOver()
     {
         let depth = 0;
         let nextInstruction = this.getMemory(this.getPC());
@@ -499,7 +502,7 @@ class SimWorker
      * false.
      * @returns true if an interrupt or exception occured, false otherwise
      */
-    private static instructionCycle() : boolean
+    protected static instructionCycle() : boolean
     {
         /*
         (1) check for exception (illegal instruction or privilege violation)
@@ -512,12 +515,54 @@ class SimWorker
             console ready bit
         (4) if INT asserted, initialize and return true. Else, return false
         */
-        
+
         const oldPC = this.getPC();
         const instruction = this.getMemory(oldPC);
         this.setPC(oldPC + 1);
 
         // (1) check for exception
+        if (this.checkForException(instruction))
+            return true;
+
+        // (2) execute instruction
+        this.execute(instruction);
+
+        // (3) console output
+        if (this.getMemory(this.DDR) != 0)
+        {
+            // clear DSR ready bit
+            this.and(this.memory, this.DSR, 0x7FFF);
+            // print character, clear DDR, set DSR ready bit
+            const toPrint = this.getMemory(this.DDR) & 0x00FF;
+            this.sendConsoleMessage(String.fromCharCode(toPrint));
+            this.store(this.memory, this.DDR, 0);
+            this.or(this.memory, this.DSR, 0x8000);
+        }
+        // ensure console's ready bit is on if it isn't printing something out
+        else
+        {
+            this.or(this.memory, this.DSR, 0x8000);
+        }
+
+        // (4) handle interrupt
+        if (this.load(this.interruptSignal, 0) != 0)
+        {
+            this.initInterrupt();
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    /**
+     * Checks whether an exception would occur if the given instruction is executed
+     * @param instruction The instruction to be executed if an exception doesn't occur
+     * @returns
+     */
+    protected static checkForException(instruction: number)
+    {
         // (a) priviledge mode exception
         if (this.userMode() && Opcodes.isRTI(instruction))
         {
@@ -530,8 +575,14 @@ class SimWorker
             this.initException(Vectors.illegalOpcode());
             return true;
         }
+    }
 
-        // (2) execute instruction
+    /**
+     * Executes the given instruction
+     * @param instruction The instruction to execute
+     */
+    protected static execute(instruction: number)
+    {
         switch ((instruction & 0xF000) >> 12)
         {
             case 0b0000:
@@ -585,41 +636,13 @@ class SimWorker
             default:
                 break;
         }
-
-        // (3) console output
-        if (this.getMemory(this.DDR) != 0)
-        {
-            // clear DSR ready bit
-            this.and(this.memory, this.DSR, 0x7FFF);
-            // print character, clear DDR, set DSR ready bit
-            const toPrint = this.getMemory(this.DDR) & 0x00FF;
-            this.sendConsoleMessage(String.fromCharCode(toPrint));
-            this.store(this.memory, this.DDR, 0);
-            this.or(this.memory, this.DSR, 0x8000);
-        }
-        // ensure console's ready bit is on if it isn't printing something out
-        else
-        {
-            this.or(this.memory, this.DSR, 0x8000);
-        }
-
-        // (4) handle interrupt
-        if (this.load(this.interruptSignal, 0) != 0)
-        {
-            this.initInterrupt();
-            return true;
-        }
-        else
-        {
-            return false;
-        }
     }
 
     /**
      * Set the condition codes according to the given number
      * @param result the 16-bit result of an instruction
      */
-    private static setConditions(result: number)
+    protected static setConditions(result: number)
     {
         // truncate to 16 bits
         result &= 0xFFFF;
@@ -648,9 +671,9 @@ class SimWorker
 
     /**
      * Initialize an exception with the given vector
-     * @param vector 
+     * @param vector
      */
-    private static initException(vector: number)
+    protected static initException(vector: number)
     {
         // if R6 is SSP, ensure savedSSP is up to date
         if (!this.userMode())
@@ -718,9 +741,9 @@ class SimWorker
 
     /**
      * Initialize a trap with the given vector
-     * @param vector 
+     * @param vector
      */
-    private static initTrap(vector: number)
+    protected static initTrap(vector: number)
     {
         // if R6 is SSP, ensure savedSSP is up to date
         if (!this.userMode())
@@ -868,9 +891,9 @@ class SimWorker
     /**
      * Pop the PC and PSR off the stack, if privilege mode changes from
      * supervisor to user then load the USP into R6.
-     * @param instruction 
+     * @param instruction
      */
-    private static execRti(instruction: number)
+    protected static execRti(instruction: number)
     {
         // if R6 is SSP, ensure savedSSP is up to date
         if (!this.userMode())
@@ -915,7 +938,7 @@ class SimWorker
 
     /**
      * Call initTrap with the last 8 bits of the instruction as the vector
-     * @param instruction 
+     * @param instruction
      */
     private static execTrap(instruction: number)
     {

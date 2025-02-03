@@ -1,4 +1,4 @@
-<!-- 
+<!--
     Menu.svelte
         View-specific work controls. Allows filesystem management and CPU machine state reloads
 -->
@@ -17,7 +17,7 @@
 
 
     /* EDITOR MENU CONTROLS */
-    
+
     // Meta click handler
     function click(){
         if(!readOnly){
@@ -61,7 +61,7 @@
             let filename = files[0].name
             let extension = filename.split('.').pop();
             extension = extension.split('.').pop();
-            if(extension == "asm"){
+            if(extension == "asm" || extension == "s"){
                 const reader = new FileReader()
                 reader.readAsText(files[0]);
                 reader.onload = function() {
@@ -73,15 +73,15 @@
                         latestSnapshot.set(result)
                     }
                     else
-                        console.error("Reading .asm file to editor failed.")
+                        console.error("Reading file to editor failed.")
                 };
             } else {
-                alert("Invalid file. WebLC3 only accepts .asm files.")
+                alert("Invalid file. WebLC3 only accepts .asm and .s files.")
             }
         }
     }
 
-    // Save: Save Editor content as .asm file to client's local filesystem
+    // Save: Save Editor content as .asm or .s file to client's local filesystem
     function saveClick(){
         if(globalThis.editor){
             let content = globalThis.editor.getValue()
@@ -108,12 +108,13 @@
     function updateFilename(fn) { openedFile.set(fn) }
 
 
-    
+
     /* SIMULATOR MENU CONTROLS */
 
     // Reload: Load code into memory, set PC to start of program, restore Processor Status Register to defaults, set clock-enable
     function reloadClick(){
         if(globalThis.simulator){
+            globalThis.simulator.clearMessageQueue()
             globalThis.simulator.reloadProgram()
             reloadOverride.set([true,true])
         }
@@ -122,6 +123,7 @@
     // Reinitialize: Set all of memory to zeroes except for operating system code
     function reinitializeClick(){
         if(globalThis.simulator){
+            globalThis.simulator.clearMessageQueue()
             globalThis.simulator.resetMemory()
             reloadOverride.set([true,false])
         }
@@ -130,6 +132,7 @@
     // Randomize: Randomize all of memory except for operating system code
     function randomizeClick(){
         if(globalThis.simulator){
+            globalThis.simulator.clearMessageQueue()
             globalThis.simulator.randomizeMemory()
             reloadOverride.set([true,false])
         }

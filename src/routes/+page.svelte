@@ -1,4 +1,4 @@
-<!-- 
+<!--
     +page.svelte
         Root page application window component
 -->
@@ -42,7 +42,7 @@
             };
 
             Monaco = await import('monaco-editor');
-            
+
             Monaco.languages.register({
                 id: 'lc3Asm'
             });
@@ -55,7 +55,15 @@
                     "add", "and", "br", "brn", "brz", "brp",
                     "brnz", "brnp", "brzp", "brnzp", "jmp", "jsr",
                     "jsrr", "ld", "ldi", "ldr", "lea", "not",
-                    "ret", "rti", "st", "sti", "str", "trap"
+                    "ret", "rti", "st", "sti", "str", "trap",
+
+                    "adc", "asr", "b",
+                    "beq", "bne", "bcs", "bcc", "bmi", "bpl", "bvs",
+                    "bvc", "bhi", "bls", "bge", "blt", "bgt", "ble",
+                    "bic", "bl", "bx", "cmn", "cmp", "eor", "ldmia",
+                    "ldrb", "ldrh", "lsl", "ldsb", "ldsh", "lsr", "mov",
+                    "mul", "mvn", "neg", "orr", "pop", "push", "ror",
+                    "sbc", "stmia", "strb", "strh", "sub", "tst", "swi",
                 ],
 
                 trapAliases: [
@@ -67,7 +75,8 @@
                 ],
 
                 directives: [
-                    ".end", ".fill", ".blkw", ".stringz"
+                    ".end", ".fill", ".blkw", ".stringz",
+                    ".global", ".text", ".data",
                 ],
 
                 digits: /\d+/,
@@ -211,7 +220,7 @@
                 const keyCode = KeyCodes.getAscii(event.key)
                 if (typeof(keyCode) != 'undefined')
                     globalThis.simulator.keyboardInterrupt(keyCode - 96)
-                
+
                 reloadOverride.set([true,false])
             }
         }
@@ -225,7 +234,7 @@
             const keyCode = KeyCodes.getAscii(event.key)
             if (typeof(keyCode) != 'undefined')
                 globalThis.simulator.keyboardInterrupt(keyCode)
-            
+
             reloadOverride.set([true,false])
         }
 	}
@@ -258,9 +267,9 @@
     }
 </script>
 
-<svelte:window 
-    on:keydown={keyDown} 
-    on:keypress={keyRelease} 
+<svelte:window
+    on:keydown={keyDown}
+    on:keypress={keyRelease}
     on:click={blurConsole}
     on:beforeunload={exitPrompt}
     role="application"

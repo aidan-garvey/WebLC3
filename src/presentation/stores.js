@@ -1,6 +1,6 @@
 /*
  * stores.js
- * 
+ *
  *  Store data to pass between UI components
  */
 
@@ -12,7 +12,7 @@ export const toggleHelp = writable(false)
 // Boolean: Dark mode
 export const darkMode = writable(true)
 
-// String: Filename of current .asm file
+// String: Filename of current assembly file
 export const openedFile = writable("untitled.asm")
 
 // String: Filename of assembled .obj file
