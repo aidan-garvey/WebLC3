@@ -174,11 +174,15 @@ export default class Simulator
                 UI.setSimulatorReady();
                 UI.update();
             }
-            else if (msg.type === Messages.MSG_QUEUE_END) {
-              // End of recent message queue, re-enable handling console messages
-              this.ignoreConsoleMessages = false;
-            } else if (msg.type === Messages.CONSOLE && !this.ignoreConsoleMessages)
-              UI.appendConsole(msg.message);
+            else if (msg.type === Messages.MSG_QUEUE_END)
+            {
+                // End of recent message queue, re-enable handling console messages
+                this.ignoreConsoleMessages = false;
+            }
+            else if (msg.type === Messages.CONSOLE && !this.ignoreConsoleMessages)
+            {
+                UI.appendConsole(msg.message);
+            }
         };
 
         this.simWorker.postMessage ({
