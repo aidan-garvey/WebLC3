@@ -8,7 +8,7 @@
  *      - StepControls.svelte
  */
 
-import { activeStoplight, consoleSelected, UIReady, updateMainButton } from "./stores"
+import { activeStoplight, consoleSelected, UIReady, updateMainButton } from "./stores";
 
 // Signal that UI is ready to update
 function update(){
@@ -22,8 +22,15 @@ function printConsole(msg){
 }
 
 
-// Append to Console with given string
+// Append to Console with given string. If string contains a form feed ('\f', xC)
+// then we clear the console and append the remainder of the output
 function appendConsole(msg){
+    let lastFormFeed = msg.lastIndexOf('\f');
+    if (lastFormFeed > 0) {
+        clearConsole();
+        msg = msg.substring(lastFormFeed+1);
+    } 
+
     if(msg)
         modifyConsole(msg, true)
 }

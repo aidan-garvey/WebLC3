@@ -37,6 +37,7 @@ export default class Parser
         ['\\', '\\'.charCodeAt(0)],
         ['\'', '\''.charCodeAt(0)],
         ['\"', '\"'.charCodeAt(0)],
+        ['f', '\f'.charCodeAt(0)],
         ['n', '\n'.charCodeAt(0)],
         ['r', '\r'.charCodeAt(0)],
         ['t', '\t'.charCodeAt(0)]
